@@ -27,7 +27,7 @@ typedef struct floppy_disk {
 } floppy_disk_t;
 
 // 初始化软盘
-void floppy_disk_init();
+void floppy_disk_init(void);
 
 // 设置要读取的位置
 floppy_disk_error_t floppy_disk_set_disk(unsigned int disk);
@@ -41,7 +41,17 @@ floppy_disk_error_t floppy_disk_set_pos(unsigned int disk,
                                         unsigned int sector);
 
 // 读取扇区
-void floppy_read_sector(unsigned char buf[SECTOR_SIZE]);
+void floppy_disk_read_sector(unsigned char buf[SECTOR_SIZE]);
 
 // 写入扇区
-void floppy_write_sector(unsigned char buf[SECTOR_SIZE]);
+void floppy_disk_write_sector(const unsigned char buf[SECTOR_SIZE]);
+
+// 打印出错误信息
+void floppy_disk_error_display(floppy_disk_error_t error);
+
+// 打印出当前软盘信息
+void floppy_disk_display();
+
+#ifdef __TEST__
+void floppy_disk_test(void);
+#endif

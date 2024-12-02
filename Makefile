@@ -11,10 +11,11 @@ CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)gcc
 
+DEFINE_FLAGS = -D __TEST__
 DEBUG_FLAGS = -g
 # RELEASE_FLAGS = -O3
 
-C_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
+C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 
@@ -34,7 +35,7 @@ build: mk-dir boot-img $(BUILD_DIR)/$(TARGET)
 
 ## 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
-	$(CC) -c $(C_FLAGS) -o $@ $<
+	$(CC) $(C_FLAGS) -o $@ $<
 
 # 将所有的.o文件链接成可执行文件
 $(BUILD_DIR)/$(TARGET): $(OBJ)
@@ -43,8 +44,11 @@ $(BUILD_DIR)/$(TARGET): $(OBJ)
 boot-img: mk-dir
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
 
-run:
+run: build
 	$(BUILD_DIR)/$(TARGET)
+
+test: build
+	$(BUILD_DIR)/$(TARGET) --test
 
 clean:
 	- rm -rf $(BUILD_DIR)
