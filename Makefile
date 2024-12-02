@@ -1,28 +1,45 @@
 #!/bin/sh
 
-DIR=${shell pwd}
-BUILD_DIR=$(DIR)/build
+DIR = ${shell pwd}
+BUILD_DIR = $(DIR)/build
+TARGET = mk-disk
 
-DEBUG_FLAG=-g
-# RELEASE_FLAG=-O3
-BUILD_FLAG=$(RELEASE_FLAG) $(DEBUG_FLAG)
-LD_FLAG=
+CC = gcc
+DEBUG_FLAGS = -g
+# RELEASE_FLAGS = -O3
 
-all: disk-img
+C_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
 
-disk-img: boot-img
-	gcc $(BUILD_FLAG) $(LD_FLAG) -o $(BUILD_DIR)/mk-disk mk-disk.c && $(BUILD_DIR)/mk-disk
+LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 
-boot-img: build-dir
+EXCLUDE_SRC_DIR := grep -v build | grep -v .git
+
+C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
+vpath %.c $(sort $(dir $(C_SRC)))
+
+OBJ = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SRC:%.c=%.o)))
+vpath %.o $(sort $(dir $(OBJ))) # 将.o文件加入到vpath中
+
+.PHONY: all run clean
+
+all: mk-dir boot-img build
+
+$(BUILD_DIR)/%.o: %.c | $(DIR)
+	$(CC) -c $(C_FLAGS) -o $@ $<
+
+build: $(OBJ)
+	$(CC) $(LD_FLAGS) $^ -o $(BUILD_DIR)/$(TARGET)
+
+boot-img: mk-dir
 	nasm -o $(BUILD_DIR)/boot.img boot.asm
 
-floppy: floppy.c
-	gcc $(BUILD_FLAG) $(LD_FLAG) -c -o $(BUILD_DIR)/floppy.o $^
+run:
+	$(BUILD_DIR)/$(TARGET)
 
 clean:
-	- rm boot.img disk.img mk-disk
 	- rm -rf $(BUILD_DIR)
 
-build-dir:
+mk-dir:
 	- mkdir -p $(BUILD_DIR)
+
 
