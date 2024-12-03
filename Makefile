@@ -6,6 +6,7 @@ BUILD_DIR = $(DIR)/build
 TARGET = mk-disk
 BOOT_IMAGE = boot.img
 DISK_IMAGE = disk.img
+KERNEL_IMAGE = kernel.img
 
 CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
@@ -31,7 +32,7 @@ vpath %.o $(sort $(dir $(OBJ))) # 将.o文件加入到vpath中
 
 all: build run
 
-build: mk-dir boot-img $(BUILD_DIR)/$(TARGET)
+build: mk-dir boot-img kernel-img $(BUILD_DIR)/$(TARGET)
 
 ## 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
@@ -43,6 +44,9 @@ $(BUILD_DIR)/$(TARGET): $(OBJ)
 
 boot-img: mk-dir
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
+
+kernel-img: mk-dir
+	nasm -o $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
 
 run: build
 	$(BUILD_DIR)/$(TARGET)
