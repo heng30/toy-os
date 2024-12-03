@@ -9,8 +9,7 @@ jmp   LABEL_BEGIN
 LABEL_GDT:          Descriptor        0,            0,                   0
 LABEL_DESC_CODE32:  Descriptor        0,      SegCode32Len - 1,       DA_C + DA_32
 LABEL_DESC_VIDEO:   Descriptor     0B8000h,         0ffffh,           DA_DRW
-LABEL_DESC_VRAM:    Descriptor        0,         0ffffffffh,            DA_DRW
-LABEL_DESC_STACK:   Descriptor        0,             TopOfStack,        DA_DRWA+DA_32
+LABEL_DESC_5M:      Descriptor     0500000h,        0ffffh,           DA_DRW
 
 GdtLen     equ    $ - LABEL_GDT
 GdtPtr     dw     GdtLen - 1
@@ -18,8 +17,7 @@ GdtPtr     dw     GdtLen - 1
 
 SelectorCode32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
 SelectorVideo     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
-SelectorStack     equ   LABEL_DESC_STACK  -  LABEL_GDT
-SelectorVram      equ   LABEL_DESC_VRAM   -  LABEL_GDT
+Selector5M        equ   LABEL_DESC_5M - LABEL_GDT
 
 [SECTION  .s16]
 [BITS  16]
@@ -30,11 +28,6 @@ LABEL_BEGIN:
      mov   ss, ax
      mov   sp, 0100h
 
-    ; 设置色彩显示模式
-     mov   al, 0x13
-     mov   ah, 0
-     int   0x10
-
      xor   eax, eax
      mov   ax,  cs
      shl   eax, 4
@@ -43,16 +36,6 @@ LABEL_BEGIN:
      shr   eax, 16
      mov   byte [LABEL_DESC_CODE32 + 4], al
      mov   byte [LABEL_DESC_CODE32 + 7], ah
-
-    ; set stack for C langauge
-    xor eax, eax
-    mov ax, cs
-    shl eax, 4
-    add eax, LABEL_STACK
-    mov word [LABEL_DESC_STACK + 2], ax
-    shr eax, 16
-    mov byte [LABEL_DESC_STACK + 4], al
-    mov byte [LABEL_DESC_STACK + 7], ah
 
      xor   eax, eax
      mov   ax, ds
@@ -77,26 +60,46 @@ LABEL_BEGIN:
      [SECTION .s32]
      [BITS  32]
 LABEL_SEG_CODE32:
-    mov   ax, SelectorStack
-    mov   ss, ax
-    mov esp, TopOfStack
+    mov   ax, SelectorVideo
+    mov   gs, ax
 
-    mov ax, SelectorVram
-    mov ds, ax
+    mov   si, msg
+    mov   ax, Selector5M    ;用 es 指向5M内存描述符
+    mov   es, ax
+    mov   edi, 0
 
-C_CODE_ENTRY:
-    %include "kernel/build/write_vga.asm"
+write_msg_to_5M:  ;将si指向的字符一个个写到5M内存处
+    cmp   byte [si], 0
+    je    prepare_to_show_char
+    mov   al, [si]
+    mov   [es:edi], al
+    add   edi, 1
+    add   si, 1
+    jmp   write_msg_to_5M
 
-io_hlt:
-    hlt
-    ret
 
-SegCode32Len  equ  $ - LABEL_SEG_CODE32
+prepare_to_show_char:
+    mov   ebx, 10
+    mov   ecx, 2
+    mov   si, 0
 
-[SECTION .gs]
-ALIGN 32
-[BITS 32]
-LABEL_STACK:
-    times 512 db 0 ; 分配512字节的堆栈
+showChar:
+    mov   edi, (80*11)
+    add   edi, ebx
+    mov   eax, edi
+    mul   ecx
+    mov   edi, eax
+    mov   ah, 0ch
+    mov   al, [es:si]  ;由于es指向描述符LABEL_DESC_5M， 所以es:si 表示的地址是从5M开始的内存,si表示从5M开始后的偏移
+    cmp   al, 0
+    je    end
+    add   ebx,1
+    add   si, 1
+    mov   [gs:edi], ax
+    jmp   showChar
+end:
+    jmp   $
+    msg:
+    DB     "This string is writeen to 5M memory", 0
 
-TopOfStack equ $ - LABEL_STACK
+SegCode32Len   equ  $ - LABEL_SEG_CODE32

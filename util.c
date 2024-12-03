@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 #include "util.h"
 #include "logger.h"
@@ -18,6 +19,20 @@ int rand_num(int l, int h, unsigned int seed) {
 int bound(int n, int l, int h) {
     assert(l <= h);
     return min(max(n, l), h);
+}
+
+long file_size(const char *filename) {
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) return -1;
+
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        fclose(fp);
+        return -1;
+    }
+
+    long size = ftell(fp);
+    fclose(fp);
+    return size;
 }
 
 #ifdef __TEST__

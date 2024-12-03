@@ -20,7 +20,7 @@ C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -W
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 
-EXCLUDE_SRC_DIR := grep -v build | grep -v .git
+EXCLUDE_SRC_DIR := grep -v build | grep -v .git | grep -v kernel
 
 C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
 vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中
@@ -45,8 +45,11 @@ $(BUILD_DIR)/$(TARGET): $(OBJ)
 boot-img: mk-dir
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
 
-kernel-img: mk-dir
+kernel-img: mk-dir build-kernel
 	nasm -o $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
+
+build-kernel:
+	cd kernel && make && cd ..
 
 run: build
 	$(BUILD_DIR)/$(TARGET)
@@ -55,6 +58,7 @@ test: build
 	$(BUILD_DIR)/$(TARGET) --test
 
 clean:
+	cd kernel && make clean && cd ..
 	- rm -rf $(BUILD_DIR)
 
 mk-dir:

@@ -8,7 +8,6 @@
 #include "util.h"
 
 #define BOOT_SIZE 512
-#define KERNEL_SIZE 512
 
 static unsigned char BOOT_IMAGE[BOOT_SIZE] = {
     [0 ...(BOOT_SIZE - 3)] = 0,
@@ -16,7 +15,8 @@ static unsigned char BOOT_IMAGE[BOOT_SIZE] = {
     [BOOT_SIZE - 1] = 0xaa,
 };
 
-static unsigned char KERNEL_IMAGE[KERNEL_SIZE] = {0};
+static unsigned char *KERNEL_IMAGE = NULL;
+static int KERNEL_SIZE = 0;
 
 static void _load_boot(char *boot_file) {
     FILE *fp = fopen(boot_file, "rb");
@@ -33,6 +33,19 @@ static void _load_boot(char *boot_file) {
 }
 
 static void _load_kernel(char *kernel_file) {
+    long fsize = file_size(kernel_file);
+    assert(fsize > 0);
+
+    int sector_count = fsize / SECTOR_SIZE;
+    if (fsize % SECTOR_SIZE != 0)
+        sector_count++;
+
+    debug("disk.img file size is %ld, sector count is %d", fsize, sector_count);
+
+    KERNEL_SIZE = sector_count * SECTOR_SIZE;
+    KERNEL_IMAGE = (unsigned char *)malloc(KERNEL_SIZE);
+    assert(KERNEL_IMAGE);
+
     FILE *fp = fopen(kernel_file, "rb");
     assert(fp);
 
@@ -53,13 +66,15 @@ static void _mk_disk(char *disk_file) {
     floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 0, 0);
     floppy_disk_write_sector(BOOT_IMAGE);
 
-    floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 1, 1);
-    floppy_disk_write_sector(KERNEL_IMAGE);
+    // 写入kernel到一个柱面
+    int sector_count = KERNEL_SIZE / SECTOR_SIZE;
+    assert(sector_count <= SECTOR_COUNT); // 超过一个柱面
+    for (int i = 0; i < sector_count; i++) {
+        floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 1, i);
+        floppy_disk_write_sector(KERNEL_IMAGE);
 
-    // 写入数据到第0号磁盘，第1号柱面，第2个扇区
-    // unsigned char msg[BOOT_SIZE] = "It's a text from cylinder 1 and sector 2.";
-    // floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 1, 1);
-    // floppy_disk_write_sector(msg);
+        debug("write a sector in cylinder 1 and sector %d", i + 1);
+    }
 
     floppy_disk_make(disk_file);
 

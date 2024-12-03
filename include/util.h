@@ -12,6 +12,9 @@ int min(int a, int b);
 // if l < n < h, return n;
 int bound(int n, int l, int h);
 
+// 获取文件大小
+long file_size(const char *filename);
+
 #ifdef __TEST__
 void util_test(void);
 #endif
