@@ -11,6 +11,7 @@
 
 #define CYLINDER_SIZE (SECTOR_COUNT * SECTOR_SIZE)      // 一个柱面的大小
 #define HALF_DISK_SIZE (CYLINDER_COUNT * CYLINDER_SIZE) // 一个盘面的大小
+#define DISK_SIZE (HALF_DISK_SIZE * 2)                  // 一个磁盘的大小
 
 floppy_disk_t g_floppy_disk;
 
@@ -53,8 +54,8 @@ floppy_disk_error_t floppy_disk_set_sector(unsigned int sector) {
     return FLOPPY_DISK_ERROR_NONE;
 }
 
-floppy_disk_error_t floppy_disk_set_pos(unsigned int disk,
-                                        floppy_disk_magnetic_head_t head,
+floppy_disk_error_t floppy_disk_set_pos(floppy_disk_magnetic_head_t head,
+                                        unsigned int disk,
                                         unsigned int cylinder,
                                         unsigned int sector) {
     floppy_disk_error_t error = FLOPPY_DISK_ERROR_NONE;
@@ -95,6 +96,38 @@ void floppy_disk_write_sector(const unsigned char buf[SECTOR_SIZE]) {
     memcpy(sector_bytes_offset, buf, SECTOR_SIZE);
 }
 
+// 软盘的结构：盘面0, 柱面0 -> 盘面1, 柱面0 -> 盘面0, 柱面1 -> 盘面1, 柱面1 ->
+// ...
+void floppy_disk_make(const char *disk_file) {
+    unsigned char *disk =
+        (unsigned char *)malloc(DISK_SIZE * FLOPPY_DISK_COUNT);
+    assert(disk);
+
+    for (int i = 0; i < FLOPPY_DISK_COUNT; i++) {
+        disk = disk + i * DISK_SIZE;
+        for (int j = 0; j < CYLINDER_COUNT; j++) {
+            // 复制第一个磁头的柱面
+            memcpy(disk + (j * 2) * CYLINDER_SIZE,
+                   g_floppy_disk.m_data[i][0] + j * CYLINDER_SIZE,
+                   CYLINDER_SIZE);
+
+            // 复制第二个磁头的柱面
+            memcpy(disk + (j * 2 + 1) * CYLINDER_SIZE,
+                   g_floppy_disk.m_data[i][1] + j * CYLINDER_SIZE,
+                   CYLINDER_SIZE);
+        }
+    }
+
+    FILE *fp = fopen(disk_file, "wb");
+    assert(fp);
+
+    int wb = fwrite(disk, 1, DISK_SIZE * FLOPPY_DISK_COUNT, fp);
+    assert(wb == DISK_SIZE * FLOPPY_DISK_COUNT);
+
+    fclose(fp);
+    free(disk);
+}
+
 void floppy_disk_error_display(floppy_disk_error_t error) {
     switch (error) {
     FLOPPY_DISK_ERROR_DISK:
@@ -133,7 +166,7 @@ void floppy_disk_test(void) {
         unsigned int cylinder = rand_num(0, CYLINDER_COUNT - 1, i);
         unsigned int sector = rand_num(0, SECTOR_COUNT - 1, i);
 
-        assert(floppy_disk_set_pos(disk, head, cylinder, sector) ==
+        assert(floppy_disk_set_pos(head, disk, cylinder, sector) ==
                FLOPPY_DISK_ERROR_NONE);
 
         // floppy_disk_display();

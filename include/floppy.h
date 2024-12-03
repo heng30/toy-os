@@ -20,10 +20,10 @@ typedef struct floppy_disk {
     unsigned char *m_data[FLOPPY_DISK_COUNT][2];
 
     // 设置要读取的扇区位置
-    unsigned int m_disk;                // 第几个磁盘
-    floppy_disk_magnetic_head_t m_head; // 磁头位置
-    unsigned int m_cylinder;            // 第几个柱面
-    unsigned int m_sector;              // 第几个扇区
+    unsigned int m_disk;                // 第几个磁盘,从0开始计数。汇编从0开始计数
+    floppy_disk_magnetic_head_t m_head; // 磁头位置, 0/1
+    unsigned int m_cylinder;            // 第几个柱面,从0开始计数。汇编从0开始计数
+    unsigned int m_sector;              // 第几个扇区,从0开始计数。汇编从1开始计数
 } floppy_disk_t;
 
 // 初始化软盘
@@ -35,8 +35,8 @@ void floppy_disk_set_head(enum FLOPPY_DISK_MAGNETIC_HEAD head);
 floppy_disk_error_t floppy_disk_set_cylinder(unsigned int cylinder);
 floppy_disk_error_t floppy_disk_set_sector(unsigned int sector);
 
-floppy_disk_error_t floppy_disk_set_pos(unsigned int disk,
-                                        floppy_disk_magnetic_head_t head,
+floppy_disk_error_t floppy_disk_set_pos(floppy_disk_magnetic_head_t head,
+                                        unsigned int disk,
                                         unsigned int cylinder,
                                         unsigned int sector);
 
@@ -45,6 +45,9 @@ void floppy_disk_read_sector(unsigned char buf[SECTOR_SIZE]);
 
 // 写入扇区
 void floppy_disk_write_sector(const unsigned char buf[SECTOR_SIZE]);
+
+// 创建一个软盘镜像文件
+void floppy_disk_make(const char *disk_file);
 
 // 打印出错误信息
 void floppy_disk_error_display(floppy_disk_error_t error);
