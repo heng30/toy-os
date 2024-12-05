@@ -28,7 +28,7 @@ vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中
 OBJ = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SRC:%.c=%.o)))
 vpath %.o $(sort $(dir $(OBJ))) # 将.o文件加入到vpath中
 
-.PHONY: all build run clean
+.PHONY: all build-font build run clean
 
 all: build run
 
@@ -50,6 +50,9 @@ kernel-img: mk-dir build-kernel
 
 build-kernel:
 	cd kernel && make && cd ..
+
+build-font: mk-dir $(BUILD_DIR)/$(TARGET)
+	$(BUILD_DIR)/$(TARGET) --font
 
 run: build
 	$(BUILD_DIR)/$(TARGET)

@@ -107,13 +107,13 @@ C_CODE_ENTRY:
     ; %include "kernel/build/write_vga_desktop_single_char.asm"
     ; %include "kernel/build/palette_table_rgb.asm"
 
-    ; jmp write_vga_desktop_system_font
-    ; %include "kernel/build/write_vga_desktop_system_font.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-    jmp write_vga_desktop_string
-    %include "kernel/build/write_vga_desktop_string.asm"
+    jmp write_vga_desktop_system_font
+    %include "kernel/build/write_vga_desktop_system_font.asm"
     %include "kernel/build/palette_table_rgb.asm"
+
+    ; jmp write_vga_desktop_string
+    ; %include "kernel/build/write_vga_desktop_string.asm"
+    ; %include "kernel/build/palette_table_rgb.asm"
 
 IO_CODE_ENTRY:
     %include "io.asm"

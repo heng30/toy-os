@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "logger.h"
@@ -32,7 +31,7 @@ typedef struct {
     unsigned char m_data[16]; // 16 bytes per character
 } font_char_t;
 
-unsigned char line2byte(const char *line) {
+static unsigned char _line2byte(const char *line) {
     unsigned char b = 0;
     for (int i = 0; i < 8; i++) {
         if (line[i] == '*') {
@@ -58,12 +57,12 @@ void mk_font(const char *filename) {
             font_char_t font_char;
             for (int i = 0; i < 16; i++) {
                 fgets(line, sizeof(line), fp_in);
-                font_char.m_data[i] = line2byte(line);
+                font_char.m_data[i] = _line2byte(line);
             }
 
             fprintf(fp_out, "db ");
             for (int i = 0; i < 16; i++) {
-                fprintf(fp_in, "0x%02X", font_char.m_data[i]);
+                fprintf(fp_out, "0x%02X", font_char.m_data[i]);
                 if (i < 15)
                     fprintf(fp_out, ", ");
             }

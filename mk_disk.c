@@ -5,6 +5,7 @@
 
 #include "floppy.h"
 #include "logger.h"
+#include "mk_font.h"
 #include "util.h"
 
 #define BOOT_SIZE 512
@@ -88,13 +89,17 @@ static void _test() {
 #endif
 
 int main(int argc, char *argv[]) {
-    if (argc > 1 && !strcmp(argv[1], "--test")) {
+    if (argc > 1) {
+        if (!strcmp(argv[1], "--test")) {
 #ifdef __TEST__
-        _test();
+            _test();
 #else
-        debug("You should compile with `__TEST__` macro definition to run "
-              "`test()` function");
+            debug("You should compile with `__TEST__` macro definition to run "
+                  "`test()` function");
 #endif
+        } else if (!strcmp(argv[1], "--font")) {
+            mk_font("./res/system_font.txt");
+        }
         return 0;
     }
 
