@@ -38,7 +38,7 @@ readFloppy:
     mov bx, load_addr ; ex:bx 存储缓冲区. address = ex * 16 + bx. 读入内核到0x8000
 
     mov ah, 0x02 ; 读盘操作
-    mov al, 2  ; 连续读取几个扇区
+    mov al, 18  ; 连续读取几个扇区
     mov dl, 0 ; 驱动器编号, 只有一个磁盘，所以这里写死为0
 
     int 0x13 ; 调用bios中断实现磁盘读取功能

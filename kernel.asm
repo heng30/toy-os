@@ -2,6 +2,8 @@
 
 org   0x9000
 
+VRAM_ADDRESS  equ  0x000a0000
+
 jmp   LABEL_BEGIN
 
 [SECTION .gdt]
@@ -44,7 +46,7 @@ LABEL_BEGIN:
      mov   byte [LABEL_DESC_CODE32 + 4], al
      mov   byte [LABEL_DESC_CODE32 + 7], ah
 
-    ; set stack for C langauge
+    ; 设置堆栈描述符
     xor eax, eax
     mov ax, cs
     shl eax, 4
@@ -77,6 +79,7 @@ LABEL_BEGIN:
      [SECTION .s32]
      [BITS  32]
 LABEL_SEG_CODE32:
+    ; 初始化堆栈
     mov   ax, SelectorStack
     mov   ss, ax
     mov esp, TopOfStack
@@ -85,11 +88,23 @@ LABEL_SEG_CODE32:
     mov ds, ax
 
 C_CODE_ENTRY:
-    %include "kernel/build/write_vga.asm"
+    ; jmp write_vga
+    ; %include "kernel/build/write_vga.asm"
 
-io_hlt:
-    hlt
-    ret
+    ; jmp write_vga_palette
+    ; %include "kernel/build/write_vga_palette.asm"
+    ; %include "kernel/build/palette_table_rgb.asm"
+
+    ; jmp write_vga_rectangle
+    ; %include "kernel/build/write_vga_rectangle.asm"
+    ; %include "kernel/build/palette_table_rgb.asm"
+
+    jmp write_vga_desktop
+    %include "kernel/build/write_vga_desktop.asm"
+    %include "kernel/build/palette_table_rgb.asm"
+
+IO_CODE_ENTRY:
+    %include "io.asm"
 
 SegCode32Len  equ  $ - LABEL_SEG_CODE32
 

@@ -50,10 +50,8 @@ static void _load_kernel(char *kernel_file) {
     assert(fp);
 
     int rb = fread(KERNEL_IMAGE, 1, KERNEL_SIZE, fp);
-    assert(rb > 0);
+    assert(rb == fsize);
 
-    // make sure loading the whole kernel image
-    assert(feof(fp));
     fclose(fp);
 
     debug("kernel image size is %d bytes", rb);
@@ -71,7 +69,7 @@ static void _mk_disk(char *disk_file) {
     assert(sector_count <= SECTOR_COUNT); // 超过一个柱面
     for (int i = 0; i < sector_count; i++) {
         floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 1, i);
-        floppy_disk_write_sector(KERNEL_IMAGE);
+        floppy_disk_write_sector(KERNEL_IMAGE + i * SECTOR_SIZE);
 
         debug("write a sector in cylinder 1 and sector %d", i + 1);
     }
