@@ -30,7 +30,7 @@ vpath %.o $(sort $(dir $(OBJ))) # 将.o文件加入到vpath中
 
 .PHONY: all build-font build run clean
 
-all: build run
+all: run
 
 build: mk-dir boot-img kernel-img $(BUILD_DIR)/$(TARGET)
 

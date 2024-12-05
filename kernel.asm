@@ -7,21 +7,21 @@ VRAM_ADDRESS  equ  0x000a0000
 jmp   LABEL_BEGIN
 
 [SECTION .gdt]
- ;                                  段基址          段界限                属性
-LABEL_GDT:          Descriptor        0,            0,                   0
-LABEL_DESC_CODE32:  Descriptor        0,      SegCode32Len - 1,       DA_C + DA_32
-LABEL_DESC_VIDEO:   Descriptor     0B8000h,         0ffffh,           DA_DRW
-LABEL_DESC_VRAM:    Descriptor        0,         0ffffffffh,            DA_DRW
-LABEL_DESC_STACK:   Descriptor        0,             TopOfStack,        DA_DRWA+DA_32
+ ;                                  段基址          段界限                  属性
+LABEL_GDT:          Descriptor        0,            0,                      0
+LABEL_DESC_CODE32:  Descriptor        0,            SEG_CODE32_LEN - 1,     DA_C + DA_32
+LABEL_DESC_VIDEO:   Descriptor        0B8000h,      0ffffh,                 DA_DRW
+LABEL_DESC_VRAM:    Descriptor        0,            0ffffffffh,             DA_DRW
+LABEL_DESC_STACK:   Descriptor        0,            TOP_OF_STACK,           DA_DRWA+DA_32
 
 GdtLen     equ    $ - LABEL_GDT
 GdtPtr     dw     GdtLen - 1
            dd     0
 
-SelectorCode32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
-SelectorVideo     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
-SelectorStack     equ   LABEL_DESC_STACK  -  LABEL_GDT
-SelectorVram      equ   LABEL_DESC_VRAM   -  LABEL_GDT
+SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
+SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
+SELECTOR_STACK     equ   LABEL_DESC_STACK  -  LABEL_GDT
+SELECTOR_VRAM      equ   LABEL_DESC_VRAM   -  LABEL_GDT
 
 [SECTION  .s16]
 [BITS  16]
@@ -74,54 +74,30 @@ LABEL_BEGIN:
      or    eax , 1
      mov   cr0, eax
 
-     jmp   dword  SelectorCode32: 0
+     jmp   dword  SELECTOR_CODE32: 0
 
      [SECTION .s32]
      [BITS  32]
 LABEL_SEG_CODE32:
     ; 初始化堆栈
-    mov   ax, SelectorStack
+    mov   ax, SELECTOR_STACK
     mov   ss, ax
-    mov esp, TopOfStack
+    mov esp, TOP_OF_STACK
 
-    mov ax, SelectorVram
+    mov ax, SELECTOR_VRAM
     mov ds, ax
 
 C_CODE_ENTRY:
-    ; jmp write_vga
-    ; %include "kernel/build/write_vga.asm"
+    %include "entry.asm"
 
-    ; jmp write_vga_palette
-    ; %include "kernel/build/write_vga_palette.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-    ; jmp write_vga_rectangle
-    ; %include "kernel/build/write_vga_rectangle.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-    ; jmp write_vga_desktop
-    ; %include "kernel/build/write_vga_desktop.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-    ; jmp write_vga_desktop_single_char
-    ; %include "kernel/build/write_vga_desktop_single_char.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-    jmp write_vga_desktop_system_font
-    %include "kernel/build/write_vga_desktop_system_font.asm"
-    %include "kernel/build/palette_table_rgb.asm"
-
-    ; jmp write_vga_desktop_string
-    ; %include "kernel/build/write_vga_desktop_string.asm"
-    ; %include "kernel/build/palette_table_rgb.asm"
-
-IO_CODE_ENTRY:
+IO_CODE:
     %include "io.asm"
 
-FONT_DATA:
+RES_DATA:
     %include "font_data.inc"
+    %include "kernel/build/cursor_icon.asm"
 
-SegCode32Len  equ  $ - LABEL_SEG_CODE32
+SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 
 [SECTION .gs]
 ALIGN 32
@@ -129,4 +105,4 @@ ALIGN 32
 LABEL_STACK:
     times 512 db 0 ; 分配512字节的堆栈
 
-TopOfStack equ $ - LABEL_STACK
+TOP_OF_STACK equ $ - LABEL_STACK
