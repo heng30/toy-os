@@ -6,7 +6,6 @@
 #include "floppy.h"
 #include "logger.h"
 
-#define CYLINDER_SIZE (SECTOR_COUNT * SECTOR_SIZE)      // 一个柱面的大小
 #define HALF_DISK_SIZE (CYLINDER_COUNT * CYLINDER_SIZE) // 一个盘面的大小
 #define DISK_SIZE (HALF_DISK_SIZE * 2)                  // 一个磁盘的大小
 

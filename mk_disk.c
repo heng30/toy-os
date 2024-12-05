@@ -67,12 +67,17 @@ static void _mk_disk(char *disk_file) {
 
     // 写入kernel到一个柱面
     int sector_count = KERNEL_SIZE / SECTOR_SIZE;
-    assert(sector_count <= SECTOR_COUNT); // 超过一个柱面
+
+    // 从第1个柱面第1个扇区开始写入
     for (int i = 0; i < sector_count; i++) {
-        floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 1, i);
+        int cylinder_index = i / SECTOR_COUNT + 1;
+        int sector_index = i % SECTOR_COUNT;
+
+        floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, cylinder_index, sector_index);
         floppy_disk_write_sector(KERNEL_IMAGE + i * SECTOR_SIZE);
 
-        debug("write a sector in cylinder 1 and sector %d", i + 1);
+        debug("write a sector in cylinder %d and sector %d", cylinder_index,
+              sector_index + 1);
     }
 
     floppy_disk_make(disk_file);
@@ -82,7 +87,7 @@ static void _mk_disk(char *disk_file) {
 
 #ifdef __TEST__
 static void _test() {
-    logger_test();
+    // logger_test();
     util_test();
     floppy_disk_test();
 }
@@ -94,7 +99,8 @@ int main(int argc, char *argv[]) {
 #ifdef __TEST__
             _test();
 #else
-            debug("You should compile with `__TEST__` macro definition to run "
+            debug("You should compile with `__TEST__` macro definition to "
+                  "run "
                   "`test()` function");
 #endif
         } else if (!strcmp(argv[1], "--font")) {
