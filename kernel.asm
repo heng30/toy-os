@@ -23,28 +23,41 @@ SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
 SELECTOR_STACK     equ   LABEL_DESC_STACK  -  LABEL_GDT
 SELECTOR_VRAM      equ   LABEL_DESC_VRAM   -  LABEL_GDT
 
+; 中断描述符
+LABEL_IDT:
+%rep  255
+    Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+%endrep
+
+IdtLen  equ $ - LABEL_IDT
+IdtPtr  dw  IdtLen - 1
+        dd  0
+
 [SECTION  .s16]
 [BITS  16]
 LABEL_BEGIN:
-     mov   ax, cs
-     mov   ds, ax
-     mov   es, ax
-     mov   ss, ax
-     mov   sp, 0100h
+    mov   ax, cs
+    mov   ds, ax
+    mov   es, ax
+    mov   ss, ax
+    mov   sp, 0100h
 
-    ; 设置色彩显示模式
-     mov   al, 0x13
-     mov   ah, 0
-     int   0x10
+     设置色彩显示模式
+    mov   al, 0x13
+    mov   ah, 0
+    int   0x10
 
-     xor   eax, eax
-     mov   ax,  cs
-     shl   eax, 4
-     add   eax, LABEL_SEG_CODE32
-     mov   word [LABEL_DESC_CODE32 + 2], ax
-     shr   eax, 16
-     mov   byte [LABEL_DESC_CODE32 + 4], al
-     mov   byte [LABEL_DESC_CODE32 + 7], ah
+    ; 初始花8259A芯片，开启中断处理
+    call init8259A
+
+    xor   eax, eax
+    mov   ax,  cs
+    shl   eax, 4
+    add   eax, LABEL_SEG_CODE32
+    mov   word [LABEL_DESC_CODE32 + 2], ax
+    shr   eax, 16
+    mov   byte [LABEL_DESC_CODE32 + 4], al
+    mov   byte [LABEL_DESC_CODE32 + 7], ah
 
     ; 设置堆栈描述符
     xor eax, eax
@@ -56,39 +69,61 @@ LABEL_BEGIN:
     mov byte [LABEL_DESC_STACK + 4], al
     mov byte [LABEL_DESC_STACK + 7], ah
 
-     xor   eax, eax
-     mov   ax, ds
-     shl   eax, 4
-     add   eax,  LABEL_GDT
-     mov   dword  [GdtPtr + 2], eax
+    xor   eax, eax
+    mov   ax, ds
+    shl   eax, 4
+    add   eax,  LABEL_GDT
+    mov   dword  [GdtPtr + 2], eax
 
-     lgdt  [GdtPtr]
+    lgdt  [GdtPtr]
 
-     cli   ;关中断
+    cli   ;关中断
 
-     in    al,  92h
-     or    al,  00000010b
-     out   92h, al
+    ; prepare for loading IDT
+    xor   eax, eax
+    mov   ax,  ds
+    shl   eax, 4
+    add   eax, LABEL_IDT
+    mov   dword [IdtPtr + 2], eax
+    lidt  [IdtPtr]
 
-     mov   eax, cr0
-     or    eax , 1
-     mov   cr0, eax
+    in    al,  92h
+    or    al,  00000010b
+    out   92h, al
 
-     jmp   dword  SELECTOR_CODE32: 0
+    mov   eax, cr0
+    or    eax , 1
+    mov   cr0, eax
 
-     [SECTION .s32]
-     [BITS  32]
+    jmp   dword  SELECTOR_CODE32: 0
+
+    %include "init_8259A.asm"
+
+    [SECTION .s32]
+    [BITS  32]
 LABEL_SEG_CODE32:
     ; 初始化堆栈
     mov   ax, SELECTOR_STACK
     mov   ss, ax
-    mov esp, TOP_OF_STACK
+    mov   esp, TOP_OF_STACK
 
-    mov ax, SELECTOR_VRAM
-    mov ds, ax
+    mov   ax, SELECTOR_VRAM
+    mov   ds, ax
+
+    mov   ax, SELECTOR_VIDEO
+    mov   gs, ax
+
+    sti ; 开中断
 
 C_CODE_ENTRY:
     %include "entry.asm"
+
+    jmp  $ ; 跳转到最后
+
+_SPURIOUS_HANDLER:
+SPURIOUS_HANDLER  equ _SPURIOUS_HANDLER - $$
+    call int_handler_from_c
+    iretd
 
 IO_CODE:
     %include "io.asm"

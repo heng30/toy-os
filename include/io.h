@@ -6,6 +6,7 @@ void io_hlt(void);
 // 关中断
 void io_cli(void);
 
+// 开中断
 void io_sti(void);
 
 void io_stihlt(void);
@@ -25,3 +26,6 @@ int io_load_eflags(void);
 
 // 设置eflags寄存器
 void io_store_eflags(int eflags);
+
+// 调试字符
+void debug_char(void);

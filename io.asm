@@ -58,3 +58,9 @@ io_store_eflags:
     push eax
     popfd ; 从堆栈中获取一个值，并赋值给eflags寄存器
     ret
+
+debug_char:
+    mov  ah, 0Ch
+    mov  al, 'U'
+    mov  [gs:((80 * 0 + 67) * 2)], ax
+    ret
