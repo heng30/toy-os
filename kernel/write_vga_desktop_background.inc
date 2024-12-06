@@ -1,23 +1,15 @@
 #include "colo8.h"
 #include "io.h"
 
-#define  PORT_KEYDAT  0x0060
-#define  PIC_OCW2     0x20
-
 typedef struct {
     unsigned char *m_vga_ram;
     short m_screen_x;
     short m_screen_y;
 } boot_info_t;
 
-typedef struct  {
-    unsigned char m_keybuf[32];
-    int m_next_r, m_next_w, m_len;
-} keybuf_t;
-
 extern char system_font[16];
-extern unsigned char palette_table_rgb[16 * 3];
 extern char cursor_icon[16][16];
+extern unsigned char palette_table_rgb[16 * 3];
 
 static boot_info_t g_boot_info = {
     .m_vga_ram = (unsigned char *)0xa0000,
@@ -27,7 +19,6 @@ static boot_info_t g_boot_info = {
 
 static char g_mcursor[256];
 static char g_keyval[5] = {'0', 'X', 0, 0, 0};
-static keybuf_t g_keybuf;
 
 void set_palette(int start, int end, unsigned char *rgb) {
     int eflags = io_load_eflags();

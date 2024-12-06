@@ -1,6 +1,6 @@
 init8259A:
      mov  al, 011h
-     out  02h, al
+     out  020h, al
      call io_delay
 
      out 0A0h, al
@@ -22,18 +22,18 @@ init8259A:
      out  0A1h, al
      call io_delay
 
-     mov  al, 003h
+     mov  al, 001h
      out  021h, al
      call io_delay
 
      out  0A1h, al
      call io_delay
 
-     mov  al, 11111101b ;允许键盘中断
-     out  21h, al
+     mov  al, 11111001b ;允许键盘中断
+     out  021h, al
      call io_delay
 
-     mov  al, 11111111b
+     mov  al, 11101111b ;允许鼠标中断
      out  0A1h, al
      call io_delay
 

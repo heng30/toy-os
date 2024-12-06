@@ -10,7 +10,7 @@ typedef struct {
 
 static keybuf_t g_keybuf;
 
-void keyboard_input(void) {
+void mouse_enable(void) {
     init_palette();
     init_mouse_cursor(g_mcursor, COL8_008484);
 
@@ -54,4 +54,8 @@ void int_handler_from_c(char *esp) {
         g_keybuf.m_len++;
         g_keybuf.m_next_w = (g_keybuf.m_next_w + 1) % 32;
     }
+}
+
+void int_handler_for_mouse(char *esp) {
+
 }

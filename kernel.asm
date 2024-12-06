@@ -25,9 +25,19 @@ SELECTOR_VRAM      equ   LABEL_DESC_VRAM   -  LABEL_GDT
 
 ; 中断描述符
 LABEL_IDT:
-%rep  255
+%rep  33
     Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
 %endrep
+
+.021h:
+    Gate SELECTOR_CODE32, KEYBOARD_HANDLER, 0, DA_386IGate
+
+%rep  10
+    Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+%endrep
+
+.2CH:
+    Gate SELECTOR_CODE32, MOUSE_HANDLER, 0, DA_386IGate
 
 IdtLen  equ $ - LABEL_IDT
 IdtPtr  dw  IdtLen - 1
@@ -121,24 +131,8 @@ C_CODE_ENTRY:
 
     jmp  $ ; 循环
 
-_SPURIOUS_HANDLER:
-SPURIOUS_HANDLER  equ _SPURIOUS_HANDLER - $$
-    push es
-    push ds
-    pushad
-    mov  eax, esp
-    push eax
-
-    call int_handler_from_c
-
-    pop  eax
-    mov  esp, eax
-    popad
-    pop  ds
-    pop  es
-    sti
-
-    iretd
+HANDLER_CODE:
+    %include "handler.asm"
 
 IO_CODE:
     %include "io.asm"

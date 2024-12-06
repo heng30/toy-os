@@ -9,6 +9,7 @@ void io_cli(void);
 // 开中断
 void io_sti(void);
 
+// 开中断并等待输入
 void io_stihlt(void);
 
 // 从port中读取数据
