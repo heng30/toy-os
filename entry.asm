@@ -29,6 +29,10 @@
 ; %include "kernel/build/write_vga_cursor.asm"
 ; %include "kernel/build/palette_table_rgb.asm"
 
-jmp write_vga_desktop_int_handler
-%include "kernel/build/write_vga_desktop_int_handler.asm"
+; jmp write_vga_desktop_int_handler
+; %include "kernel/build/write_vga_desktop_int_handler.asm"
+; %include "kernel/build/palette_table_rgb.asm"
+
+jmp keyboard_input
+%include "kernel/build/keyboard_input.asm"
 %include "kernel/build/palette_table_rgb.asm"

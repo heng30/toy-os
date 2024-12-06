@@ -1,24 +1,33 @@
 #include "colo8.h"
 #include "io.h"
 
-typedef struct boot_info {
+#define  PORT_KEYDAT  0x0060
+#define  PIC_OCW2     0x20
+
+typedef struct {
     unsigned char *m_vga_ram;
     short m_screen_x;
     short m_screen_y;
 } boot_info_t;
 
+typedef struct  {
+    unsigned char m_keybuf[32];
+    int m_next_r, m_next_w, m_len;
+} keybuf_t;
+
 extern char system_font[16];
 extern unsigned char palette_table_rgb[16 * 3];
 extern char cursor_icon[16][16];
 
-static char mcursor[256];
-static boot_info_t boot_info;
+static boot_info_t g_boot_info = {
+    .m_vga_ram = (unsigned char *)0xa0000,
+    .m_screen_x = 320,
+    .m_screen_y = 200,
+};
 
-void init_boot_info(boot_info_t *p) {
-    p->m_vga_ram = (unsigned char *)0xa0000;
-    p->m_screen_x = 320;
-    p->m_screen_y = 200;
-}
+static char g_mcursor[256];
+static char g_keyval[5] = {'0', 'X', 0, 0, 0};
+static keybuf_t g_keybuf;
 
 void set_palette(int start, int end, unsigned char *rgb) {
     int eflags = io_load_eflags();
@@ -112,14 +121,10 @@ void put_block(unsigned char *vram, int vxsize, int pxsize, int pysize, int px0,
         }
 }
 
-void write_vga_desktop_int_handler(void) {
-    init_boot_info(&boot_info);
-
-    unsigned char *vram = boot_info.m_vga_ram;
-    int xsize = boot_info.m_screen_x;
-    int ysize = boot_info.m_screen_y;
-
-    init_palette();
+void write_vga_desktop_background(void) {
+    unsigned char *vram = g_boot_info.m_vga_ram;
+    int xsize = g_boot_info.m_screen_x;
+    int ysize = g_boot_info.m_screen_y;
 
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     boxfill8(vram, xsize, COL8_C6C6C6, 0, ysize - 28, xsize - 1, ysize - 28);
@@ -141,24 +146,21 @@ void write_vga_desktop_int_handler(void) {
              ysize - 3);
     boxfill8(vram, xsize, COL8_FFFFFF, xsize - 3, ysize - 24, xsize - 3,
              ysize - 3);
-
-    init_mouse_cursor(mcursor, COL8_008484);
-    put_block(vram, xsize, 16, 16, 80, 80, mcursor, 16);
-
-    // 开中断
-    io_sti();
-
-    for (;;)
-        io_hlt();
 }
 
-void int_handler_from_c(char *esp) {
-    unsigned char *vram = boot_info.m_vga_ram;
-    int xsize = boot_info.m_screen_x;
-    int ysize = boot_info.m_screen_y;
+char char2hex(char c) {
+    if (c >= 10) {
+        return 'A' + c - 10;
+    }
 
-    boxfill8(vram, xsize, COL8_000000, 0, 0, 32 * 8 - 1, 15);
-    show_string(vram, xsize, 0, 0, COL8_FFFFFF, "PS/2 keyboard");
-    for (;;)
-        io_hlt();
+    return '0' + c;
+}
+
+char* char2hexstr(unsigned char c) {
+    char m = c % 16;
+    g_keyval[3] = char2hex(m);
+    c = c / 16;
+    g_keyval[2] = char2hex(c);
+
+    return g_keyval;
 }

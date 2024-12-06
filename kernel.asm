@@ -115,14 +115,29 @@ LABEL_SEG_CODE32:
 
     sti ; 开中断
 
+
 C_CODE_ENTRY:
     %include "entry.asm"
 
-    jmp  $ ; 跳转到最后
+    jmp  $ ; 循环
 
 _SPURIOUS_HANDLER:
 SPURIOUS_HANDLER  equ _SPURIOUS_HANDLER - $$
+    push es
+    push ds
+    pushad
+    mov  eax, esp
+    push eax
+
     call int_handler_from_c
+
+    pop  eax
+    mov  esp, eax
+    popad
+    pop  ds
+    pop  es
+    sti
+
     iretd
 
 IO_CODE:
@@ -141,3 +156,6 @@ LABEL_STACK:
     times 512 db 0 ; 分配512字节的堆栈
 
 TOP_OF_STACK equ $ - LABEL_STACK
+
+EOF_KERNEL:
+    db "EOF KERNEL"
