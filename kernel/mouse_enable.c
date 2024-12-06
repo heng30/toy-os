@@ -21,8 +21,8 @@ typedef struct {
     int m_p, m_q, m_size, m_free, m_flags;
 } fifo8_t;
 
-static unsigned char g_keybuf[32];
-static unsigned char g_mousebuf[128];
+static unsigned char g_keybuf[32] = {0};
+static unsigned char g_mousebuf[128] = {0};
 
 static fifo8_t g_keyinfo = {
     .m_buf = g_keybuf,

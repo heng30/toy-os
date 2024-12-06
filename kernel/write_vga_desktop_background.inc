@@ -17,7 +17,7 @@ static boot_info_t g_boot_info = {
     .m_screen_y = 200,
 };
 
-static char g_mcursor[256];
+static char g_mcursor[256] = {0};
 static char g_keyval[5] = {'0', 'X', 0, 0, 0};
 
 void set_palette(int start, int end, unsigned char *rgb) {
