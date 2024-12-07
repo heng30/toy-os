@@ -11,19 +11,23 @@ extern char system_font[16];
 extern char cursor_icon[16][16];
 extern unsigned char palette_table_rgb[16 * 3];
 
+// vga显示信息
 static boot_info_t g_boot_info = {
     .m_vga_ram = (unsigned char *)0xa0000,
     .m_screen_x = 320,
     .m_screen_y = 200,
 };
 
-static char g_mcursor[256] = {0};
+// 鼠标相关
+static const int g_xsize = 320, g_ysize = 200; // 屏幕大小
+static int g_mx = 80, g_my = 80; // 当前鼠标位置
+static char g_mcursor[256];
 static char g_keyval[5] = {'0', 'X', 0, 0, 0};
 
 void set_palette(int start, int end, unsigned char *rgb) {
     int eflags = io_load_eflags();
     io_cli();
-    io_out8(0x03c8, start); // set  palette number
+    io_out8(0x03c8, start);
     for (int i = start; i <= end; i++) {
         io_out8(0x03c9, rgb[0] / 4);
         io_out8(0x03c9, rgb[1] / 4);
@@ -154,4 +158,28 @@ char* char2hexstr(unsigned char c) {
     g_keyval[2] = char2hex(c);
 
     return g_keyval;
+}
+
+void show_debug_info(unsigned char data) {
+    static int pos_x = 0;
+    static int pos_y = 0;
+    char *pstr = char2hexstr(data);
+    unsigned char *vram = g_boot_info.m_vga_ram;
+    int xsize = g_boot_info.m_screen_x;
+    int ysize = g_boot_info.m_screen_y;
+
+    show_string(vram, xsize, pos_x, pos_y, COL8_FFFFFF, pstr);
+    pos_x += 32;
+
+    // 每10个字符换行
+    if (pos_x % xsize == 0) {
+        pos_x = 0;
+        pos_y += 16;
+    }
+
+    // 清除输出信息
+    if (pos_y > ysize - 29) {
+        pos_y = 0;
+        boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    }
 }

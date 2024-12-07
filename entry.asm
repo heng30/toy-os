@@ -37,6 +37,10 @@
 ; %include "kernel/build/keyboard_input.asm"
 ; %include "kernel/build/palette_table_rgb.asm"
 
-jmp mouse_enable
-%include "kernel/build/mouse_enable.asm"
+; jmp mouse_enable
+; %include "kernel/build/mouse_enable.asm"
+; %include "kernel/build/palette_table_rgb.asm"
+
+jmp mouse_move
+%include "kernel/build/mouse_move.asm"
 %include "kernel/build/palette_table_rgb.asm"

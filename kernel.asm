@@ -52,7 +52,7 @@ LABEL_BEGIN:
     mov   ss, ax
     mov   sp, 0100h
 
-     设置色彩显示模式
+    ; 设置色彩显示模式
     mov   al, 0x13
     mov   ah, 0
     int   0x10

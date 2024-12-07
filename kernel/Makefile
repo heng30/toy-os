@@ -10,7 +10,7 @@ DEFINE_FLAGS =
 DEBUG_FLAGS =
 RELEASE_FLAGS =
 
-C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O3 -I$(DIR)/include -I$(DIR)/../include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) --no-reorder-functions
+C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O3 -I$(DIR)/include -I$(DIR)/../include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 
