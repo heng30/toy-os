@@ -27,9 +27,9 @@ typedef struct {
 } fifo8_t;
 
 typedef struct {
-    char m_buf[3];
+    unsigned char m_buf[3];
     unsigned char m_phase;
-    char m_rel_x, m_rel_y, m_btn;
+    int m_rel_x, m_rel_y;
     int m_abs_x, m_abs_y;
 } mouse_dec_t;
 
@@ -59,7 +59,6 @@ static mouse_dec_t g_mdec = {
     .m_phase = MOUSE_PHASE_UNINIT,
     .m_rel_x = 0,
     .m_rel_y = 0,
-    .m_btn = 0,
     .m_abs_x = 80,
     .m_abs_y = 80,
 };
@@ -157,45 +156,76 @@ void show_mouse_error(unsigned char data) {
 }
 
 // FIXME: 鼠标的数据可能并不是以3个为一组发送的
-int mouse_decode(unsigned char dat) {
+// int mouse_decode(unsigned char dat) {
+//     // 初始化鼠标成功后会收到一个`0xfa`
+//     if (g_mdec.m_phase == MOUSE_PHASE_UNINIT) {
+//         if (dat == 0xfa) {
+//             g_mdec.m_phase = MOUSE_PHASE_ONE;
+//         }
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_ONE) {
+//         if ((dat & 0xc8) == 0x08) {
+//             g_mdec.m_buf[0] = dat;
+//             g_mdec.m_phase = MOUSE_PHASE_TWO;
+//         }
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_TWO) {
+//         g_mdec.m_buf[1] = dat;
+//         g_mdec.m_phase = MOUSE_PHASE_THREE;
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_THREE) {
+//         g_mdec.m_buf[2] = dat;
+//         g_mdec.m_phase = MOUSE_PHASE_ONE;
+//         g_mdec.m_btn = g_mdec.m_buf[0] & 0x07;
+//         g_mdec.m_rel_x = g_mdec.m_buf[1];
+//         g_mdec.m_rel_y = g_mdec.m_buf[2];
+
+//         if ((g_mdec.m_buf[0] & 0x10) != 0) {
+//             g_mdec.m_rel_x |= 0xff00;
+//         }
+
+//         if ((g_mdec.m_buf[0] & 0x20) != 0) {
+//             g_mdec.m_rel_y |= 0xff00;
+//         }
+
+//         g_mdec.m_rel_y = -g_mdec.m_rel_y;
+//         return 1;
+//     }
+
+//     return -1;
+// }
+
+// FIXME: 无法判断鼠标左右移动，应为都是返回0x00
+int mouse_decode(unsigned char data) {
     // 初始化鼠标成功后会收到一个`0xfa`
     if (g_mdec.m_phase == MOUSE_PHASE_UNINIT) {
-        if (dat == 0xfa) {
+        if (data == 0xfa) {
             g_mdec.m_phase = MOUSE_PHASE_ONE;
         }
         return 0;
     }
 
     if (g_mdec.m_phase == MOUSE_PHASE_ONE) {
-        if ((dat & 0xc8) == 0x08) {
-            g_mdec.m_buf[0] = dat;
-            g_mdec.m_phase = MOUSE_PHASE_TWO;
-        }
-        return 0;
-    }
+        g_mdec.m_rel_x = 0;
+        g_mdec.m_rel_y = 0;
 
-    if (g_mdec.m_phase == MOUSE_PHASE_TWO) {
-        g_mdec.m_buf[1] = dat;
-        g_mdec.m_phase = MOUSE_PHASE_THREE;
-        return 0;
-    }
-
-    if (g_mdec.m_phase == MOUSE_PHASE_THREE) {
-        g_mdec.m_buf[2] = dat;
-        g_mdec.m_phase = MOUSE_PHASE_ONE;
-        g_mdec.m_btn = g_mdec.m_buf[0] & 0x07;
-        g_mdec.m_rel_x = g_mdec.m_buf[1];
-        g_mdec.m_rel_y = g_mdec.m_buf[2];
-
-        if ((g_mdec.m_buf[0] & 0x10) != 0) {
-            g_mdec.m_rel_x |= 0xff00;
+        if (data == 0x00) {
+            g_mdec.m_rel_x = 1;
+            return 1;
         }
 
-        if ((g_mdec.m_buf[0] & 0x20) != 0) {
-            g_mdec.m_rel_y |= 0xff00;
+        char det = data & 0x0f;
+        if ((data >> 4) == 0x00) { // 向上移动
+            g_mdec.m_rel_y = -det - 1;
+        } else { // 向下移动
+            g_mdec.m_rel_y = 0x0f - det + 1;
         }
-
-        g_mdec.m_rel_y = -g_mdec.m_rel_y;
         return 1;
     }
 
@@ -208,10 +238,9 @@ void show_mouse_info(void) {
 
     io_sti();
 
-    show_debug_info(data);
+    // show_debug_info(data);
 
-    // BUG: 解析逻辑有问题
-    if (mouse_decode(data) != 0) {
+    if (mouse_decode(data) == 1) {
         erase_mouse(vram);
         compute_mouse_position();
         draw_mouse(vram);

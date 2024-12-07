@@ -32,11 +32,11 @@ vpath %.asm $(sort $(dir $(FINAL_ASM))) # 将.asm文件加入到vpath中
 
 all: mk-dir build
 
-## 从vpath中读取所有的.c文件，逐个编译成.o文件
+# 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
 	$(CC) $(C_FLAGS) -o $@ $<
 
-## 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
+# 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 	$(REVERT_ASM_TOOL) -fnasm $< $@
 
