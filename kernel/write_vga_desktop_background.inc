@@ -7,6 +7,14 @@ typedef struct {
     short m_screen_y;
 } boot_info_t;
 
+typedef struct {
+    unsigned int m_base_addr_low;
+    unsigned int m_base_addr_high;
+    unsigned int m_length_low;
+    unsigned int m_length_high;
+    unsigned int m_type;
+} addr_range_desc_t;
+
 extern char system_font[16];
 extern char cursor_icon[16][16];
 extern unsigned char palette_table_rgb[16 * 3];
@@ -159,6 +167,27 @@ char* char2hexstr(unsigned char c) {
     return g_keyval;
 }
 
+char *int2hexstr(unsigned int d) {
+    static char str[11];
+
+    str[0] = '0', str[1] = 'X', str[10] = 0;
+    for (int i = 2; i < 10; i++) {
+        str[i] = '0';
+    }
+
+    for (int p = 9; p > 1 && d > 0; p--) {
+        int e = d % 16;
+        d /= 16;
+        if (e >= 10) {
+            str[p] = 'A' + e - 10;
+        } else {
+            str[p] = '0' + e;
+        }
+    }
+
+    return str;
+}
+
 void show_debug_info(unsigned char data) {
     static int pos_x = 0;
     static int pos_y = 0;
@@ -181,4 +210,48 @@ void show_debug_info(unsigned char data) {
         pos_y = 0;
         boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     }
+}
+
+void show_memory_block_counts(void) {
+    unsigned char *vram = g_boot_info.m_vga_ram;
+    int xsize = g_boot_info.m_screen_x;
+    int cnt = get_memory_block_count();
+    char *p = int2hexstr(cnt);
+    show_string(vram, xsize, 0, 0, COL8_FFFFFF, p);
+}
+
+void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
+                            int page, int xsize, int color) {
+    int x = 0, y = 0, gap = 13 * 8;
+
+    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize, 100);
+
+    show_string(vram, xsize, x, y, color, "page is: ");
+    char *p_page_cnt = int2hexstr(page);
+    show_string(vram, xsize, gap, y, color, p_page_cnt);
+    y += 16;
+
+    show_string(vram, xsize, x, y, color, "base_addr_L: ");
+    char *p_base_addr_l = int2hexstr(desc->m_base_addr_low);
+    show_string(vram, xsize, gap, y, color, p_base_addr_l);
+    y += 16;
+
+    show_string(vram, xsize, x, y, color, "base_addr_h: ");
+    char *p_base_addr_h = int2hexstr(desc->m_base_addr_high);
+    show_string(vram, xsize, gap, y, color, p_base_addr_h);
+
+    y += 16;
+    show_string(vram, xsize, x, y, color, "length_low: ");
+    char *p_length_low = int2hexstr(desc->m_length_low);
+    show_string(vram, xsize, gap, y, color, p_length_low);
+
+    y += 16;
+    show_string(vram, xsize, x, y, color, "length_high: ");
+    char *p_length_high = int2hexstr(desc->m_length_high);
+    show_string(vram, xsize, gap, y, color, p_length_high);
+
+    y += 16;
+    show_string(vram, xsize, x, y, color, "type: ");
+    char *ptype = int2hexstr(desc->m_type);
+    show_string(vram, xsize, gap, y, color, ptype);
 }

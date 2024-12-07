@@ -30,3 +30,9 @@ void io_store_eflags(int eflags);
 
 // 调试字符
 void debug_char(void);
+
+// 获取内存描述块数量
+int get_memory_block_count(void);
+
+// 获取内存描述块地址
+void* get_memory_block_buffer(void);

@@ -64,3 +64,11 @@ debug_char:
     mov  al, 'U'
     mov  [gs:((80 * 0 + 67) * 2)], ax
     ret
+
+get_memory_block_count:
+    mov  eax, [MEMORY_CHK_NUMBER]
+    ret
+
+get_memory_block_buffer:
+    mov  eax, MEM_CHK_BUF
+    ret

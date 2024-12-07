@@ -41,6 +41,14 @@
 ; %include "kernel/build/mouse_enable.asm"
 ; %include "kernel/build/palette_table_rgb.asm"
 
-jmp mouse_move
-%include "kernel/build/mouse_move.asm"
+; jmp mouse_move
+; %include "kernel/build/mouse_move.asm"
+; %include "kernel/build/palette_table_rgb.asm"
+
+; jmp memory_block_counts
+; %include "kernel/build/memory_block_counts.asm"
+; %include "kernel/build/palette_table_rgb.asm"
+
+jmp memory_block_info
+%include "kernel/build/memory_block_info.asm"
 %include "kernel/build/palette_table_rgb.asm"

@@ -52,6 +52,26 @@ LABEL_BEGIN:
     mov   ss, ax
     mov   sp, 0100h
 
+    ; 设置内存
+COMPUTE_MEMORY:
+    mov   ebx, 0
+    mov   di, MEM_CHK_BUF
+.compute_memory_loop:
+    mov   eax, 0E820h
+    mov   ecx, 20
+    mov   edx, 0534D4150h
+    int   15h
+    jc    LABEL_MEM_CHK_FAIL
+    add   di, 20
+    inc   dword [MEMORY_CHK_NUMBER]
+    cmp   ebx, 0
+    jne   .compute_memory_loop
+    jmp   LABEL_MEM_CHK_OK
+
+LABEL_MEM_CHK_FAIL:
+    mov    dword [MEMORY_CHK_NUMBER], 0
+
+LABEL_MEM_CHK_OK:
     ; 设置色彩显示模式
     mov   al, 0x13
     mov   ah, 0
@@ -125,7 +145,6 @@ LABEL_SEG_CODE32:
 
     sti ; 开中断
 
-
 C_CODE_ENTRY:
     %include "entry.asm"
 
@@ -142,6 +161,9 @@ RES_DATA:
     %include "kernel/build/cursor_icon.asm"
 
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
+
+MEM_CHK_BUF: times 256 db 0
+MEMORY_CHK_NUMBER: dd 0
 
 [SECTION .gs]
 ALIGN 32
