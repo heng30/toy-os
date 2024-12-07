@@ -20,7 +20,6 @@ static boot_info_t g_boot_info = {
 
 // 鼠标相关
 static const int g_xsize = 320, g_ysize = 200; // 屏幕大小
-static int g_mx = 80, g_my = 80; // 当前鼠标位置
 static char g_mcursor[256];
 static char g_keyval[5] = {'0', 'X', 0, 0, 0};
 
