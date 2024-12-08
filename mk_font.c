@@ -46,7 +46,7 @@ void mk_font(const char *filename) {
     FILE *fp_in = fopen(filename, "r");
     assert(fp_in);
 
-    FILE *fp_out = fopen("font_data.inc", "w");
+    FILE *fp_out = fopen("./kernel/font_data.inc", "w");
     assert(fp_out);
 
     fprintf(fp_out, "system_font:\n");

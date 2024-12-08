@@ -3,6 +3,10 @@ BUILD_DIR = $(DIR)/build
 TARGET = kernel
 TARGET_OBJ = $(TARGET).o
 
+BOOT_IMAGE = boot.img
+DISK_IMAGE = disk.img
+KERNEL_IMAGE = kernel.img
+
 CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
@@ -12,7 +16,7 @@ DEFINE_FLAGS =
 DEBUG_FLAGS =
 RELEASE_FLAGS =
 
-C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O1 -I$(DIR)/include -I$(DIR)/../include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin
+C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O1  -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
 
@@ -48,7 +52,13 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 $(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
-build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm
+boot-img:
+	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
+
+kernel-img:
+	nasm -o $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
+
+build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm boot-img kernel-img
 
 clean:
 	- rm -rf $(BUILD_DIR)

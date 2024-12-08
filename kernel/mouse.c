@@ -6,6 +6,9 @@
 #include "keyboard_mouse.h"
 #include "kutil.h"
 
+// 鼠标图标
+extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
+
 static unsigned char g_mousebuf[512];
 fifo8_t g_mouseinfo = {
     .m_buf = g_mousebuf,
@@ -25,9 +28,6 @@ mouse_dec_t g_mdec = {
     .m_abs_x = 80,
     .m_abs_y = 80,
 };
-
-// 鼠标图标
-extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
 
 void init_mouse_cursor(char bc) {
     char *mouse = g_mdec.m_cursor;

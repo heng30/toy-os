@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    _load_boot("./build/boot.img");
-    _load_kernel("./build/kernel.img");
+    _load_boot("./kernel/build/boot.img");
+    _load_kernel("./kernel/build/kernel.img");
     _mk_disk("./build/disk.img");
     return 0;
 }

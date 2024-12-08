@@ -26,15 +26,19 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
     int xsize = g_boot_info.m_screen_x;
     boxfill8(COL8_008484, 0, 0, xsize, 100);
 
-    const char *title[] = {"page: ",       "base_addr_L: ", "base_addr_H: ",
-                           "length_low: ", "length_high: ", "type: "};
+    const char *title[] = {
+        "page: ",       "base_addr_L: ", "base_addr_H: ",
+        "length_low: ", "length_high: ", "type: ",
+    };
 
-    const int ele[] = {page,
-                       desc->m_base_addr_low,
-                       desc->m_base_addr_high,
-                       desc->m_length_low,
-                       desc->m_length_high,
-                       desc->m_type};
+    const int ele[] = {
+        page,
+        desc->m_base_addr_low,
+        desc->m_base_addr_high,
+        desc->m_length_low,
+        desc->m_length_high,
+        desc->m_type,
+    };
 
     for (int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]); i++, y += 16) {
         show_string(x, y, color, title[i]);
