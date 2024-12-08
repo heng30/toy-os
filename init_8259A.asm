@@ -38,10 +38,3 @@ init8259A:
     call io_delay
 
     ret
-
-io_delay:
-    nop
-    nop
-    nop
-    nop
-    ret

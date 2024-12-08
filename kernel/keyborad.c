@@ -3,8 +3,7 @@
 #include "keyboard.h"
 #include "keyboard_mouse.h"
 
-unsigned char g_keybuf[64];
-
+static unsigned char g_keybuf[64];
 fifo8_t g_keyinfo = {
     .m_buf = g_keybuf,
     .m_size = sizeof(g_keybuf),

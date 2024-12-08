@@ -1,6 +1,6 @@
 #pragma once
 
-#define NULL ((void*)0);
+#define NULL ((void *)0);
 
 // 内存块信息
 typedef struct {
@@ -11,9 +11,8 @@ typedef struct {
     unsigned int m_type;
 } addr_range_desc_t;
 
-// 显示内存块数量
-void show_memory_block_counts(void);
+// 显示内存块数量和内存块起始地址
+void show_memory_block_counts_and_addr(void);
 
 // 显示内存块信息
-void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
-                            int page, int xsize, int color);
+void show_memory_block_info(addr_range_desc_t *desc, int page, int color);

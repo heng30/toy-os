@@ -7,30 +7,30 @@
 #include "mouse.h"
 
 void show_mouse_info(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
     unsigned char data = fifo8_get(&g_mouseinfo);
 
     io_sti();
 
     if (mouse_decode(data) == 1) {
-        erase_mouse(vram);
+        erase_mouse();
         compute_mouse_position();
-        draw_mouse(vram);
+        draw_mouse();
     }
 }
 
-void show_keyboard_input(addr_range_desc_t *desc, int mem_count) {
+void show_keyboard_input(void) {
     static int count = 0;
     unsigned int data = fifo8_get(&g_keyinfo);
 
     io_sti();
 
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
+    int mem_count = get_memory_block_count();
+    addr_range_desc_t *mem_desc =
+        (addr_range_desc_t *)get_memory_block_buffer();
 
     // 回车键
     if (data == 0x1C) {
-        show_memory_block_info(desc + count, vram, count, xsize, COL8_FFFFFF);
+        show_memory_block_info(mem_desc + count, count, COL8_FFFFFF);
         count = (count + 1);
         if (count >= mem_count) {
             count = 0;
@@ -39,25 +39,14 @@ void show_keyboard_input(addr_range_desc_t *desc, int mem_count) {
 }
 
 void start_kernel(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
+    init_mouse_cursor(COL8_008484);
     init_palette();
-    draw_background();
-
-    init_mouse_cursor(g_mcursor, COL8_008484);
     init_keyboard();
 
-    int mem_count = get_memory_block_count();
-    addr_range_desc_t *mem_desc =
-        (addr_range_desc_t *)get_memory_block_buffer();
+    draw_background();
+    draw_mouse();
 
-    // 显示鼠标
-    put_block(vram, xsize, 16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mcursor,
-              16);
-
-    show_memory_block_counts();
-    char *p_page_cnt = int2hexstr((int)mem_desc);
-    show_string(vram, xsize, 0, 32, COL8_FFFFFF, p_page_cnt);
+    show_memory_block_counts_and_addr();
 
     io_sti(); // 开中断
     enable_mouse();
@@ -67,7 +56,7 @@ void start_kernel(void) {
         if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) == 0) {
             io_stihlt();
         } else if (fifo8_status(&g_keyinfo) != 0) {
-            show_keyboard_input(mem_desc, mem_count);
+            show_keyboard_input();
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             show_mouse_info();
         }

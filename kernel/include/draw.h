@@ -17,20 +17,17 @@ void set_palette(int start, int end, unsigned char *rgb);
 void init_palette(void);
 
 // 绘制一个矩形
-void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0,
-              int x1, int y1);
+void boxfill8(unsigned char c, int x0, int y0, int x1, int y1);
 
 // 显示1个字符
-void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
-                char *font);
+void show_font8(int x, int y, char c, char *font);
 
 // 显示字符串
-void show_string(unsigned char *vram, int xsize, int x, int y, char color,
-                 const char *s);
+void show_string(int x, int y, char color, const char *s);
 
 // 根据buf来显示一个图像，通常用来显示鼠标
-void put_block(unsigned char *vram, int vxsize, int pxsize, int pysize, int px0,
-               int py0, char *buf, int bxsize);
+void put_block(int pxsize, int pysize, int px0, int py0, char *buf,
+               int bxsize);
 
 // 绘制背景
 void draw_background(void);

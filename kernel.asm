@@ -39,8 +39,8 @@ LABEL_IDT:
 .2CH:
     Gate SELECTOR_CODE32, MOUSE_HANDLER, 0, DA_386IGate
 
-IdtLen  equ $ - LABEL_IDT
-IdtPtr  dw  IdtLen - 1
+IDT_LEN  equ $ - LABEL_IDT
+IDT_PTR  dw  IDT_LEN - 1
         dd  0
 
 [SECTION  .s16]
@@ -52,7 +52,7 @@ LABEL_BEGIN:
     mov   ss, ax
     mov   sp, 0100h
 
-    ; 设置内存
+    ; 获取内存描述块
 COMPUTE_MEMORY:
     mov   ebx, 0
     mov   di, MEM_CHK_BUF
@@ -114,8 +114,8 @@ LABEL_MEM_CHK_OK:
     mov   ax,  ds
     shl   eax, 4
     add   eax, LABEL_IDT
-    mov   dword [IdtPtr + 2], eax
-    lidt  [IdtPtr]
+    mov   dword [IDT_PTR + 2], eax
+    lidt  [IDT_PTR]
 
     in    al,  92h
     or    al,  00000010b

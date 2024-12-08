@@ -1,19 +1,19 @@
 io_hlt:
-  HLT
-  RET
+  hlt
+  ret
 
 io_cli:
-  CLI
-  RET
+  cli
+  ret
 
 io_sti:
-  STI
-  RET
+  sti
+  ret
 
 io_stihlt:
-  STI
-  HLT
-  RET
+  sti
+  hlt
+  ret
 
 io_in8:
   mov  edx, [esp + 4]
@@ -57,6 +57,13 @@ io_store_eflags:
     mov eax, [esp + 4]
     push eax
     popfd ; 从堆栈中获取一个值，并赋值给eflags寄存器
+    ret
+
+io_delay:
+    nop
+    nop
+    nop
+    nop
     ret
 
 debug_char:

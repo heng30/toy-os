@@ -4,20 +4,27 @@
 #include "io.h"
 #include "kutil.h"
 
-void show_memory_block_counts(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
+void show_memory_block_counts_and_addr(void) {
+    int gap = 13 * 8;
+    char *p = NULL;
+
     int cnt = get_memory_block_count();
-    char *p = int2hexstr(cnt);
-    show_string(vram, xsize, 0, 0, COL8_FFFFFF, p);
+    p = int2hexstr(cnt);
+    show_string(0, 0, COL8_FFFFFF, "pages: ");
+    show_string(gap, 0, COL8_FFFFFF, p);
+
+    addr_range_desc_t *desc = (addr_range_desc_t *)get_memory_block_buffer();
+    p = int2hexstr((int)desc);
+    show_string(0, 16, COL8_FFFFFF, "address: ");
+    show_string(gap, 16, COL8_FFFFFF, p);
 }
 
-void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
-                            int page, int xsize, int color) {
+void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
     int x = 0, y = 0, gap = 13 * 8;
     char *p = NULL;
 
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize, 100);
+    int xsize = g_boot_info.m_screen_x;
+    boxfill8(COL8_008484, 0, 0, xsize, 100);
 
     const char *title[] = {"page: ",       "base_addr_L: ", "base_addr_H: ",
                            "length_low: ", "length_high: ", "type: "};
@@ -30,8 +37,8 @@ void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
                        desc->m_type};
 
     for (int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]); i++, y += 16) {
-        show_string(vram, xsize, x, y, color, title[i]);
+        show_string(x, y, color, title[i]);
         p = int2hexstr(ele[i]);
-        show_string(vram, xsize, gap, y, color, p);
+        show_string(gap, y, color, p);
     }
 }

@@ -28,6 +28,9 @@ int io_load_eflags(void);
 // 设置eflags寄存器
 void io_store_eflags(int eflags);
 
+// 延时
+void io_delay(void);
+
 // 调试字符
 void debug_char(void);
 

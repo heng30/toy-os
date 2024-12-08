@@ -1,15 +1,12 @@
-#include "io.h"
 #include "mouse.h"
 #include "colo8.h"
-#include "keyboard_mouse.h"
-#include "fifo8.h"
 #include "draw.h"
+#include "fifo8.h"
+#include "io.h"
+#include "keyboard_mouse.h"
 #include "kutil.h"
 
-char g_mcursor[256];
-
-unsigned char g_mousebuf[512];
-
+static unsigned char g_mousebuf[512];
 fifo8_t g_mouseinfo = {
     .m_buf = g_mousebuf,
     .m_size = sizeof(g_mousebuf),
@@ -32,7 +29,9 @@ mouse_dec_t g_mdec = {
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
 
-void init_mouse_cursor(char *mouse, char bc) {
+void init_mouse_cursor(char bc) {
+    char *mouse = g_mdec.m_cursor;
+
     for (int y = 0; y < 16; y++) {
         for (int x = 0; x < 16; x++) {
             if (cursor_icon[y][x] == '*') {
@@ -55,16 +54,17 @@ void enable_mouse(void) {
     io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
 }
 
-void erase_mouse(unsigned char *vram) {
+void erase_mouse(void) {
+    unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;
-    boxfill8(vram, xsize, COL8_008484, g_mdec.m_abs_x, g_mdec.m_abs_y,
-             g_mdec.m_abs_x + 15, g_mdec.m_abs_y + 15);
+    boxfill8(COL8_008484, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_abs_x + 15,
+             g_mdec.m_abs_y + 15);
 }
 
-void draw_mouse(unsigned char *vram) {
+void draw_mouse(void) {
+    unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;
-    put_block(vram, xsize, 16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mcursor,
-              16);
+    put_block(16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_cursor, 16);
 }
 
 void compute_mouse_position(void) {
@@ -169,10 +169,8 @@ int mouse_decode(unsigned char dat) {
 // }
 
 void show_mouse_error(unsigned char data) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
     char *pstr = char2hexstr(data);
-    show_string(vram, xsize, 32, 64, COL8_FFFFFF, pstr);
+    show_string(32, 64, COL8_FFFFFF, pstr);
 }
 
 void int_handler_for_mouse(char *esp) {

@@ -15,6 +15,7 @@
 #define MOUSE_PHASE_THREE 3
 
 typedef struct {
+    char m_cursor[256];
     unsigned char m_buf[3];
     unsigned char m_phase;
     unsigned char m_btn;
@@ -22,20 +23,14 @@ typedef struct {
     int m_abs_x, m_abs_y;
 } mouse_dec_t;
 
-// 保存鼠标图标
-extern char g_mcursor[256];
-
 // 在中断函数中, 保存鼠标数据
 extern fifo8_t g_mouseinfo;
 
 // 鼠标位置信息
 extern mouse_dec_t g_mdec;
 
-// 保存输入的鼠标信息
-extern unsigned char g_mousebuf[512];
-
 // 初始化鼠标
-void init_mouse_cursor(char *mouse, char bc);
+void init_mouse_cursor(char bc);
 
 // 鼠标中断函数
 void int_handler_for_mouse(char *esp);
@@ -44,10 +39,10 @@ void int_handler_for_mouse(char *esp);
 void enable_mouse(void);
 
 // 清除鼠标
-void erase_mouse(unsigned char *vram);
+void erase_mouse(void);
 
 // 绘制鼠标
-void draw_mouse(unsigned char *vram);
+void draw_mouse(void);
 
 // 计算鼠标位置
 void compute_mouse_position(void);
