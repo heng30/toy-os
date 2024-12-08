@@ -17,6 +17,7 @@
 typedef struct {
     unsigned char m_buf[3];
     unsigned char m_phase;
+    unsigned char m_btn;
     int m_rel_x, m_rel_y;
     int m_abs_x, m_abs_y;
 } mouse_dec_t;

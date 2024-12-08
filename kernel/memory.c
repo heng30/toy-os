@@ -19,32 +19,19 @@ void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
 
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize, 100);
 
-    show_string(vram, xsize, x, y, color, "page is: ");
-    p = int2hexstr(page);
-    show_string(vram, xsize, gap, y, color, p);
-    y += 16;
+    const char *title[] = {"page: ",       "base_addr_L: ", "base_addr_H: ",
+                           "length_low: ", "length_high: ", "type: "};
 
-    show_string(vram, xsize, x, y, color, "base_addr_L: ");
-    p = int2hexstr(desc->m_base_addr_low);
-    show_string(vram, xsize, gap, y, color, p);
-    y += 16;
+    const int ele[] = {page,
+                       desc->m_base_addr_low,
+                       desc->m_base_addr_high,
+                       desc->m_length_low,
+                       desc->m_length_high,
+                       desc->m_type};
 
-    // show_string(vram, xsize, x, y, color, "base_addr_H: ");
-    // p = int2hexstr(desc->m_base_addr_high);
-    // show_string(vram, xsize, gap, y, color, p);
-    // y += 16;
-
-    // show_string(vram, xsize, x, y, color, "length_low: ");
-    // p = int2hexstr(desc->m_length_low);
-    // show_string(vram, xsize, gap, y, color, p);
-    // y += 16;
-
-    // show_string(vram, xsize, x, y, color, "length_high: ");
-    // p = int2hexstr(desc->m_length_high);
-    // show_string(vram, xsize, gap, y, color, p);
-    // y += 16;
-    //
-    // show_string(vram, xsize, x, y, color, "type: ");
-    // p = int2hexstr(desc->m_type);
-    // show_string(vram, xsize, gap, y, color, p);
+    for (int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]); i++, y += 16) {
+        show_string(vram, xsize, x, y, color, title[i]);
+        p = int2hexstr(ele[i]);
+        show_string(vram, xsize, gap, y, color, p);
+    }
 }

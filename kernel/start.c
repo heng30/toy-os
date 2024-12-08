@@ -30,7 +30,6 @@ void show_keyboard_input(addr_range_desc_t *desc, int mem_count) {
 
     // 回车键
     if (data == 0x1C) {
-        // FIXME: 代码没问题，应该是反汇编的代码问题，导致程序异常退出
         show_memory_block_info(desc + count, vram, count, xsize, COL8_FFFFFF);
         count = (count + 1);
         if (count >= mem_count) {

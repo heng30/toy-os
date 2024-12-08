@@ -168,7 +168,7 @@ MEMORY_CHK_NUMBER: dd 0
 ALIGN 32
 [BITS 32]
 LABEL_STACK:
-    times 512 db 0 ; 分配512字节的堆栈
+    times 1024 db 0 ; 分配1024字节的堆栈
 
 TOP_OF_STACK equ $ - LABEL_STACK
 
