@@ -10,12 +10,6 @@ typedef struct {
 // 显示信息
 extern boot_info_t g_boot_info;
 
-// 系统字体
-extern char system_font[16];
-
-// 颜色板
-extern unsigned char palette_table_rgb[16 * 3];
-
 // 设置颜色板
 void set_palette(int start, int end, unsigned char *rgb);
 
@@ -39,7 +33,7 @@ void put_block(unsigned char *vram, int vxsize, int pxsize, int pysize, int px0,
                int py0, char *buf, int bxsize);
 
 // 绘制背景
-void write_vga_desktop_background(void);
+void draw_background(void);
 
 // 显示调试信息
 void show_debug_info(unsigned char data);

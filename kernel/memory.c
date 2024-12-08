@@ -29,22 +29,22 @@ void show_memory_block_info(addr_range_desc_t *desc, unsigned char *vram,
     show_string(vram, xsize, gap, y, color, p);
     y += 16;
 
-    show_string(vram, xsize, x, y, color, "base_addr_h: ");
-    p = int2hexstr(desc->m_base_addr_high);
-    show_string(vram, xsize, gap, y, color, p);
+    // show_string(vram, xsize, x, y, color, "base_addr_H: ");
+    // p = int2hexstr(desc->m_base_addr_high);
+    // show_string(vram, xsize, gap, y, color, p);
+    // y += 16;
 
-    y += 16;
-    show_string(vram, xsize, x, y, color, "length_low: ");
-    p = int2hexstr(desc->m_length_low);
-    show_string(vram, xsize, gap, y, color, p);
+    // show_string(vram, xsize, x, y, color, "length_low: ");
+    // p = int2hexstr(desc->m_length_low);
+    // show_string(vram, xsize, gap, y, color, p);
+    // y += 16;
 
-    y += 16;
-    show_string(vram, xsize, x, y, color, "length_high: ");
-    p = int2hexstr(desc->m_length_high);
-    show_string(vram, xsize, gap, y, color, p);
-
-    y += 16;
-    show_string(vram, xsize, x, y, color, "type: ");
-    p = int2hexstr(desc->m_type);
-    show_string(vram, xsize, gap, y, color, p);
+    // show_string(vram, xsize, x, y, color, "length_high: ");
+    // p = int2hexstr(desc->m_length_high);
+    // show_string(vram, xsize, gap, y, color, p);
+    // y += 16;
+    //
+    // show_string(vram, xsize, x, y, color, "type: ");
+    // p = int2hexstr(desc->m_type);
+    // show_string(vram, xsize, gap, y, color, p);
 }

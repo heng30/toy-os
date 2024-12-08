@@ -8,4 +8,3 @@ char *char2hexstr(unsigned char c);
 
 // 获取数字的16进制字符串形式
 char *int2hexstr(unsigned int d);
-

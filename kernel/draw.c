@@ -3,6 +3,12 @@
 #include "io.h"
 #include "kutil.h"
 
+// 颜色板
+extern unsigned char palette_table_rgb[16 * 3];
+
+// 系统字体
+extern char system_font[16];
+
 // vga显示信息
 boot_info_t g_boot_info = {
     .m_vga_ram = (unsigned char *)0xa0000,
@@ -33,9 +39,8 @@ void init_palette(void) {
 
 void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0,
               int x1, int y1) {
-    // use volatile to prevent optimise to `memset` function
-    for (volatile int y = y0; y <= y1; y++)
-        for (volatile int x = x0; x <= x1; x++)
+    for (int y = y0; y <= y1; y++)
+        for (int x = x0; x <= x1; x++)
             vram[y * xsize + x] = c;
 }
 
@@ -80,13 +85,13 @@ void show_string(unsigned char *vram, int xsize, int x, int y, char color,
 
 void put_block(unsigned char *vram, int vxsize, int pxsize, int pysize, int px0,
                int py0, char *buf, int bxsize) {
-    for (volatile int y = 0; y < pysize; y++)
-        for (volatile int x = 0; x < pxsize; x++) {
+    for (int y = 0; y < pysize; y++)
+        for (int x = 0; x < pxsize; x++) {
             vram[(py0 + y) * vxsize + (px0 + x)] = buf[y * bxsize + x];
         }
 }
 
-void write_vga_desktop_background(void) {
+void draw_background(void) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;
     int ysize = g_boot_info.m_screen_y;
