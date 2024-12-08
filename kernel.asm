@@ -158,7 +158,6 @@ IO_CODE:
 
 RES_DATA:
     %include "font_data.inc"
-    %include "kernel/build/cursor_icon.asm"
 
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 

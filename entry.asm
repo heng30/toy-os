@@ -49,6 +49,9 @@
 ; %include "kernel/build/memory_block_counts.asm"
 ; %include "kernel/build/palette_table_rgb.asm"
 
-jmp memory_block_info
-%include "kernel/build/memory_block_info.asm"
-%include "kernel/build/palette_table_rgb.asm"
+; jmp memory_block_info
+; %include "kernel/build/memory_block_info.asm"
+; %include "kernel/build/palette_table_rgb.asm"
+
+jmp start_kernel
+%include "kernel/build/kernel.asm"

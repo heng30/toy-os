@@ -6,9 +6,10 @@
 
 #define PORT_KEYDAT 0x0060
 #define PORT_KEYSTA 0x0064
-#define PORT_KEYCMD 0x0064
 #define KEYSTA_SEND_NOTREADY 0x02
 #define KEYCMD_WRITE_MODE 0x60
+
+#define PORT_KEYCMD 0x0064
 #define KBC_MODE 0x47
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
@@ -155,6 +156,52 @@ void show_mouse_error(unsigned char data) {
     show_string(vram, g_xsize, 32, 64, COL8_FFFFFF, pstr);
 }
 
+// FIXME: 鼠标的数据可能并不是以3个为一组发送的
+// int mouse_decode(unsigned char dat) {
+//     // 初始化鼠标成功后会收到一个`0xfa`
+//     if (g_mdec.m_phase == MOUSE_PHASE_UNINIT) {
+//         if (dat == 0xfa) {
+//             g_mdec.m_phase = MOUSE_PHASE_ONE;
+//         }
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_ONE) {
+//         if ((dat & 0xc8) == 0x08) {
+//             g_mdec.m_buf[0] = dat;
+//             g_mdec.m_phase = MOUSE_PHASE_TWO;
+//         }
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_TWO) {
+//         g_mdec.m_buf[1] = dat;
+//         g_mdec.m_phase = MOUSE_PHASE_THREE;
+//         return 0;
+//     }
+
+//     if (g_mdec.m_phase == MOUSE_PHASE_THREE) {
+//         g_mdec.m_buf[2] = dat;
+//         g_mdec.m_phase = MOUSE_PHASE_ONE;
+//         g_mdec.m_btn = g_mdec.m_buf[0] & 0x07;
+//         g_mdec.m_rel_x = g_mdec.m_buf[1];
+//         g_mdec.m_rel_y = g_mdec.m_buf[2];
+
+//         if ((g_mdec.m_buf[0] & 0x10) != 0) {
+//             g_mdec.m_rel_x |= 0xff00;
+//         }
+
+//         if ((g_mdec.m_buf[0] & 0x20) != 0) {
+//             g_mdec.m_rel_y |= 0xff00;
+//         }
+
+//         g_mdec.m_rel_y = -g_mdec.m_rel_y;
+//         return 1;
+//     }
+
+//     return -1;
+// }
+
 // FIXME: 无法判断鼠标左右移动，应为都是返回0x00
 int mouse_decode(unsigned char data) {
     // 初始化鼠标成功后会收到一个`0xfa`
@@ -192,6 +239,8 @@ void show_mouse_info(void) {
 
     io_sti();
 
+    // show_debug_info(data);
+
     if (mouse_decode(data) == 1) {
         erase_mouse(vram);
         compute_mouse_position();
@@ -199,27 +248,21 @@ void show_mouse_info(void) {
     }
 }
 
-void show_keyboard_input(addr_range_desc_t *desc, int mem_count) {
-    static int count = 0;
+void show_keyboard_input(void) {
     unsigned int data = fifo8_get(&g_keyinfo);
 
     io_sti();
 
     unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;
-
-    // 回车键
-    if (data == 0x1C) {
-        // FIXME: 代码没问题，应该是反汇编的代码问题，导致程序异常退出
-        show_memory_block_info(desc + count, vram, count, xsize, COL8_FFFFFF);
-        count = (count + 1);
-        if (count > mem_count) {
-            count = 0;
-        }
-    }
+    int ysize = g_boot_info.m_screen_y;
+    char *pstr = char2hexstr(data);
+    static int show_pos = 0;
+    show_string(vram, xsize, show_pos, 0, COL8_FFFFFF, pstr);
+    show_pos += 32;
 }
 
-void memory_block_info(void) {
+void memory_block_counts(void) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     init_palette();
     init_mouse_cursor(g_mcursor, COL8_008484);
@@ -228,17 +271,11 @@ void memory_block_info(void) {
 
     write_vga_desktop_background();
 
-    int mem_count = get_memory_block_count();
-    addr_range_desc_t *mem_desc =
-        (addr_range_desc_t *)get_memory_block_buffer();
+    show_memory_block_counts();
 
     // 显示鼠标
     put_block(vram, g_xsize, 16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mcursor,
               16);
-
-    show_memory_block_counts();
-    char *p_page_cnt = int2hexstr((int)mem_desc);
-    show_string(vram, g_xsize, 0, 32, COL8_FFFFFF, p_page_cnt);
 
     io_sti(); // 开中断
     enable_mouse();
@@ -248,7 +285,7 @@ void memory_block_info(void) {
         if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) == 0) {
             io_stihlt();
         } else if (fifo8_status(&g_keyinfo) != 0) {
-            show_keyboard_input(mem_desc, mem_count);
+            show_keyboard_input();
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             show_mouse_info();
         }
@@ -268,3 +305,4 @@ void int_handler_for_mouse(char *esp) {
     unsigned char data = io_in8(PORT_KEYDAT);
     fifo8_put(&g_mouseinfo, data);
 }
+

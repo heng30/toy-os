@@ -1,3 +1,9 @@
 clang
 -isystem./include
 -isystem./kernel/include
+
+{
+  "index": {
+    "blacklist": ["backup", "kernel/backup"]
+  }
+}

@@ -1,9 +1,11 @@
 DIR = $(shell pwd)
 BUILD_DIR = $(DIR)/build
+TARGET = kernel
+TARGET_OBJ = $(TARGET).o
 
 CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
-LD = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)ld
 REVERT_ASM_TOOL = objconv
 
 DEFINE_FLAGS =
@@ -12,9 +14,9 @@ RELEASE_FLAGS =
 
 C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O3 -I$(DIR)/include -I$(DIR)/../include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
 
-LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
+LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
 
-EXCLUDE_SRC_DIR := grep -v build
+EXCLUDE_SRC_DIR := grep -v build | grep -v backup
 
 C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
 vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中
@@ -36,6 +38,9 @@ all: mk-dir build
 $(BUILD_DIR)/%.o: %.c | $(DIR)
 	$(CC) $(C_FLAGS) -o $@ $<
 
+$(BUILD_DIR)/$(TARGET_OBJ): $(OBJ)
+	$(LD) $(LD_FLAGS) -r $^ -o $@
+
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 	$(REVERT_ASM_TOOL) -fnasm $< $@
@@ -43,7 +48,7 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 $(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
-build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM)
+build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm
 
 clean:
 	- rm -rf $(BUILD_DIR)
