@@ -83,8 +83,9 @@ void memman_init(void) {
     g_memman.m_free = (freeinfo_t *)mem_desc->m_base_addr_low;
 
     // 将内存放入内存管理器中
-    memman_free((const void *)mem_desc->m_base_addr_low,
-                mem_desc->m_length_low);
+    memman_free((const void *)(mem_desc->m_base_addr_low +
+                               MEMMAN_FREES * sizeof(freeinfo_t)),
+                mem_desc->m_length_low - MEMMAN_FREES * sizeof(freeinfo_t));
 }
 
 unsigned int memman_total(void) {
