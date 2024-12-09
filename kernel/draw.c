@@ -37,10 +37,10 @@ void init_palette(void) {
     return;
 }
 
+/*********************** 直接写入vga缓冲区，不使用图层绘制 *******************************/
 void boxfill8(unsigned char c, int x0, int y0, int x1, int y1) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;
-
     for (int y = y0; y <= y1; y++)
         for (int x = x0; x <= x1; x++)
             vram[y * xsize + x] = c;
@@ -163,4 +163,12 @@ void show_debug_int(unsigned int data) {
         pos_y = 0;
         boxfill8(COL8_008484, 0, 0, xsize - 1, ysize - 29);
     }
+}
+
+/*********************** 使用图层绘制 *******************************/
+void boxfill8_v2(unsigned char *buf, int xsize, unsigned char c, int x0, int y0,
+                 int x1, int y1) {
+    for (int y = y0; y <= y1; y++)
+        for (int x = x0; x <= x1; x++)
+            buf[y * xsize + x] = c;
 }

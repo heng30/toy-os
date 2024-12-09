@@ -29,6 +29,12 @@ void* memman_alloc(unsigned int size);
 // 归还内存
 int memman_free(const void* address, unsigned int size);
 
+// 对齐到4k进行分配
+void *memman_alloc_4k(unsigned int size);
+
+// 对齐到4k进行释放
+int memman_free_4k(const void *addr, unsigned int size);
+
 // 显示内存管理器信息
 void show_memman_info(void);
 

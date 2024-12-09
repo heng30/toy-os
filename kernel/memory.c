@@ -181,6 +181,16 @@ int memman_free(const void *address, unsigned int size) {
     return -1;
 }
 
+void *memman_alloc_4k(unsigned int size) {
+    size = (size + 0xfff) & 0xfffff000;
+    return memman_alloc(size);
+}
+
+int memman_free_4k(const void *addr, unsigned int size) {
+    size = (size + 0xfff) & 0xfffff000;
+    return memman_free(addr, size);
+}
+
 void show_memman_info(void) {
     int total = memman_total() / (1024 * 1024);
     char *p = int2hexstr(total);
@@ -200,6 +210,16 @@ void memman_test(void) {
         total = memman_total();
         show_debug_int(total);
     }
+
+    show_debug_int(0xFFFFFFFF);
+
+    memman_free(buf[0], 32);
+    total = memman_total();
+    show_debug_int(total);
+
+    buf[0] = memman_alloc(32);
+    total = memman_total();
+    show_debug_int(total);
 
     show_debug_int(0xFFFFFFFF);
 

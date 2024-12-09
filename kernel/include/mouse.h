@@ -30,7 +30,7 @@ extern fifo8_t g_mouseinfo;
 extern mouse_dec_t g_mdec;
 
 // 初始化鼠标
-void init_mouse_cursor(char bc);
+void init_mouse_cursor(void);
 
 // 鼠标中断函数
 void int_handler_for_mouse(char *esp);

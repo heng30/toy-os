@@ -29,7 +29,7 @@ mouse_dec_t g_mdec = {
     .m_abs_y = 80,
 };
 
-void init_mouse_cursor(char bc) {
+void init_mouse_cursor(void) {
     char *mouse = g_mdec.m_cursor;
 
     for (int y = 0; y < 16; y++) {
@@ -41,7 +41,7 @@ void init_mouse_cursor(char bc) {
                 mouse[y * 16 + x] = COL8_FFFFFF;
             }
             if (cursor_icon[y][x] == '.') {
-                mouse[y * 16 + x] = bc;
+                mouse[y * 16 + x] = COLOR_INVISIBLE;
             }
         }
     }
@@ -91,7 +91,6 @@ void compute_mouse_position(void) {
     }
 }
 
-// FIXME: 鼠标的数据可能并不是以3个为一组发送的
 int mouse_decode(unsigned char dat) {
     // 初始化鼠标成功后会收到一个`0xfa`
     if (g_mdec.m_phase == MOUSE_PHASE_UNINIT) {
@@ -136,37 +135,6 @@ int mouse_decode(unsigned char dat) {
 
     return -1;
 }
-
-// FIXME: 无法判断鼠标左右移动，应为都是返回0x00
-// int mouse_decode(unsigned char data) {
-//     // 初始化鼠标成功后会收到一个`0xfa`
-//     if (g_mdec.m_phase == MOUSE_PHASE_UNINIT) {
-//         if (data == 0xfa) {
-//             g_mdec.m_phase = MOUSE_PHASE_ONE;
-//         }
-//         return 0;
-//     }
-
-//     if (g_mdec.m_phase == MOUSE_PHASE_ONE) {
-//         g_mdec.m_rel_x = 0;
-//         g_mdec.m_rel_y = 0;
-
-//         if (data == 0x00) {
-//             g_mdec.m_rel_x = 1;
-//             return 1;
-//         }
-
-//         char det = data & 0x0f;
-//         if ((data >> 4) == 0x00) { // 向上移动
-//             g_mdec.m_rel_y = -det - 1;
-//         } else { // 向下移动
-//             g_mdec.m_rel_y = 0x0f - det + 1;
-//         }
-//         return 1;
-//     }
-
-//     return -1;
-// }
 
 void show_mouse_error(unsigned char data) {
     char *pstr = char2hexstr(data);
