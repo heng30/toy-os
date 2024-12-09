@@ -1,6 +1,6 @@
 %include "pm.inc"
 
-org   0x9000
+org   0x8000
 
 VRAM_ADDRESS  equ  0x000a0000
 
@@ -9,10 +9,11 @@ jmp   LABEL_BEGIN
 [SECTION .gdt]
  ;                                  段基址          段界限                  属性
 LABEL_GDT:          Descriptor        0,            0,                      0
-LABEL_DESC_CODE32:  Descriptor        0,            SEG_CODE32_LEN - 1,     DA_C + DA_32
-LABEL_DESC_VIDEO:   Descriptor        0B8000h,      0ffffh,                 DA_DRW
-LABEL_DESC_VRAM:    Descriptor        0,            0ffffffffh,             DA_DRW
-LABEL_DESC_STACK:   Descriptor        0,            TOP_OF_STACK,           DA_DRWA+DA_32
+LABEL_DESC_CODE32:  Descriptor        0,            0fffffh,                DA_C | DA_32 | DA_LIMIT_4K
+LABEL_DESC_VIDEO:   Descriptor        0B8000h,      0fffffh,                DA_DRW
+LABEL_DESC_VRAM:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
+LABEL_DESC_STACK:   Descriptor        0,            TOP_OF_STACK,           DA_DRWA | DA_32
+LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 
 GdtLen     equ    $ - LABEL_GDT
 GdtPtr     dw     GdtLen - 1
@@ -22,6 +23,7 @@ SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
 SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
 SELECTOR_STACK     equ   LABEL_DESC_STACK  -  LABEL_GDT
 SELECTOR_VRAM      equ   LABEL_DESC_VRAM   -  LABEL_GDT
+SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 
 ; 中断描述符
 LABEL_IDT:
@@ -89,6 +91,15 @@ LABEL_MEM_CHK_OK:
     mov   byte [LABEL_DESC_CODE32 + 4], al
     mov   byte [LABEL_DESC_CODE32 + 7], ah
 
+    xor   eax, eax
+    mov   ax,  cs
+    shl   eax, 4
+    add   eax, LABEL_SYSTEM_FONT
+    mov   word [LABEL_DESC_FONT + 2], ax
+    shr   eax, 16
+    mov   byte [LABEL_DESC_FONT + 4], al
+    mov   byte [LABEL_DESC_FONT + 7], ah
+
     ; 设置堆栈描述符
     xor eax, eax
     mov ax, cs
@@ -109,7 +120,7 @@ LABEL_MEM_CHK_OK:
 
     cli   ;关中断
 
-    ; prepare for loading IDT
+    ; 加载中断描述符
     xor   eax, eax
     mov   ax,  ds
     shl   eax, 4
@@ -156,10 +167,12 @@ HANDLER_CODE:
 IO_CODE:
     %include "io.asm"
 
-RES_DATA:
-    %include "font_data.inc"
 
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
+
+[SECTION .data]
+ALIGN 32
+[BITS 32]
 
 MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
@@ -171,6 +184,11 @@ LABEL_STACK:
     times 1024 db 0 ; 分配1024字节的堆栈
 
 TOP_OF_STACK equ $ - LABEL_STACK
+
+LABEL_SYSTEM_FONT:
+    %include "font_data.inc"
+
+SYSTEM_FONT_LENGTH equ $ - LABEL_SYSTEM_FONT
 
 EOF_KERNEL:
     db "EOF KERNEL"

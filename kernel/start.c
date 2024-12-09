@@ -43,10 +43,13 @@ void start_kernel(void) {
     init_palette();
     init_keyboard();
 
+    memman_init();
+
     draw_background();
     draw_mouse();
 
-    show_memory_block_counts_and_addr();
+    // show_memman_info();
+    memman_test();
 
     io_sti(); // 开中断
     enable_mouse();

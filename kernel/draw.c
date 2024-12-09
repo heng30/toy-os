@@ -119,7 +119,7 @@ void draw_background(void) {
     boxfill8(COL8_FFFFFF, xsize - 3, ysize - 24, xsize - 3, ysize - 3);
 }
 
-void show_debug_info(unsigned char data) {
+void show_debug_char(unsigned char data) {
     static int pos_x = 0;
     static int pos_y = 0;
     int xsize = g_boot_info.m_screen_x;
@@ -129,7 +129,30 @@ void show_debug_info(unsigned char data) {
     show_string(pos_x, pos_y, COL8_FFFFFF, pstr);
     pos_x += 32;
 
-    // 每10个字符换行
+    // 每10个data换行
+    if (pos_x % xsize == 0) {
+        pos_x = 0;
+        pos_y += 16;
+    }
+
+    // 清除输出信息
+    if (pos_y > ysize - 29) {
+        pos_y = 0;
+        boxfill8(COL8_008484, 0, 0, xsize - 1, ysize - 29);
+    }
+}
+
+void show_debug_int(unsigned int data) {
+    static int pos_x = 0;
+    static int pos_y = 0;
+    int xsize = g_boot_info.m_screen_x;
+    int ysize = g_boot_info.m_screen_y;
+    char *pstr = int2hexstr(data);
+
+    show_string(pos_x, pos_y, COL8_FFFFFF, pstr);
+    pos_x += 80;
+
+    // 每4个data换行
     if (pos_x % xsize == 0) {
         pos_x = 0;
         pos_y += 16;

@@ -9,7 +9,7 @@
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
 
-static unsigned char g_mousebuf[512];
+static unsigned char g_mousebuf[128];
 fifo8_t g_mouseinfo = {
     .m_buf = g_mousebuf,
     .m_size = sizeof(g_mousebuf),

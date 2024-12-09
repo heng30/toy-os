@@ -33,4 +33,7 @@ void put_block(int pxsize, int pysize, int px0, int py0, char *buf,
 void draw_background(void);
 
 // 显示调试信息
-void show_debug_info(unsigned char data);
+void show_debug_char(unsigned char data);
+
+// 显示调试信息
+void show_debug_int(unsigned int data);

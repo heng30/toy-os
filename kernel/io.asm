@@ -79,3 +79,14 @@ get_memory_block_count:
 get_memory_block_buffer:
     mov  eax, MEM_CHK_BUF
     ret
+
+get_font_data:
+    mov ax, SELECTOR_FONT
+    mov es, ax
+    xor edi, edi
+    mov edi, [esp + 4] ;char
+    shl edi, 4
+    add edi, [esp + 8]
+    xor eax, eax
+    mov al, byte [es:edi]
+    ret

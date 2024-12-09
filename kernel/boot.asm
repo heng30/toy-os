@@ -1,6 +1,6 @@
 org 0x7c00
 
-load_addr equ 0x9000 ; 将内核写入到系统0x9000的内存位置
+load_addr equ 0x8000 ; 将内核写入到系统的内存位置
 
 jmp  entry
 
