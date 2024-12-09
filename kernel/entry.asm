@@ -1,2 +1,2 @@
 jmp start_kernel
-%include "build/kernel.asm"
+%include "build/ckernel.asm"

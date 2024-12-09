@@ -1,6 +1,6 @@
 DIR = $(shell pwd)
 BUILD_DIR = $(DIR)/build
-TARGET = kernel
+TARGET = ckernel
 TARGET_OBJ = $(TARGET).o
 
 BOOT_IMAGE = boot.img

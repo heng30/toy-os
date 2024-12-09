@@ -48,8 +48,8 @@ void start_kernel(void) {
     draw_background();
     draw_mouse();
 
-    // show_memman_info();
-    memman_test();
+    show_memman_info();
+    // memman_test();
 
     io_sti(); // 开中断
     enable_mouse();

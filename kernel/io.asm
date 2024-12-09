@@ -19,11 +19,13 @@ io_in8:
   mov  edx, [esp + 4]
   mov  eax, 0
   in   al, dx
+  ret
 
 io_in16:
   mov  edx, [esp + 4]
   mov  eax, 0
   in   ax, dx
+  ret
 
 io_in32:
   mov edx, [esp + 4]
@@ -49,14 +51,14 @@ io_out32:
     ret
 
 io_load_eflags:
-    pushfd ; 将eflags寄存器的值存入堆栈
+    pushfd
     pop  eax
     ret
 
 io_store_eflags:
     mov eax, [esp + 4]
     push eax
-    popfd ; 从堆栈中获取一个值，并赋值给eflags寄存器
+    popfd
     ret
 
 io_delay:
@@ -90,3 +92,4 @@ get_font_data:
     xor eax, eax
     mov al, byte [es:edi]
     ret
+
