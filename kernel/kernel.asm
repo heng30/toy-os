@@ -15,8 +15,8 @@ LABEL_DESC_VRAM:    Descriptor        0,            0fffffh,                DA_D
 LABEL_DESC_STACK:   Descriptor        0,            TOP_OF_STACK,           DA_DRWA | DA_32
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 
-GdtLen     equ    $ - LABEL_GDT
-GdtPtr     dw     GdtLen - 1
+GDT_LEN    equ    $ - LABEL_GDT
+GDT_PTR     dw     GDT_LEN - 1
            dd     0
 
 SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
@@ -43,7 +43,7 @@ LABEL_IDT:
 
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1
-        dd  0
+         dd  0
 
 [SECTION  .s16]
 [BITS  16]
@@ -82,6 +82,7 @@ LABEL_MEM_CHK_OK:
     ; 初始花8259A芯片，开启中断处理
     call init8259A
 
+    ; 设置代码描述符
     xor   eax, eax
     mov   ax,  cs
     shl   eax, 4
@@ -91,6 +92,7 @@ LABEL_MEM_CHK_OK:
     mov   byte [LABEL_DESC_CODE32 + 4], al
     mov   byte [LABEL_DESC_CODE32 + 7], ah
 
+    ; 设置字体描述符
     xor   eax, eax
     mov   ax,  cs
     shl   eax, 4
@@ -114,9 +116,9 @@ LABEL_MEM_CHK_OK:
     mov   ax, ds
     shl   eax, 4
     add   eax,  LABEL_GDT
-    mov   dword  [GdtPtr + 2], eax
+    mov   dword  [GDT_PTR + 2], eax
 
-    lgdt  [GdtPtr]
+    lgdt  [GDT_PTR]
 
     cli   ;关中断
 
@@ -167,13 +169,12 @@ HANDLER_CODE:
 IO_CODE:
     %include "io.asm"
 
-
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 
+; 保存内存块描述
 [SECTION .data]
 ALIGN 32
 [BITS 32]
-
 MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
 
