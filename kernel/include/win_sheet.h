@@ -1,5 +1,9 @@
 #pragma once
 
+#define HIDE_WIN_SHEET_HEIGHT -1
+#define BOTTOM_WIN_SHEET_HEIGHT 0
+#define TOP_WIN_SHEET_HEIGHT 99
+
 // 窗口绘制层
 typedef struct {
     unsigned char *m_buf; // 绘制图像
@@ -31,3 +35,6 @@ void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
 
 // 调整图层高度
 void win_sheet_updown(win_sheet_t *sht, int height);
+
+// 获取背景并绘制背景
+win_sheet_t *sht_background(void);

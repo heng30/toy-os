@@ -1,4 +1,5 @@
 #include "win_sheet.h"
+#include "colo8.h"
 #include "def.h"
 #include "draw.h"
 #include "memory.h"
@@ -57,8 +58,8 @@ void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
 }
 
 void win_sheet_refresh(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    short xsize = g_boot_info.m_screen_x;
+    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+    int max_pos = xsize * ysize;
 
     for (int h = 0; h <= g_sheet_ctl->m_top; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
@@ -73,7 +74,10 @@ void win_sheet_refresh(void) {
                 unsigned char c = buf[by * sht->m_bxsize + bx];
 
                 if (c != sht->m_col_inv) {
-                    vram[vy * xsize + vx] = c;
+                    int pos = vy * xsize + vx;
+                    if (pos >= 0 && pos < max_pos) {
+                        g_boot_info.m_vga_ram[pos] = c;
+                    }
                 }
             }
         }
@@ -150,4 +154,35 @@ void win_sheet_updown(win_sheet_t *sht, int height) {
 
         win_sheet_refresh();
     }
+}
+
+win_sheet_t *sht_background(void) {
+    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+
+    static unsigned char *buf = NULL;
+    static win_sheet_t *sht = NULL;
+
+    if (!buf) {
+        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+
+        if (!buf) {
+            return NULL;
+        }
+    }
+
+    if (!sht) {
+        sht = win_sheet_alloc();
+
+        if (!sht) {
+            memman_free_4k(buf, xsize * ysize);
+        }
+
+        set_background_vram(buf, xsize, ysize);
+    }
+
+    win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_slide(sht, 0, 0);
+    win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
+
+    return sht;
 }

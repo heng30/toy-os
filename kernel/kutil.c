@@ -1,4 +1,5 @@
 #include "kutil.h"
+#include "io.h"
 
 char char2hex(char c) {
     if (c >= 10) {
@@ -38,4 +39,9 @@ char *int2hexstr(unsigned int d) {
     }
 
     return str;
+}
+
+void dead_loop(void) {
+    for (;;)
+        io_hlt();
 }

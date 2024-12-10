@@ -54,18 +54,18 @@ void enable_mouse(void) {
     io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
 }
 
-void erase_mouse(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    boxfill8(COL8_008484, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_abs_x + 15,
-             g_mdec.m_abs_y + 15);
-}
+// void erase_mouse(void) {
+//     unsigned char *vram = g_boot_info.m_vga_ram;
+//     int xsize = g_boot_info.m_screen_x;
+//     boxfill8(vram, xsize, COL8_008484, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_abs_x + 15,
+//              g_mdec.m_abs_y + 15);
+// }
 
-void draw_mouse(void) {
-    unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    put_block(16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_cursor, 16);
-}
+// void draw_mouse(void) {
+//     unsigned char *vram = g_boot_info.m_vga_ram;
+//     int xsize = g_boot_info.m_screen_x;
+//     put_block(16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_cursor, 16);
+// }
 
 void compute_mouse_position(void) {
     int xsize = g_boot_info.m_screen_x;
@@ -134,11 +134,6 @@ int mouse_decode(unsigned char dat) {
     }
 
     return -1;
-}
-
-void show_mouse_error(unsigned char data) {
-    char *pstr = char2hexstr(data);
-    show_string(32, 64, COL8_FFFFFF, pstr);
 }
 
 void int_handler_for_mouse(char *esp) {

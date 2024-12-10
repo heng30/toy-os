@@ -16,25 +16,28 @@ void set_palette(int start, int end, unsigned char *rgb);
 // 初始化颜色板
 void init_palette(void);
 
+// 绘制一个像素
+void draw_pixel(unsigned char *vram, int pos, unsigned char c);
+
 // 绘制一个矩形
-void boxfill8(unsigned char c, int x0, int y0, int x1, int y1);
-void boxfill8_v2(unsigned char *buf, int xsize, unsigned char c, int x0, int y0,
+void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0,
                  int x1, int y1);
 
+// 根据buf来显示一个图像，通常用来显示鼠标
+void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
+               int py0, char *buf, int bxsize);
+
 // 显示1个字符
-void show_font8(int x, int y, char c, char *font);
+void show_font8(unsigned char *vram, int xsize, int x, int y, char c, char *font);
 
 // 显示字符串
-void show_string(int x, int y, char color, const char *s);
-
-// 根据buf来显示一个图像，通常用来显示鼠标
-void put_block(int pxsize, int pysize, int px0, int py0, char *buf, int bxsize);
-
-// 绘制背景
-void draw_background(void);
+void show_string(unsigned char* vram, int xisize, int x, int y, char color, const char *s);
 
 // 显示调试信息
 void show_debug_char(unsigned char data);
 
 // 显示调试信息
 void show_debug_int(unsigned int data);
+
+// 设置背景图层
+void set_background_vram(unsigned char *vram, int xsize, int ysize);
