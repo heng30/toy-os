@@ -251,31 +251,23 @@ void show_string_in_canvas(int x, int y, char color, const char *s,
 
     if (!buf) {
         buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
-
-        if (!buf) {
-            return;
-        }
+        assert(buf != NULL, "show_string_in_canvas memory alloc error");
     }
+
+    if (!sht) {
+        sht = win_sheet_alloc();
+        assert(sht != NULL, "show_string_in_canvas sheet alloc error");
+
+        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
+        win_sheet_slide(sht, 0, 0);
+    }
+
+    if (height >= TOP_WIN_SHEET_HEIGHT)
+        height = TOP_WIN_SHEET_HEIGHT - 1;
 
     if (is_clear)
         clear_win_sheet(buf, xsize * ysize);
 
-    if (!sht) {
-        sht = win_sheet_alloc();
-
-        if (!sht) {
-            memman_free_4k(buf, xsize * ysize);
-            return;
-        }
-
-        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
-        win_sheet_slide(sht, 0, 0);
-
-        if (height >= TOP_WIN_SHEET_HEIGHT)
-            height = TOP_WIN_SHEET_HEIGHT - 1;
-
-        win_sheet_updown(sht, height);
-    }
-
     show_string(sht, x, y, color, s);
+    win_sheet_updown(sht, height);
 }

@@ -50,6 +50,8 @@ void dead_loop(void) {
 
 void assert(bool cond, const char *errmsg) {
     if (!cond) {
+        boxfill8(g_boot_info.m_vga_ram, g_boot_info.m_screen_x, COL8_000000, 0,
+                 0, g_boot_info.m_screen_x, g_boot_info.m_screen_y);
         show_debug_string(0, 0, COL8_FFFFFF, errmsg);
         dead_loop();
     }
