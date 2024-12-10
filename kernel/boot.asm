@@ -1,11 +1,15 @@
 org 0x7c00
 
-load_addr equ 0x8000 ; 将内核写入到系统的内存位置
+LoadAddr EQU  08000h ; 将内核写入到系统的内存位置
+BufferAddr EQU 7E0h  ; 保存一个扇区数据的地址。 该值会被赋值给段寄存器，真实的地址为 7e00h = 7e00 << 4
+
+BaseOfStack     equ 07c00h
 
 jmp  entry
 
+; 内核相关信息
 db   0x90
-db   "OSKERNEL"
+db   "BOOT LOADER"
 dw   512
 db   1
 dw   1
@@ -20,50 +24,95 @@ dd   0
 dd   2880
 db   0,0,0x29
 dd   0xFFFFFFFF
-db   "MYFIRSTOS  "
-db   "FAT12   "
+db   "TOY OS"
+db   "FAT12"
 resb  18
 
-; 最多只能连续加载3个柱面(3*18=54个扇区).
-; 因为ex固定为0, 只能通过修bx来控制每个柱面加载到内存的位置.
-; 而且起始位置为0x9000. 所以3=((1 << 16) - 0x9000) / (18 * 512)
 entry:
+    mov  ax, 0
+    mov  ss, ax
+    mov  ds, ax
+
+    mov  ax, BufferAddr
+    mov  es, ax
+
+    mov  ax, 0
+    mov  ss, ax
+    mov  sp, BaseOfStack    ; 设置栈指针
+    mov  di, ax
+    mov  si, ax
+
+    mov          BX, 0        ; ES:BX 数据存储缓冲区
+    mov          CH, 1        ; CH 用来存储柱面号
+    mov          DH, 0        ; DH 用来存储磁头号
+    mov          CL, 0        ; CL 用来存储扇区号
+
+;每次都把一个扇区内容写入地址 07E00处
+readFloppy:
+    cmp          byte [load_count], 0 ; 判断是否读取完指定数量的柱面
+    je           beginLoad
+
+    mov          bx, 0
+    inc          CL
+    mov          AH, 0x02      ; AH = 02 表示要做的是读盘操作
+    mov          AL, 1        ; AL 表示要练习读取几个扇区
+    mov          DL, 0         ; 驱动器编号，一般我们只有一个软盘驱动器，所以写死为0
+    INT          0x13          ; 调用BIOS中断实现磁盘读取功能
+    JC           fin
+
+;把刚写入07E00h的一个扇区的内容写入到08000h开始的地址
+copySector:
+    push si
+    push di
+    push cx
+
+    mov  cx, 0200h ; 512字节
+    mov  di, 0
+    mov  si, 0
+    mov  ax, word [load_section] ; ax = 0800h
+    mov  ds, ax     ; ds 段寄存器，[ds] = 0800h << 4 == 0800h
+
+; 07E00h -> 08000h. 复制一个扇区内容
+copy:
+    cmp  cx, 0          ; 判断是否读取完512个字节
+    je   copyend
+
+    mov  al, byte [es:si]
+    mov  byte [ds:di], al
+
+    inc  di
+    inc  si
+    dec  cx
+    jmp  copy
+
+copyend:
+    pop cx
+    pop di
+    pop si
+
+    mov bx, ds
+    add bx, 020h    ; 512 = 0x20 << 4
     mov ax, 0
-    mov ss, ax
     mov ds, ax
-    mov es, ax
-    mov si, ax
+    mov word [load_section], bx ; 更新下一个扇区写入的位置
+    mov bx, 0
 
-    mov bx, load_addr ; ex:bx 存储缓冲区. address = ex * 16 + bx
-    mov ch, 1 ; 柱面号, 编号从0开始
+    cmp          CL, 18     ; 判断是否复制完18个扇区，即一个柱面
+    jb           readFloppy ; 重新读取一个扇区
 
-read_floppy:
-    cmp          byte [load_count], 0
-    je           begin_load
+    inc          CH         ; 柱面号加一
+    mov          CL, 0      ; 扇区号归零
+    dec          byte [load_count]  ; 更新需要读取的柱面数
+    jmp          readFloppy ; 重新读取一个柱面
 
-    mov dh, 0 ; 磁头号, 0/1
-    mov cl, 1 ; 扇区号, 编号从1开始
+beginLoad:
+    mov  ax, 0
+    mov  ds, ax
+    jmp          LoadAddr   ; 调整到内核中执行代码
 
-    mov ah, 0x02 ; 读盘操作
-    mov al, 18  ; 连续读取几个扇区, 一个柱面一共18个扇区
-    mov dl, 0 ; 驱动器编号, 只有一个磁盘，所以这里写死为0
-
-    int 0x13 ; 调用bios中断实现磁盘读取功能
-
-    jc           fin ; 如果读取出错，就跳转到错误
-
-    ; 更新数据读取下一个柱面
-    inc          ch
-    dec          byte [load_count]
-    add          bx, 0x2400 ; 偏移到下1个柱面所在的内存位置
-    jmp          read_floppy
-
-; 开始执行内核代码
-begin_load:
-    jmp          load_addr
-
-load_count db 3 ;连续读取几个柱面
+load_count db 10            ; 连续读取几个柱面
+load_section dw 0800h
 
 fin:
     hlt
-    jmp fin
+    jmp  fin
