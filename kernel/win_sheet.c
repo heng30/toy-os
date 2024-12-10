@@ -57,7 +57,7 @@ void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
     sht->m_col_inv = col_inv;
 }
 
-void win_sheet_refresh(void) {
+void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1) {
     int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
     int max_pos = xsize * ysize;
 
@@ -71,12 +71,16 @@ void win_sheet_refresh(void) {
             // 绘制1行图像
             for (int bx = 0; bx < sht->m_bxsize; bx++) {
                 int vx = sht->m_vx0 + bx;
-                unsigned char c = buf[by * sht->m_bxsize + bx];
 
-                if (c != sht->m_col_inv) {
-                    int pos = vy * xsize + vx;
-                    if (pos >= 0 && pos < max_pos) {
-                        g_boot_info.m_vga_ram[pos] = c;
+                // 跳过不在指定绘制区域内的像素
+                if (vx0 <= vx && vx < vx1 && vy0 <= vy && vy < vy1) {
+                    unsigned char c = buf[by * sht->m_bxsize + bx];
+
+                    if (c != sht->m_col_inv) {
+                        int pos = vy * xsize + vx;
+                        if (pos >= 0 && pos < max_pos) {
+                            g_boot_info.m_vga_ram[pos] = c;
+                        }
                     }
                 }
             }
@@ -84,12 +88,23 @@ void win_sheet_refresh(void) {
     }
 }
 
+void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
+    if (sht->m_height >= 0) {
+        win_sheet_refreshsub(sht->m_vx0 + bx0, sht->m_vy0 + by0,
+                             sht->m_vx0 + bx1, sht->m_vy0 + by1);
+    }
+}
+
 void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0) {
+    int old_vx0 = sht->m_vx0, old_vy0 = sht->m_vy0;
     sht->m_vx0 = vx0;
     sht->m_vy0 = vy0;
 
-    if (sht->m_height >= BOTTOM_WIN_SHEET_HEIGHT) {
-        win_sheet_refresh();
+    if (sht->m_height >= 0) {
+        win_sheet_refreshsub(old_vx0, old_vy0, old_vx0 + sht->m_bxsize,
+                             old_vy0 + sht->m_bysize);
+        win_sheet_refreshsub(vx0, vy0, vx0 + sht->m_bxsize,
+                             vy0 + sht->m_bysize);
     }
 }
 
@@ -130,7 +145,8 @@ void win_sheet_updown(win_sheet_t *sht, int height) {
             ctl->m_top--;
         }
 
-        win_sheet_refresh();
+        win_sheet_refreshsub(sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
+                             sht->m_vy0 + sht->m_bysize);
     } else if (old < height) { // 图层向上移动
         // 可见图层间移动
         if (old >= 0) {
@@ -152,8 +168,7 @@ void win_sheet_updown(win_sheet_t *sht, int height) {
             ctl->m_top++;
         }
 
-        win_sheet_refresh();
+        win_sheet_refreshsub(sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
+                             sht->m_vy0 + sht->m_bysize);
     }
 }
-
-

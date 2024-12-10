@@ -21,7 +21,6 @@ memman_t g_memman = {
     .m_free = (freeinfo_t *)NULL,
 };
 
-
 void memman_init(void) {
     int cnt = get_memory_block_count();
     unsigned int mem_size = 0, max_mem_index = 0;
@@ -157,13 +156,13 @@ void show_memory_block_counts_and_addr(void) {
 
     int cnt = get_memory_block_count();
     p = int2hexstr(cnt);
-    show_string(vram, xsize, 0, 0, COL8_FFFFFF, "pages: ");
-    show_string(vram, xsize, gap, 0, COL8_FFFFFF, p);
+    show_debug_string(0, 0, COL8_FFFFFF, "pages: ");
+    show_debug_string(gap, 0, COL8_FFFFFF, p);
 
     addr_range_desc_t *desc = (addr_range_desc_t *)get_memory_block_buffer();
     p = int2hexstr((int)desc);
-    show_string(vram, xsize, 0, 16, COL8_FFFFFF, "address: ");
-    show_string(vram, xsize, gap, 16, COL8_FFFFFF, p);
+    show_debug_string(0, 16, COL8_FFFFFF, "address: ");
+    show_debug_string(gap, 16, COL8_FFFFFF, p);
 }
 
 void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
@@ -189,9 +188,9 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
     };
 
     for (int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]); i++, y += 16) {
-        show_string(vram, xsize, x, y, color, title[i]);
+        show_debug_string(x, y, color, title[i]);
         p = int2hexstr(ele[i]);
-        show_string(vram, xsize, gap, y, color, p);
+        show_debug_string(gap, y, color, p);
     }
 }
 
@@ -201,9 +200,9 @@ void show_memman_info(void) {
     int total = memman_total() / (1024 * 1024);
     char *p = int2hexstr(total);
 
-    show_string(vram, xsize, 0, 0, COL8_FFFFFF, "Total memory is:");
-    show_string(vram, xsize, 17 * 8, 0, COL8_FFFFFF, p);
-    show_string(vram, xsize, 28 * 8, 0, COL8_FFFFFF, "MB");
+    show_debug_string(0, 0, COL8_FFFFFF, "Total memory is:");
+    show_debug_string(17 * 8, 0, COL8_FFFFFF, p);
+    show_debug_string(28 * 8, 0, COL8_FFFFFF, "MB");
 }
 
 void memman_test(void) {

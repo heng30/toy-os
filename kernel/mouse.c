@@ -30,7 +30,7 @@ mouse_dec_t g_mdec = {
 };
 
 void init_cursor(void) {
-    char *mouse = g_mdec.m_cursor;
+    unsigned char *mouse = g_mdec.m_cursor;
 
     for (int y = 0; y < 16; y++) {
         for (int x = 0; x < 16; x++) {

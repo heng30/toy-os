@@ -91,12 +91,15 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
     }
 }
 
-void show_string(unsigned char *vram, int xsize, int x, int y, char color,
-                 const char *s) {
+void show_string(win_sheet_t *sht, int x, int y, char color, const char *s) {
+    int begin = x;
     for (; *s != 0x00; s++) {
-        show_font8(vram, xsize, x, y, color, system_font + *s * 16);
+        show_font8(sht->m_buf, sht->m_bxsize, x, y, color,
+                   system_font + *s * 16);
         x += 8;
     }
+
+    win_sheet_refresh(sht, begin, y, x, y + 16);
 }
 
 void show_debug_char(unsigned char data) {
@@ -108,7 +111,7 @@ void show_debug_char(unsigned char data) {
     int ysize = g_boot_info.m_screen_y;
     char *pstr = char2hexstr(data);
 
-    show_string(vram, xsize, pos_x, pos_y, COL8_FFFFFF, pstr);
+    show_debug_string(pos_x, pos_y, COL8_FFFFFF, pstr);
     pos_x += 32;
 
     // 每10个data换行
@@ -133,7 +136,7 @@ void show_debug_int(unsigned int data) {
     int ysize = g_boot_info.m_screen_y;
     char *pstr = int2hexstr(data);
 
-    show_string(vram, xsize, pos_x, pos_y, COL8_FFFFFF, pstr);
+    show_debug_string(pos_x, pos_y, COL8_FFFFFF, pstr);
     pos_x += 80;
 
     // 每4个data换行
@@ -149,7 +152,17 @@ void show_debug_int(unsigned int data) {
     }
 }
 
-void set_background_vram(unsigned char *vram, int xsize, int ysize) {
+void show_debug_string(int x, int y, char color, const char *s) {
+    unsigned char *vram = g_boot_info.m_vga_ram;
+    int xsize = g_boot_info.m_screen_x;
+
+    for (; *s != 0x00; s++) {
+        show_font8(vram, xsize, x, y, color, system_font + *s * 16);
+        x += 8;
+    }
+}
+
+static void _set_background_vram(unsigned char *vram, int xsize, int ysize) {
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     boxfill8(vram, xsize, COL8_C6C6C6, 0, ysize - 28, xsize - 1, ysize - 28);
     boxfill8(vram, xsize, COL8_FFFFFF, 0, ysize - 27, xsize - 1, ysize - 27);
@@ -194,12 +207,11 @@ void draw_background(void) {
             return;
         }
 
-        set_background_vram(buf, xsize, ysize);
+        _set_background_vram(buf, xsize, ysize);
+        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
+        win_sheet_slide(sht, 0, 0);
+        win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
     }
-
-    win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
-    win_sheet_slide(sht, 0, 0);
-    win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
 }
 
 void draw_mouse(void) {
@@ -212,8 +224,48 @@ void draw_mouse(void) {
 
         win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
         win_sheet_updown(sht, TOP_WIN_SHEET_HEIGHT);
+    } else {
+        compute_mouse_position();
+        win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+    }
+}
+
+void clear_win_sheet(unsigned char *vram, int size) {
+    for (int i = 0; i < size; i++) {
+        vram[i] = COLOR_INVISIBLE;
+    }
+}
+
+void show_string_in_test_canvas(int x, int y, char color, const char *s,
+                                bool is_clear) {
+    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+
+    static unsigned char *buf = NULL;
+    static win_sheet_t *sht = NULL;
+
+    if (!buf) {
+        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+
+        if (!buf) {
+            return;
+        }
     }
 
-    compute_mouse_position();
-    win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+    if (is_clear)
+        clear_win_sheet(buf, xsize * ysize);
+
+    if (!sht) {
+        sht = win_sheet_alloc();
+
+        if (!sht) {
+            memman_free_4k(buf, xsize * ysize);
+            return;
+        }
+
+        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
+        win_sheet_slide(sht, 0, 0);
+        win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT + 1);
+    }
+
+    show_string(sht, x, y, color, s);
 }

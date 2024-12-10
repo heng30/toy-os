@@ -15,7 +15,7 @@
 #define MOUSE_PHASE_THREE 3
 
 typedef struct {
-    char m_cursor[256]; // 鼠标图像
+    unsigned char m_cursor[256]; // 鼠标图像
     unsigned char m_buf[3]; // 保存鼠标移动解析后的输入数据
     unsigned char m_phase;  // 解析鼠标数据的阶段
     unsigned char m_btn; // 鼠标按键

@@ -46,13 +46,14 @@ void start_kernel(void) {
     memman_init();
 
     if (win_sheet_ctl_init()) {
-        show_string(g_boot_info.m_vga_ram, g_boot_info.m_screen_x, 0, 0,
-                    COL8_FFFFFF, "win_sheet_ctl_init failed");
+        show_debug_string(0, 0, COL8_FFFFFF, "win_sheet_ctl_init failed");
         dead_loop();
     }
 
     draw_background();
     draw_mouse();
+
+    show_string_in_test_canvas(0, 0, COL8_FFFFFF, "Hello, World!", true);
 
     io_sti(); // 开中断
     enable_mouse();
