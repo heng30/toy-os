@@ -8,6 +8,8 @@
 #include "mouse.h"
 #include "win_sheet.h"
 
+#include "message_box.h"
+
 void show_mouse(void) {
     unsigned char data = fifo8_get(&g_mouseinfo);
 
@@ -53,7 +55,11 @@ void start_kernel(void) {
     draw_background();
     draw_mouse();
 
-    show_string_in_test_canvas(0, 0, COL8_FFFFFF, "Hello, World!", true);
+    show_string_in_canvas(0, 0, COL8_FFFFFF, "Hello, World!", true,
+                          BOTTOM_WIN_SHEET_HEIGHT + 1);
+
+    message_box_t *msg_box =
+        message_box_new(80, 72, 168, 68, BOTTOM_WIN_SHEET_HEIGHT + 2, "Toy-OS");
 
     io_sti(); // 开中断
     enable_mouse();
@@ -64,6 +70,12 @@ void start_kernel(void) {
             io_stihlt();
         } else if (fifo8_status(&g_keyinfo) != 0) {
             show_keyboard_input();
+
+            if (message_box_is_visible(msg_box)) {
+                message_box_hide(msg_box);
+            } else {
+                message_box_show(msg_box, BOTTOM_WIN_SHEET_HEIGHT + 2);
+            }
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             show_mouse();
         }

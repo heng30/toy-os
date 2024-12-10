@@ -3,6 +3,9 @@
 #include "def.h"
 #include "win_sheet.h"
 
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 16
+
 // 显示信息
 typedef struct {
     unsigned char *m_vga_ram; // vga显存地址
@@ -34,7 +37,7 @@ void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
 void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
                 char *font);
 
-// 显示字符串
+// 显示一行字符串
 void show_string(win_sheet_t *sht, int x, int y, char color, const char *s);
 
 // 显示调试信息
@@ -56,5 +59,5 @@ void draw_mouse(void);
 void clear_win_sheet(unsigned char *vram, int size);
 
 // 绘制字符串到调试面板
-void show_string_in_test_canvas(int x, int y, char color, const char *s,
-                                bool is_clear);
+void show_string_in_canvas(int x, int y, char color, const char *s,
+                                bool is_clear, int height);

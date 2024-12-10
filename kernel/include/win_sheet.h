@@ -23,6 +23,9 @@ int win_sheet_ctl_init(void);
 // 分配一个图层
 win_sheet_t *win_sheet_alloc(void);
 
+// 释放一个图层
+void win_sheet_free(win_sheet_t *sheet);
+
 // 设置一个图层信息
 void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
                       int bysize, int col_inv);
@@ -38,6 +41,3 @@ void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
 
 // 调整图层高度
 void win_sheet_updown(win_sheet_t *sht, int height);
-
-// 获取背景并绘制背景
-win_sheet_t *sht_background(void);

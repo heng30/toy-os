@@ -62,7 +62,7 @@ void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
 
 void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
                 char *font) {
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < FONT_HEIGHT; i++) {
         char d = font[i];
         if ((d & 0x80) != 0) {
             vram[(y + i) * xsize + x + 0] = c;
@@ -93,13 +93,19 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
 
 void show_string(win_sheet_t *sht, int x, int y, char color, const char *s) {
     int begin = x;
+    int max_size = sht->m_bxsize * sht->m_bysize;
+
     for (; *s != 0x00; s++) {
+        if (x >= sht->m_bxsize) {
+            break;
+        }
+
         show_font8(sht->m_buf, sht->m_bxsize, x, y, color,
                    system_font + *s * 16);
         x += 8;
     }
 
-    win_sheet_refresh(sht, begin, y, x, y + 16);
+    win_sheet_refresh(sht, begin, y, x, y + FONT_HEIGHT);
 }
 
 void show_debug_char(unsigned char data) {
@@ -236,8 +242,8 @@ void clear_win_sheet(unsigned char *vram, int size) {
     }
 }
 
-void show_string_in_test_canvas(int x, int y, char color, const char *s,
-                                bool is_clear) {
+void show_string_in_canvas(int x, int y, char color, const char *s,
+                           bool is_clear, int height) {
     int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
 
     static unsigned char *buf = NULL;
@@ -264,7 +270,11 @@ void show_string_in_test_canvas(int x, int y, char color, const char *s,
 
         win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
         win_sheet_slide(sht, 0, 0);
-        win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT + 1);
+
+        if (height >= TOP_WIN_SHEET_HEIGHT)
+            height = TOP_WIN_SHEET_HEIGHT - 1;
+
+        win_sheet_updown(sht, height);
     }
 
     show_string(sht, x, y, color, s);

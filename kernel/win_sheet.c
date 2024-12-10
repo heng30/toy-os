@@ -49,6 +49,11 @@ win_sheet_t *win_sheet_alloc(void) {
     return NULL;
 }
 
+void win_sheet_free(win_sheet_t *sheet) {
+    win_sheet_updown(sheet, HIDE_WIN_SHEET_HEIGHT);
+    sheet->m_flags = SHEET_UNUSE;
+}
+
 void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
                       int bysize, int col_inv) {
     sht->m_buf = buf;
