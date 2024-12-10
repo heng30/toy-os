@@ -47,10 +47,7 @@ void start_kernel(void) {
 
     memman_init();
 
-    if (win_sheet_ctl_init()) {
-        show_debug_string(0, 0, COL8_FFFFFF, "win_sheet_ctl_init failed");
-        dead_loop();
-    }
+    assert(win_sheet_ctl_init(), "win_sheet_ctl_init failed");
 
     draw_background();
     draw_mouse();
@@ -61,13 +58,23 @@ void start_kernel(void) {
     message_box_t *msg_box =
         message_box_new(80, 72, 168, 68, BOTTOM_WIN_SHEET_HEIGHT + 2, "Toy-OS");
 
+    assert(msg_box != NULL, "msg_box is null");
+
     io_sti(); // 开中断
     enable_mouse();
 
+    int counter = 0;
     for (;;) {
+        char *p = int2hexstr(counter);
+        boxfill8(msg_box->m_sheet->m_buf, msg_box->m_sheet->m_bxsize,
+                 COL8_FFFFFF, 40, 28, 119, 43);
+        show_string(msg_box->m_sheet, 40, 28, COL8_000000, p);
+        counter++;
+
         io_cli();
         if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) == 0) {
-            io_stihlt();
+            io_sti(); // 测试用途
+            // io_stihlt();
         } else if (fifo8_status(&g_keyinfo) != 0) {
             show_keyboard_input();
 

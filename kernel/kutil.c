@@ -1,4 +1,6 @@
 #include "kutil.h"
+#include "colo8.h"
+#include "draw.h"
 #include "io.h"
 
 char char2hex(char c) {
@@ -44,4 +46,11 @@ char *int2hexstr(unsigned int d) {
 void dead_loop(void) {
     for (;;)
         io_hlt();
+}
+
+void assert(bool cond, const char *errmsg) {
+    if (!cond) {
+        show_debug_string(0, 0, COL8_FFFFFF, errmsg);
+        dead_loop();
+    }
 }

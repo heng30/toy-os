@@ -96,7 +96,7 @@ void show_string(win_sheet_t *sht, int x, int y, char color, const char *s) {
     int max_size = sht->m_bxsize * sht->m_bysize;
 
     for (; *s != 0x00; s++) {
-        if (x >= sht->m_bxsize) {
+        if (x + FONT_WIDTH > sht->m_bxsize) {
             break;
         }
 

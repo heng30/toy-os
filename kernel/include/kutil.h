@@ -1,5 +1,7 @@
 #pragma once
 
+#include "def.h"
+
 // 获取1个字符的16进制
 char char2hex(char c);
 
@@ -11,3 +13,6 @@ char *int2hexstr(unsigned int d);
 
 // 死循环
 void dead_loop(void);
+
+// 断言
+void assert(bool cond, const char *errmsg);

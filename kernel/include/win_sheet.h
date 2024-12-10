@@ -1,5 +1,7 @@
 #pragma once
 
+#include "def.h"
+
 #define HIDE_WIN_SHEET_HEIGHT -1
 #define BOTTOM_WIN_SHEET_HEIGHT 0
 #define TOP_WIN_SHEET_HEIGHT 99
@@ -18,7 +20,7 @@ typedef struct {
 } win_sheet_t;
 
 // 初始化窗口图层管理器
-int win_sheet_ctl_init(void);
+bool win_sheet_ctl_init(void);
 
 // 分配一个图层
 win_sheet_t *win_sheet_alloc(void);
@@ -31,7 +33,7 @@ void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
                       int bysize, int col_inv);
 
 // 刷新图层指定区域
-void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1);
+void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1);
 
 // 刷新图层
 void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1);
@@ -41,3 +43,5 @@ void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
 
 // 调整图层高度
 void win_sheet_updown(win_sheet_t *sht, int height);
+
+void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0);
