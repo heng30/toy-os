@@ -1,7 +1,11 @@
 #include "draw.h"
 #include "colo8.h"
+#include "def.h"
 #include "io.h"
 #include "kutil.h"
+#include "memory.h"
+#include "mouse.h"
+#include "win_sheet.h"
 
 // 颜色板
 extern unsigned char palette_table_rgb[16 * 3];
@@ -168,3 +172,48 @@ void set_background_vram(unsigned char *vram, int xsize, int ysize) {
              ysize - 3);
 }
 
+void draw_background(void) {
+    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+
+    static unsigned char *buf = NULL;
+    static win_sheet_t *sht = NULL;
+
+    if (!buf) {
+        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+
+        if (!buf) {
+            return;
+        }
+    }
+
+    if (!sht) {
+        sht = win_sheet_alloc();
+
+        if (!sht) {
+            memman_free_4k(buf, xsize * ysize);
+            return;
+        }
+
+        set_background_vram(buf, xsize, ysize);
+    }
+
+    win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_slide(sht, 0, 0);
+    win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
+}
+
+void draw_mouse(void) {
+    static win_sheet_t *sht = NULL;
+
+    if (!sht) {
+        sht = win_sheet_alloc();
+        win_sheet_setbuf(sht, g_mdec.m_cursor, CURSOR_ICON_SIZE,
+                         CURSOR_ICON_SIZE, COLOR_INVISIBLE);
+
+        win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+        win_sheet_updown(sht, TOP_WIN_SHEET_HEIGHT);
+    }
+
+    compute_mouse_position();
+    win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+}

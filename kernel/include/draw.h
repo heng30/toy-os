@@ -41,3 +41,9 @@ void show_debug_int(unsigned int data);
 
 // 设置背景图层
 void set_background_vram(unsigned char *vram, int xsize, int ysize);
+
+// 绘制J背景
+void draw_background(void);
+
+// 绘制背景
+void draw_mouse(void);

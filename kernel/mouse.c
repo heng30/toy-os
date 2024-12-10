@@ -29,7 +29,7 @@ mouse_dec_t g_mdec = {
     .m_abs_y = 80,
 };
 
-void init_mouse_cursor(void) {
+void init_cursor(void) {
     char *mouse = g_mdec.m_cursor;
 
     for (int y = 0; y < 16; y++) {
@@ -53,19 +53,6 @@ void enable_mouse(void) {
     wait_KBC_sendready();
     io_out8(PORT_KEYDAT, MOUSECMD_ENABLE);
 }
-
-// void erase_mouse(void) {
-//     unsigned char *vram = g_boot_info.m_vga_ram;
-//     int xsize = g_boot_info.m_screen_x;
-//     boxfill8(vram, xsize, COL8_008484, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_abs_x + 15,
-//              g_mdec.m_abs_y + 15);
-// }
-
-// void draw_mouse(void) {
-//     unsigned char *vram = g_boot_info.m_vga_ram;
-//     int xsize = g_boot_info.m_screen_x;
-//     put_block(16, 16, g_mdec.m_abs_x, g_mdec.m_abs_y, g_mdec.m_cursor, 16);
-// }
 
 void compute_mouse_position(void) {
     int xsize = g_boot_info.m_screen_x;

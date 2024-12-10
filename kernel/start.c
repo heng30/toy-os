@@ -8,16 +8,14 @@
 #include "mouse.h"
 #include "win_sheet.h"
 
-void show_mouse_info(void) {
+void show_mouse(void) {
     unsigned char data = fifo8_get(&g_mouseinfo);
 
     io_sti();
 
-    // if (mouse_decode(data) == 1) {
-    //     erase_mouse();
-    //     compute_mouse_position();
-    //     draw_mouse();
-    // }
+    if (mouse_decode(data) == 1) {
+        draw_mouse();
+    }
 }
 
 void show_keyboard_input(void) {
@@ -42,8 +40,8 @@ void show_keyboard_input(void) {
 
 void start_kernel(void) {
     init_palette();
+    init_cursor();
     init_keyboard();
-    init_mouse_cursor();
 
     memman_init();
 
@@ -53,18 +51,8 @@ void start_kernel(void) {
         dead_loop();
     }
 
-    sht_background();
-
-    // draw_background();
-
-    // win_sheet_t *sht_mouse = win_sheet_alloc();
-    // win_sheet_setbuf(sht_mouse, g_mouseinfo.m_buf, 16, 16, COLOR_INVISIBLE);
-
-    // draw_background();
-    // draw_mouse();
-
-    // show_memman_info();
-    // memman_test();
+    draw_background();
+    draw_mouse();
 
     io_sti(); // 开中断
     enable_mouse();
@@ -76,7 +64,7 @@ void start_kernel(void) {
         } else if (fifo8_status(&g_keyinfo) != 0) {
             show_keyboard_input();
         } else if (fifo8_status(&g_mouseinfo) != 0) {
-            show_mouse_info();
+            show_mouse();
         }
     }
 }

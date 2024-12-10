@@ -15,7 +15,7 @@ typedef struct {
     win_sheet_t m_sheets0[MAX_SHEETS];
 } win_sheet_ctl_t;
 
-static win_sheet_ctl_t *g_sheet_ctl;
+static win_sheet_ctl_t *g_sheet_ctl = NULL;
 
 int win_sheet_ctl_init(void) {
     g_sheet_ctl = (win_sheet_ctl_t *)memman_alloc_4k(sizeof(win_sheet_ctl_t));
@@ -41,7 +41,7 @@ win_sheet_t *win_sheet_alloc(void) {
             sht->m_vx0 = 0;
             sht->m_vy0 = 0;
             sht->m_flags = SHEET_USE;
-            sht->m_height = -1;
+            sht->m_height = HIDE_WIN_SHEET_HEIGHT;
             return sht;
         }
     }
@@ -88,7 +88,7 @@ void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0) {
     sht->m_vx0 = vx0;
     sht->m_vy0 = vy0;
 
-    if (sht->m_height >= 0) {
+    if (sht->m_height >= BOTTOM_WIN_SHEET_HEIGHT) {
         win_sheet_refresh();
     }
 }
@@ -156,33 +156,4 @@ void win_sheet_updown(win_sheet_t *sht, int height) {
     }
 }
 
-win_sheet_t *sht_background(void) {
-    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
 
-    static unsigned char *buf = NULL;
-    static win_sheet_t *sht = NULL;
-
-    if (!buf) {
-        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
-
-        if (!buf) {
-            return NULL;
-        }
-    }
-
-    if (!sht) {
-        sht = win_sheet_alloc();
-
-        if (!sht) {
-            memman_free_4k(buf, xsize * ysize);
-        }
-
-        set_background_vram(buf, xsize, ysize);
-    }
-
-    win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
-    win_sheet_slide(sht, 0, 0);
-    win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
-
-    return sht;
-}
