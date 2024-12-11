@@ -18,6 +18,7 @@ typedef struct {
 
     int m_index; // 图层在图层数组中的下标
     int m_z;     // 图层Z轴高度
+    bool m_is_transparent_layer;  // 是否为透明图层
     int m_flags; // 0: 可用, 1: 占用
 } win_sheet_t;
 

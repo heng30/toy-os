@@ -65,5 +65,4 @@ void init_canvas_sheet(int z);
 void clear_sheet(unsigned char *vram, int size, unsigned char c);
 
 // 绘制字符串到调试面板
-void show_string_in_canvas(int x, int y, char color, const char *s,
-                           bool is_clear);
+void show_string_in_canvas(int x, int y, char color, const char *s);

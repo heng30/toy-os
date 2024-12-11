@@ -108,6 +108,7 @@ void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color,
 
         show_font8(sht->m_buf, sht->m_bxsize, x, y, text_color,
                    system_font + *s * 16);
+
         x += FONT_WIDTH;
     }
 
@@ -228,19 +229,15 @@ void init_canvas_sheet(int z) {
     g_canvas_sht = win_sheet_alloc();
     assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
 
+    g_canvas_sht->m_is_transparent_layer = true;
     win_sheet_setbuf(g_canvas_sht, buf, xsize, ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_canvas_sht, 0, 0);
     win_sheet_updown(g_canvas_sht, z);
 }
 
-void show_string_in_canvas(int x, int y, char color, const char *s,
-                           bool is_clear) {
+void show_string_in_canvas(int x, int y, char color, const char *s) {
     if (!g_canvas_sht)
         return;
 
-    if (is_clear)
-        clear_sheet(g_canvas_sht->m_buf,
-                    g_canvas_sht->m_bxsize * g_canvas_sht->m_bysize, COLOR_INVISIBLE);
-
-    show_string(g_canvas_sht, x, y, COL8_000000, color, s);
+    show_string(g_canvas_sht, x, y, COLOR_INVISIBLE, color, s);
 }

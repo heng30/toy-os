@@ -52,7 +52,8 @@ void start_kernel(void) {
 
     init_background_sheet();
     init_mouse_sheet();
-    init_canvas_sheet(BOTTOM_WIN_SHEET_Z + 1);
+    // init_canvas_sheet(BOTTOM_WIN_SHEET_Z + 1);
+    init_canvas_sheet(TOP_WIN_SHEET_Z - 1);
 
     message_box_t *msg_box =
         message_box_new(80, 72, 168, 68, BOTTOM_WIN_SHEET_Z + 2, "Toy-OS");
@@ -89,7 +90,7 @@ void start_kernel(void) {
             fifo8_get(g_timerctl.m_fifo);
             io_sti();
 
-            show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter), true);
+            show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter));
 
             reset_timer(100, 1);
             counter += 1;

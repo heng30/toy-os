@@ -53,6 +53,7 @@ win_sheet_t *win_sheet_alloc(void) {
             sht->m_flags = SHEET_USE;
             sht->m_index = -1;
             sht->m_z = HIDE_WIN_SHEET_Z;
+            sht->m_is_transparent_layer = false;
             return sht;
         }
     }
@@ -95,13 +96,24 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
                 // 跳过不在指定绘制区域内的像素
                 if (vx0 <= vx && vx < vx1 && vy0 <= vy && vy < vy1) {
                     unsigned char c = buf[by * sht->m_bxsize + bx];
+                    int pos = vy * xsize + vx;
 
-                    // 判断是否是不可见像素
-                    if (c != sht->m_col_inv) {
-                        int pos = vy * xsize + vx;
+                    // 如果是透明图层强制绘制像素
+                    if (sht->m_is_transparent_layer) {
+                        if (c == sht->m_col_inv) {
+                            // TODO: 获取下层非不可见像素
+                            continue;
+                        }
+
                         if (pos >= 0 && pos < max_pos) {
+                            g_boot_info.m_vga_ram[pos] = c;
+                        }
+                    } else {
+                        // 判断是否是不可见像素
+                        if (c != sht->m_col_inv) {
                             // 判断像素是否归自己管
-                            if (g_sheet_ctl->m_map[pos] == sid) {
+                            if (pos >= 0 && pos < max_pos &&
+                                g_sheet_ctl->m_map[pos] == sid) {
                                 g_boot_info.m_vga_ram[pos] = c;
                             }
                         }
@@ -278,6 +290,11 @@ void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
 
     for (int h = h0; h <= g_sheet_ctl->m_top; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
+
+        // 不计算透明图层到map的映射关系
+        if (sht->m_is_transparent_layer)
+            continue;
+
         unsigned char sid = sht - g_sheet_ctl->m_sheets0;
 
         // 计算局部坐标系，相对于绘制的窗口的偏移
