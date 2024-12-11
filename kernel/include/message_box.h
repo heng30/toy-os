@@ -8,11 +8,11 @@ typedef struct {
 } message_box_t;
 
 message_box_t *message_box_new(int x, int y, int width, int height,
-                               int sheet_height, const char *title);
+                               int sheet_z, const char *title);
 
 void message_box_free(const message_box_t *p);
 
-void message_box_show(message_box_t *p, int sheet_height);
+void message_box_show(message_box_t *p, int sheet_z);
 
 void message_box_hide(message_box_t *p);
 

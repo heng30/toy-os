@@ -16,6 +16,12 @@ typedef struct {
 // 显示信息
 extern boot_info_t g_boot_info;
 
+// 背景图层
+extern win_sheet_t *g_background_sht;
+
+// 画布图层
+extern win_sheet_t *g_canvas_sht;
+
 // 设置颜色板
 void set_palette(int start, int end, unsigned char *rgb);
 
@@ -38,7 +44,7 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
                 char *font);
 
 // 显示一行字符串
-void show_string(win_sheet_t *sht, int x, int y, char color, const char *s);
+void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color, const char *s);
 
 // 显示调试信息
 void show_debug_char(unsigned char data);
@@ -50,14 +56,14 @@ void show_debug_int(unsigned int data);
 void show_debug_string(int x, int y, char color, const char *s);
 
 // 绘制J背景
-void draw_background(void);
+void init_background_sheet(void);
 
-// 绘制背景
-void draw_mouse(void);
+// 创建绘制面板
+void init_canvas_sheet(int z);
 
 // 清空图层所有数据，使图层透明
-void clear_win_sheet(unsigned char *vram, int size);
+void clear_sheet(unsigned char *vram, int size, unsigned char c);
 
 // 绘制字符串到调试面板
 void show_string_in_canvas(int x, int y, char color, const char *s,
-                                bool is_clear, int height);
+                           bool is_clear);

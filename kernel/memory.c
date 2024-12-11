@@ -21,7 +21,7 @@ memman_t g_memman = {
     .m_free = (freeinfo_t *)NULL,
 };
 
-void memman_init(void) {
+void init_memman(void) {
     int cnt = get_memory_block_count();
     unsigned int mem_size = 0, max_mem_index = 0;
     addr_range_desc_t *desc = (addr_range_desc_t *)get_memory_block_buffer();

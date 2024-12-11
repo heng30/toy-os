@@ -10,6 +10,9 @@
 // 颜色板
 extern unsigned char palette_table_rgb[16 * 3];
 
+win_sheet_t *g_background_sht = NULL;
+win_sheet_t *g_canvas_sht = NULL;
+
 // 系统字体
 extern char system_font[16];
 
@@ -91,18 +94,21 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
     }
 }
 
-void show_string(win_sheet_t *sht, int x, int y, char color, const char *s) {
+void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color,
+                 const char *s) {
     int begin = x;
-    int max_size = sht->m_bxsize * sht->m_bysize;
 
     for (; *s != 0x00; s++) {
         if (x + FONT_WIDTH > sht->m_bxsize) {
             break;
         }
 
-        show_font8(sht->m_buf, sht->m_bxsize, x, y, color,
+        boxfill8(sht->m_buf, sht->m_bxsize, bg_color, x, y, x + FONT_WIDTH - 1,
+                 y + FONT_HEIGHT - 1);
+
+        show_font8(sht->m_buf, sht->m_bxsize, x, y, text_color,
                    system_font + *s * 16);
-        x += 8;
+        x += FONT_WIDTH;
     }
 
     win_sheet_refresh(sht, begin, y, x, y + FONT_HEIGHT);
@@ -191,83 +197,50 @@ static void _set_background_vram(unsigned char *vram, int xsize, int ysize) {
              ysize - 3);
 }
 
-void draw_background(void) {
+void init_background_sheet(void) {
     int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
 
-    static unsigned char *buf = NULL;
-    static win_sheet_t *sht = NULL;
+    g_background_sht = win_sheet_alloc();
+    assert(g_background_sht != NULL, "init_background_sht alloc sheet error");
 
-    if (!buf) {
-        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+    unsigned char *buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+    assert(buf != NULL, "init_background_sht alloc 4k error");
 
-        if (!buf) {
-            return;
-        }
-    }
-
-    if (!sht) {
-        sht = win_sheet_alloc();
-
-        if (!sht) {
-            memman_free_4k(buf, xsize * ysize);
-            return;
-        }
-
-        _set_background_vram(buf, xsize, ysize);
-        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
-        win_sheet_slide(sht, 0, 0);
-        win_sheet_updown(sht, BOTTOM_WIN_SHEET_HEIGHT);
-    }
+    _set_background_vram(buf, xsize, ysize);
+    win_sheet_setbuf(g_background_sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_slide(g_background_sht, 0, 0);
+    win_sheet_updown(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }
 
-void draw_mouse(void) {
-    static win_sheet_t *sht = NULL;
-
-    if (!sht) {
-        sht = win_sheet_alloc();
-        win_sheet_setbuf(sht, g_mdec.m_cursor, CURSOR_ICON_SIZE,
-                         CURSOR_ICON_SIZE, COLOR_INVISIBLE);
-
-        win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
-        win_sheet_updown(sht, TOP_WIN_SHEET_HEIGHT);
-    } else {
-        compute_mouse_position();
-        win_sheet_slide(sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
-    }
-}
-
-void clear_win_sheet(unsigned char *vram, int size) {
+void clear_sheet(unsigned char *vram, int size, unsigned char c) {
     for (int i = 0; i < size; i++) {
-        vram[i] = COLOR_INVISIBLE;
+        vram[i] = c;
     }
+}
+
+void init_canvas_sheet(int z) {
+    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+    unsigned char *buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
+    assert(buf != NULL, "show_string_in_canvas memory alloc error");
+
+    clear_sheet(buf, xsize * ysize, COLOR_INVISIBLE);
+
+    g_canvas_sht = win_sheet_alloc();
+    assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
+
+    win_sheet_setbuf(g_canvas_sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_slide(g_canvas_sht, 0, 0);
+    win_sheet_updown(g_canvas_sht, z);
 }
 
 void show_string_in_canvas(int x, int y, char color, const char *s,
-                           bool is_clear, int height) {
-    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
-
-    static unsigned char *buf = NULL;
-    static win_sheet_t *sht = NULL;
-
-    if (!buf) {
-        buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
-        assert(buf != NULL, "show_string_in_canvas memory alloc error");
-    }
-
-    if (!sht) {
-        sht = win_sheet_alloc();
-        assert(sht != NULL, "show_string_in_canvas sheet alloc error");
-
-        win_sheet_setbuf(sht, buf, xsize, ysize, COLOR_INVISIBLE);
-        win_sheet_slide(sht, 0, 0);
-    }
-
-    if (height >= TOP_WIN_SHEET_HEIGHT)
-        height = TOP_WIN_SHEET_HEIGHT - 1;
+                           bool is_clear) {
+    if (!g_canvas_sht)
+        return;
 
     if (is_clear)
-        clear_win_sheet(buf, xsize * ysize);
+        clear_sheet(g_canvas_sht->m_buf,
+                    g_canvas_sht->m_bxsize * g_canvas_sht->m_bysize, COLOR_INVISIBLE);
 
-    show_string(sht, x, y, color, s);
-    win_sheet_updown(sht, height);
+    show_string(g_canvas_sht, x, y, COL8_000000, color, s);
 }

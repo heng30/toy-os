@@ -12,7 +12,7 @@ typedef struct {
 } addr_range_desc_t;
 
 // 初始化内存管理器
-void memman_init(void);
+void init_memman(void);
 
 // 总内存量
 unsigned int memman_total(void);

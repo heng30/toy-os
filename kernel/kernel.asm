@@ -27,9 +27,12 @@ SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 
 ; 中断描述符
 LABEL_IDT:
-%rep  33
+%rep  32
     Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
 %endrep
+
+.020h:
+    Gate SELECTOR_CODE32, TIMER_HANDLER,0, DA_386IGate
 
 .021h:
     Gate SELECTOR_CODE32, KEYBOARD_HANDLER, 0, DA_386IGate
@@ -112,6 +115,7 @@ LABEL_MEM_CHK_OK:
     mov byte [LABEL_DESC_STACK + 4], al
     mov byte [LABEL_DESC_STACK + 7], ah
 
+    ; 准备加载中断描述表
     xor   eax, eax
     mov   ax, ds
     shl   eax, 4

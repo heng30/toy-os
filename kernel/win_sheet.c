@@ -2,7 +2,9 @@
 #include "colo8.h"
 #include "def.h"
 #include "draw.h"
+#include "kutil.h"
 #include "memory.h"
+#include "mouse.h"
 
 // 不要修改这个值， 因为受到`map`类型为`unsigned char`限制
 #define MAX_SHEETS 256
@@ -16,35 +18,26 @@ typedef struct {
     // 在刷新图层时，只刷新自己管理的像素
     unsigned char *m_map;
 
-    int m_top; // 图层数量
+    int m_top; // 图层数量, 总是指向最高图层的下标
     win_sheet_t *m_sheets[MAX_SHEETS];
     win_sheet_t m_sheets0[MAX_SHEETS];
 } win_sheet_ctl_t;
 
 static win_sheet_ctl_t *g_sheet_ctl = NULL;
 
-bool win_sheet_ctl_init(void) {
+void init_win_sheet_ctl(void) {
     g_sheet_ctl = (win_sheet_ctl_t *)memman_alloc_4k(sizeof(win_sheet_ctl_t));
-    if (g_sheet_ctl == NULL) {
-        return false;
-    }
+    assert(g_sheet_ctl != NULL, "init_win_sheet_ctl alloc 4k failed");
 
     g_sheet_ctl->m_map = (unsigned char *)memman_alloc_4k(
         g_boot_info.m_screen_x * g_boot_info.m_screen_y);
-
-    if (!g_sheet_ctl->m_map) {
-        memman_free_4k(g_sheet_ctl, sizeof(win_sheet_ctl_t));
-        g_sheet_ctl = NULL;
-        return false;
-    }
+    assert(g_sheet_ctl->m_map != NULL, "init_win_sheet_ctl alloc map error");
 
     g_sheet_ctl->m_top = -1;
 
     for (int i = 0; i < MAX_SHEETS; i++) {
         g_sheet_ctl->m_sheets0[i].m_flags = SHEET_UNUSE;
     }
-
-    return true;
 }
 
 win_sheet_t *win_sheet_alloc(void) {
@@ -58,7 +51,8 @@ win_sheet_t *win_sheet_alloc(void) {
             sht->m_vx0 = 0;
             sht->m_vy0 = 0;
             sht->m_flags = SHEET_USE;
-            sht->m_height = HIDE_WIN_SHEET_HEIGHT;
+            sht->m_index = -1;
+            sht->m_z = HIDE_WIN_SHEET_Z;
             return sht;
         }
     }
@@ -67,7 +61,7 @@ win_sheet_t *win_sheet_alloc(void) {
 }
 
 void win_sheet_free(win_sheet_t *sheet) {
-    win_sheet_updown(sheet, HIDE_WIN_SHEET_HEIGHT);
+    win_sheet_updown(sheet, HIDE_WIN_SHEET_Z);
     sheet->m_flags = SHEET_UNUSE;
 }
 
@@ -83,9 +77,8 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
     int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
     int max_pos = xsize * ysize;
 
-    if (h0 < BOTTOM_WIN_SHEET_HEIGHT) {
-        h0 = BOTTOM_WIN_SHEET_HEIGHT;
-    }
+    if (h0 < 0)
+        h0 = 0;
 
     for (int h = h0; h <= h1; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
@@ -103,7 +96,7 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
                 if (vx0 <= vx && vx < vx1 && vy0 <= vy && vy < vy1) {
                     unsigned char c = buf[by * sht->m_bxsize + bx];
 
-                    // 判断是否是透明像素
+                    // 判断是否是不可见像素
                     if (c != sht->m_col_inv) {
                         int pos = vy * xsize + vx;
                         if (pos >= 0 && pos < max_pos) {
@@ -121,10 +114,10 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
 
 // 刷新当前图层，不会刷新其他图层
 void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
-    if (sht->m_height >= 0) {
+    if (sht->m_index >= 0) {
         win_sheet_refreshsub(sht->m_vx0 + bx0, sht->m_vy0 + by0,
-                             sht->m_vx0 + bx1, sht->m_vy0 + by1, sht->m_height,
-                             sht->m_height);
+                             sht->m_vx0 + bx1, sht->m_vy0 + by1, sht->m_index,
+                             sht->m_index);
     }
 }
 
@@ -133,68 +126,91 @@ void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0) {
     sht->m_vx0 = vx0;
     sht->m_vy0 = vy0;
 
-    if (sht->m_height >= 0) {
+    if (sht->m_index >= 0) {
         win_sheet_refreshmap(old_vx0, old_vy0, old_vx0 + sht->m_bxsize,
                              old_vy0 + sht->m_bysize, 0);
 
         win_sheet_refreshmap(vx0, vy0, vx0 + sht->m_bxsize, vy0 + sht->m_bysize,
-                             sht->m_height);
+                             sht->m_index);
 
         // 刷新当前图层以下的图层
         win_sheet_refreshsub(old_vx0, old_vy0, old_vx0 + sht->m_bxsize,
-                             old_vy0 + sht->m_bysize, BOTTOM_WIN_SHEET_HEIGHT,
-                             sht->m_height - 1);
+                             old_vy0 + sht->m_bysize, 0, sht->m_index - 1);
 
         // 刷新当前图层
         win_sheet_refreshsub(vx0, vy0, vx0 + sht->m_bxsize, vy0 + sht->m_bysize,
-                             sht->m_height, sht->m_height);
+                             sht->m_index, sht->m_index);
     }
 }
 
+static int _calc_index(int z) {
+    for (int i = 0; i <= g_sheet_ctl->m_top; i++) {
+        if (z < g_sheet_ctl->m_sheets[i]->m_z) {
+            return i;
+        }
+    }
+    return g_sheet_ctl->m_top + 1;
+}
+
 // 移动图层
-void win_sheet_updown(win_sheet_t *sht, int height) {
-    int old = sht->m_height;
+void win_sheet_updown(win_sheet_t *sht, int z) {
+    if (sht->m_z == z)
+        return;
+
+    int old_index = sht->m_index, new_index = -1;
     win_sheet_ctl_t *ctl = g_sheet_ctl;
 
-    if (height > ctl->m_top + 1) {
-        height = ctl->m_top + 1;
+    if (z > TOP_WIN_SHEET_Z) {
+        z = TOP_WIN_SHEET_Z;
+    } else if (z < BOTTOM_WIN_SHEET_Z) {
+        z = HIDE_WIN_SHEET_Z;
+    } else {
+        z = z;
     }
 
-    if (height < -1) {
-        height = HIDE_WIN_SHEET_HEIGHT;
+    if (z == HIDE_WIN_SHEET_Z) {
+        new_index = -1;
+    } else {
+        new_index = _calc_index(z);
     }
 
-    sht->m_height = height;
+    if ((old_index < 0 && new_index < 0) || (old_index == new_index))
+        return;
+
+    sht->m_index = new_index;
+    sht->m_z = z;
 
     // 图层向下移动
-    if (old > height) {
+    if (old_index > new_index) {
         // 可见图层间移动
-        if (height >= 0) {
-            // 将[height, old-1]之间的图层向上移一位到[height+1, old]
-            for (int h = old; h > height; h--) {
+        if (new_index >= 0) {
+            // 将[new_index, old_index-1]之间的图层向上移一位到[new_index+1,
+            // old_index]
+            for (int h = old_index; h > new_index; h--) {
                 ctl->m_sheets[h] = ctl->m_sheets[h - 1];
-                ctl->m_sheets[h]->m_height = h;
+                ctl->m_sheets[h]->m_index = h;
             }
 
-            ctl->m_sheets[height] = sht;
+            ctl->m_sheets[new_index] = sht;
 
-            // 重新计算[height+1, top]图层到map的映射
-            // height层在向下移动的前后管理的像素只会减少，不会增多.
-            // 所以从`height-1`开始
+            // 重新计算[new_index+1, top]图层到map的映射
+            // new_index层在向下移动的后管理的像素只会由于其上层图层而减少，不会增多.
+            // 所以从`new_index+1`开始
             win_sheet_refreshmap(sht->m_vx0, sht->m_vy0,
                                  sht->m_vx0 + sht->m_bxsize,
-                                 sht->m_vy0 + sht->m_bysize, height + 1);
+                                 sht->m_vy0 + sht->m_bysize, new_index + 1);
 
-            // 因为是图层间的向下移动，所以只需刷新[height+1, old]之间的图层
-            win_sheet_refreshsub(sht->m_vx0, sht->m_vy0,
-                                 sht->m_vx0 + sht->m_bxsize,
-                                 sht->m_vy0 + sht->m_bysize, height + 1, old);
+            // 因为是图层间的向下移动，所以只需刷新[new_index+1,
+            // old_index]之间的图层
+            win_sheet_refreshsub(
+                sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
+                sht->m_vy0 + sht->m_bysize, new_index + 1, old_index);
         } else { // 隐藏图层
-            if (ctl->m_top > old) {
-                // 将[old+1, top]之间的图层向下移一位到[old, top-1]
-                for (int h = old; h < ctl->m_top; h++) {
+            if (ctl->m_top > old_index) {
+                // 将[old_index+1, top]之间的图层向下移一位到[old_index, top-1]
+                for (int h = old_index; h < ctl->m_top; h++) {
                     ctl->m_sheets[h] = ctl->m_sheets[h + 1];
-                    ctl->m_sheets[h]->m_height = h;
+                    ctl->m_sheets[h]->m_index = h;
                 }
             }
 
@@ -205,44 +221,40 @@ void win_sheet_updown(win_sheet_t *sht, int height) {
                                  sht->m_vx0 + sht->m_bxsize,
                                  sht->m_vy0 + sht->m_bysize, 0);
 
-            // 因为是隐藏图层，所以只需刷新隐藏图层以下的图层[0, old-1]
-            win_sheet_refreshsub(
-                sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
-                sht->m_vy0 + sht->m_bysize, BOTTOM_WIN_SHEET_HEIGHT, old - 1);
+            // 因为是隐藏图层，所以只需刷新隐藏图层以下的图层[0, old_index-1]
+            win_sheet_refreshsub(sht->m_vx0, sht->m_vy0,
+                                 sht->m_vx0 + sht->m_bxsize,
+                                 sht->m_vy0 + sht->m_bysize, 0, old_index - 1);
         }
-
-    } else if (old < height) { // 图层向上移动
+    } else if (old_index < new_index) { // 图层向上移动
         // 可见图层间移动
-        if (old >= 0) {
-            if (height > ctl->m_top) {
-                height = ctl->m_top;
-            }
-
-            // 将[old+1, height]之间的图层向下移一位到[old, height-1]
-            for (int h = old; h < height; h++) {
+        if (old_index >= 0) {
+            // 将[old_index+1, new_index]之间的图层向下移一位到[old_index,
+            // new_index-1]
+            for (int h = old_index; h < new_index; h++) {
                 ctl->m_sheets[h] = ctl->m_sheets[h + 1];
-                ctl->m_sheets[h]->m_height = h;
+                ctl->m_sheets[h]->m_index = h;
             }
 
-            ctl->m_sheets[height] = sht;
+            ctl->m_sheets[new_index] = sht;
         } else { // 隐藏图层移动到可见图层
-            // 将[height, top]之间的图层向上移一位到[height+1, top+1]
-            for (int h = ctl->m_top; h >= height; h--) {
+            // 将[new_index, top]之间的图层向上移一位到[new_index+1, top+1]
+            for (int h = ctl->m_top; h >= new_index; h--) {
                 ctl->m_sheets[h + 1] = ctl->m_sheets[h];
-                ctl->m_sheets[h + 1]->m_height = h + 1;
+                ctl->m_sheets[h]->m_index = h + 1;
             }
 
-            ctl->m_sheets[height] = sht;
+            ctl->m_sheets[new_index] = sht;
             ctl->m_top++;
         }
 
-        // 重新计算[height, top]图层到map的映射
+        // 重新计算[new_index, top]图层到map的映射
         win_sheet_refreshmap(sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
-                             sht->m_vy0 + sht->m_bysize, height);
+                             sht->m_vy0 + sht->m_bysize, new_index);
 
         // 刷新当前图层
         win_sheet_refreshsub(sht->m_vx0, sht->m_vy0, sht->m_vx0 + sht->m_bxsize,
-                             sht->m_vy0 + sht->m_bysize, height, height);
+                             sht->m_vy0 + sht->m_bysize, new_index, new_index);
     }
 }
 
@@ -294,7 +306,7 @@ void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
             for (int bx = bx0; bx < bx1; bx++) {
                 int vx = sht->m_vx0 + bx; // 转换为全局坐标系
 
-                // 不是透明像素，则归我管
+                // 不是不可见像素，则归我管
                 if (sht->m_buf[by * sht->m_bxsize + bx] != sht->m_col_inv) {
                     g_sheet_ctl->m_map[vy * g_boot_info.m_screen_x + vx] = sid;
                 }
@@ -302,3 +314,5 @@ void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
         }
     }
 }
+
+inline bool is_valid_sheet_z(int z) { return z <= TOP_WIN_SHEET_Z; }

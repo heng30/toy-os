@@ -36,3 +36,20 @@ MOUSE_HANDLER equ _MOUSE_HANDLER - $$
     pop  ds
     pop  es
     iretd
+
+_TIMER_HANDLER:
+TIMER_HANDLER equ _TIMER_HANDLER - $$
+    push es
+    push ds
+    pushad
+    mov  eax, esp
+    push eax
+
+    call int_handler_for_timer
+
+    pop  eax
+    mov  esp, eax
+    popad
+    pop  ds
+    pop  es
+    iretd

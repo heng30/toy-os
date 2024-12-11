@@ -2,9 +2,10 @@
 
 #include "def.h"
 
-#define HIDE_WIN_SHEET_HEIGHT -1
-#define BOTTOM_WIN_SHEET_HEIGHT 0
-#define TOP_WIN_SHEET_HEIGHT 99
+#define HIDE_WIN_SHEET_Z -1
+#define BOTTOM_WIN_SHEET_Z 0
+#define TOP_WIN_SHEET_Z 99
+#define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
 
 // 窗口绘制层
 typedef struct {
@@ -15,12 +16,13 @@ typedef struct {
     int m_vy0;            // 绘制开始的y轴
     int m_col_inv;        // 不需要绘制像素颜色
 
-    int m_height; // 图层高度
-    int m_flags;  // 0: 可用, 1: 占用
+    int m_index; // 图层在图层数组中的下标
+    int m_z;     // 图层Z轴高度
+    int m_flags; // 0: 可用, 1: 占用
 } win_sheet_t;
 
 // 初始化窗口图层管理器
-bool win_sheet_ctl_init(void);
+void init_win_sheet_ctl(void);
 
 // 分配一个图层
 win_sheet_t *win_sheet_alloc(void);
@@ -41,7 +43,10 @@ void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1);
 // 移动图层
 void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
 
-// 调整图层高度
-void win_sheet_updown(win_sheet_t *sht, int height);
+// 调整图层Z轴高度
+void win_sheet_updown(win_sheet_t *sht, int z);
 
 void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0);
+
+// 判断一个图层是否合法
+bool is_valid_sheet_z(int z);

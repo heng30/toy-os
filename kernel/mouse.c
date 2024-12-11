@@ -6,6 +6,8 @@
 #include "keyboard_mouse.h"
 #include "kutil.h"
 
+win_sheet_t *g_mouse_sht = NULL;
+
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
 
@@ -123,6 +125,27 @@ int mouse_decode(unsigned char dat) {
     return -1;
 }
 
+// 初始化鼠标图层
+void init_mouse_sheet(void) {
+    g_mouse_sht = win_sheet_alloc();
+    assert(g_mouse_sht != NULL, "draw_mouse alloc sheet error");
+
+    win_sheet_setbuf(g_mouse_sht, g_mdec.m_cursor, CURSOR_ICON_SIZE,
+                     CURSOR_ICON_SIZE, COLOR_INVISIBLE);
+
+    win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+    win_sheet_updown(g_mouse_sht, TOP_WIN_SHEET_Z);
+}
+
+void draw_mouse(void) {
+    compute_mouse_position();
+    win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
+}
+
+void keep_mouse_sheet_on_top(void) {
+    win_sheet_updown(g_mouse_sht, MOUSE_WIN_SHEET_Z);
+}
+
 void int_handler_for_mouse(char *esp) {
     io_out8(PIC1_OCW2, 0x20);
     io_out8(PIC_OCW2, 0x20);
@@ -130,3 +153,4 @@ void int_handler_for_mouse(char *esp) {
     unsigned char data = io_in8(PORT_KEYDAT);
     fifo8_put(&g_mouseinfo, data);
 }
+

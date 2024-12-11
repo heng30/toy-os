@@ -29,7 +29,7 @@ init8259A:
     out  0A1h, al
     call io_delay
 
-    mov  al, 11111001b ;允许键盘中断
+    mov  al, 11111000b ;允许键盘和时钟中断
     out  021h, al
     call io_delay
 
