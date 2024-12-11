@@ -74,6 +74,26 @@ void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
     sht->m_col_inv = col_inv;
 }
 
+static unsigned char _color_under_transparent_layer(int index, int vx, int vy) {
+    for (; index >= 0; index--) {
+        win_sheet_t *sht = g_sheet_ctl->m_sheets[index];
+        int x0 = sht->m_vx0, y0 = sht->m_vy0;
+        int x1 = sht->m_vx0 + sht->m_bxsize, y1 = sht->m_vy0 + sht->m_bysize;
+
+        // 像素点落在图层内
+        if (x0 <= vx && vx < x1 && y0 <= vy && vy < y1) {
+            int dx = vx - x0, dy = vy - y0;
+            int pos = sht->m_bxsize * dy + dx;
+            unsigned char c = sht->m_buf[pos];
+
+            if (c != COLOR_INVISIBLE)
+                return c;
+        }
+    }
+
+    return COLOR_INVISIBLE;
+}
+
 void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
     int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
     int max_pos = xsize * ysize;
@@ -100,20 +120,27 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
 
                     // 如果是透明图层强制绘制像素
                     if (sht->m_is_transparent_layer) {
-                        if (c == sht->m_col_inv) {
-                            // TODO: 获取下层非不可见像素
-                            continue;
-                        }
+                        // 这个像素的管理图层高度没当前图层高，侧需要进行处理
+                        if (sid > g_sheet_ctl->m_map[pos] && pos >= 0 &&
+                            pos < max_pos) {
+                            //  获取下层可见像素
+                            if (c == sht->m_col_inv) {
+                                c = _color_under_transparent_layer(
+                                    sht->m_index - 1, vx, vy);
 
-                        if (pos >= 0 && pos < max_pos) {
-                            g_boot_info.m_vga_ram[pos] = c;
+                                if (c != COLOR_INVISIBLE) {
+                                    g_boot_info.m_vga_ram[pos] = c;
+                                }
+                            } else {
+                                g_boot_info.m_vga_ram[pos] = c;
+                            }
                         }
                     } else {
                         // 判断是否是不可见像素
                         if (c != sht->m_col_inv) {
                             // 判断像素是否归自己管
-                            if (pos >= 0 && pos < max_pos &&
-                                g_sheet_ctl->m_map[pos] == sid) {
+                            if (g_sheet_ctl->m_map[pos] == sid && pos >= 0 &&
+                                pos < max_pos) {
                                 g_boot_info.m_vga_ram[pos] = c;
                             }
                         }
@@ -219,7 +246,8 @@ void win_sheet_updown(win_sheet_t *sht, int z) {
                 sht->m_vy0 + sht->m_bysize, new_index + 1, old_index);
         } else { // 隐藏图层
             if (ctl->m_top > old_index) {
-                // 将[old_index+1, top]之间的图层向下移一位到[old_index, top-1]
+                // 将[old_index+1, top]之间的图层向下移一位到[old_index,
+                // top-1]
                 for (int h = old_index; h < ctl->m_top; h++) {
                     ctl->m_sheets[h] = ctl->m_sheets[h + 1];
                     ctl->m_sheets[h]->m_index = h;
@@ -233,7 +261,8 @@ void win_sheet_updown(win_sheet_t *sht, int z) {
                                  sht->m_vx0 + sht->m_bxsize,
                                  sht->m_vy0 + sht->m_bysize, 0);
 
-            // 因为是隐藏图层，所以只需刷新隐藏图层以下的图层[0, old_index-1]
+            // 因为是隐藏图层，所以只需刷新隐藏图层以下的图层[0,
+            // old_index-1]
             win_sheet_refreshsub(sht->m_vx0, sht->m_vy0,
                                  sht->m_vx0 + sht->m_bxsize,
                                  sht->m_vy0 + sht->m_bysize, 0, old_index - 1);

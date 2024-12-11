@@ -5,6 +5,7 @@
 
 #define FONT_WIDTH 8
 #define FONT_HEIGHT 16
+#define HEX_INT_FONT_WIDTH 80
 
 // 显示信息
 typedef struct {

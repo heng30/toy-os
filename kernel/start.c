@@ -52,7 +52,6 @@ void start_kernel(void) {
 
     init_background_sheet();
     init_mouse_sheet();
-    // init_canvas_sheet(BOTTOM_WIN_SHEET_Z + 1);
     init_canvas_sheet(TOP_WIN_SHEET_Z - 1);
 
     message_box_t *msg_box =
@@ -91,6 +90,8 @@ void start_kernel(void) {
             io_sti();
 
             show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter));
+            show_string_in_canvas(80, 0, COL8_FFFFFF, int2hexstr(g_canvas_sht->m_index));
+            show_string_in_canvas(160, 0, COL8_FFFFFF, int2hexstr(g_mouse_sht->m_index));
 
             reset_timer(100, 1);
             counter += 1;
