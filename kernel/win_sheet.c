@@ -121,7 +121,7 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
                     // 如果是透明图层强制绘制像素
                     if (sht->m_is_transparent_layer) {
                         // 这个像素的管理图层高度没当前图层高，侧需要进行处理
-                        if (sid > g_sheet_ctl->m_map[pos] && pos >= 0 &&
+                        if (g_sheet_ctl->m_map[pos] == sid && pos >= 0 &&
                             pos < max_pos) {
                             //  获取下层可见像素
                             if (c == sht->m_col_inv) {
@@ -154,6 +154,12 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
 // 刷新当前图层，不会刷新其他图层
 void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
     if (sht->m_index >= 0) {
+        if (sht->m_is_transparent_layer) {
+            win_sheet_refreshmap(sht->m_vx0 + bx0, sht->m_vy0 + by0,
+                                 sht->m_vx0 + bx1, sht->m_vy0 + by1,
+                                 sht->m_index);
+        }
+
         win_sheet_refreshsub(sht->m_vx0 + bx0, sht->m_vy0 + by0,
                              sht->m_vx0 + bx1, sht->m_vy0 + by1, sht->m_index,
                              sht->m_index);
@@ -319,11 +325,6 @@ void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
 
     for (int h = h0; h <= g_sheet_ctl->m_top; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
-
-        // 不计算透明图层到map的映射关系
-        if (sht->m_is_transparent_layer)
-            continue;
-
         unsigned char sid = sht - g_sheet_ctl->m_sheets0;
 
         // 计算局部坐标系，相对于绘制的窗口的偏移

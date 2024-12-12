@@ -16,5 +16,4 @@
 #define  COL8_840084  13
 #define  COL8_008484  14
 #define  COL8_848484  15
-
 #define COLOR_INVISIBLE  99
