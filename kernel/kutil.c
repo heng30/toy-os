@@ -57,10 +57,11 @@ void assert(bool cond, const char *errmsg) {
     }
 }
 
-void memset(unsigned char *buf, unsigned char c, unsigned int n) {
+unsigned char* memset(unsigned char *buf, unsigned char c, unsigned int n) {
     for (unsigned int i = 0; i < n; i++) {
         *(buf + i) = c;
     }
+    return buf;
 }
 
 void zero(unsigned char *buf, unsigned int n) {
@@ -69,10 +70,43 @@ void zero(unsigned char *buf, unsigned int n) {
     }
 }
 
+unsigned char *memcpy(unsigned char *dst, unsigned char *src,
+                      unsigned int len) {
+    for (unsigned int i = 0; i < len; i++) {
+        *(dst + i) = *(src + i);
+    }
+    return dst;
+}
+
+unsigned char *mempcpy(unsigned char *dst, unsigned char *src,
+                       unsigned int len) {
+    for (unsigned int i = 0; i < len; i++) {
+        *(dst + i) = *(src + i);
+    }
+    return dst + len;
+}
+
 unsigned int strlen(const char *s) {
     unsigned int total = 0;
     for (; *s != 0x00; s++) {
         total++;
     }
     return total;
+}
+
+char *stpcpy(char *dst, const char *src) {
+    char *p = mempcpy((unsigned char *)dst, (unsigned char *)src, strlen(src));
+    *p = '\0';
+
+    return p;
+}
+
+char *strcpy(char *dst, const char *src) {
+    stpcpy(dst, src);
+    return dst;
+}
+
+char *strcat(char *dst, const char *src) {
+    stpcpy(dst + strlen(dst), src);
+    return dst;
 }
