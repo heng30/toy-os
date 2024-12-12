@@ -1,10 +1,14 @@
 #pragma once
 
+#include "draw.h"
 #include "fifo8.h"
 #include "keyboard_mouse.h"
 #include "win_sheet.h"
 
 #define CURSOR_ICON_SIZE 16 // 鼠标图标大小
+
+#define INPUT_BLOCK_WIDTH FONT_WIDTH   // 输入闪烁块宽度
+#define INPUT_BLOCK_HEIGHT FONT_HEIGHT // 输入闪烁块高度
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE 0xf4
@@ -15,12 +19,15 @@
 #define MOUSE_PHASE_THREE 3
 
 typedef struct {
-    unsigned char m_cursor[256]; // 鼠标图像
-    unsigned char m_buf[3];      // 保存鼠标移动解析后的输入数据
-    unsigned char m_phase;       // 解析鼠标数据的阶段
-    unsigned char m_btn;         // 鼠标按键
-    int m_rel_x, m_rel_y;        // 鼠标相对偏移
-    int m_abs_x, m_abs_y;        // 鼠标位置
+    unsigned char m_cursor[CURSOR_ICON_SIZE * CURSOR_ICON_SIZE]; // 鼠标图像
+    unsigned char m_buf[3]; // 保存鼠标移动解析后的输入数据
+    unsigned char m_phase;  // 解析鼠标数据的阶段
+    unsigned char m_btn;    // 鼠标按键
+    int m_rel_x, m_rel_y;   // 鼠标相对偏移
+    int m_abs_x, m_abs_y;   // 鼠标位置
+
+    unsigned char
+        m_input_block[INPUT_BLOCK_WIDTH * INPUT_BLOCK_HEIGHT]; // 输入闪烁块
 } mouse_dec_t;
 
 // 在中断函数中, 保存鼠标数据
@@ -56,3 +63,20 @@ void draw_mouse(void);
 // 保证鼠标在最高图层
 void keep_mouse_sheet_on_top(void);
 
+// 初始化输入光标
+void init_input_block_sheet(void);
+
+// 显示输入光标
+void input_block_show(void);
+
+// 隐藏输入光标
+void input_block_hide(void);
+
+// 移动输入光标
+void input_block_move(int vx, int vy);
+
+// 输入光标是否可见
+bool input_block_is_visible(void);
+
+// 闪烁输入光标
+void input_block_blink(bool is_white);

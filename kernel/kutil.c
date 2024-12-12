@@ -57,7 +57,7 @@ void assert(bool cond, const char *errmsg) {
     }
 }
 
-unsigned char* memset(unsigned char *buf, unsigned char c, unsigned int n) {
+unsigned char *memset(unsigned char *buf, unsigned char c, unsigned int n) {
     for (unsigned int i = 0; i < n; i++) {
         *(buf + i) = c;
     }
@@ -108,5 +108,12 @@ char *strcpy(char *dst, const char *src) {
 
 char *strcat(char *dst, const char *src) {
     stpcpy(dst + strlen(dst), src);
+    return dst;
+}
+
+char *strpush(char *dst, const char c) {
+    unsigned int len = strlen(dst);
+    *(dst + len) = c;
+    *(dst + len + 1) = '\0';
     return dst;
 }

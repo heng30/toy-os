@@ -9,6 +9,7 @@
 #include "timer.h"
 #include "win_sheet.h"
 
+#include "input_box.h"
 #include "message_box.h"
 
 void mouse_callback(void) {
@@ -61,9 +62,11 @@ void timer_callback(timer_t *timer) {
         break;
     default:
         if (data == 3) {
+            input_block_blink(true);
             show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "0");
             set_timer(timer, 50, 4);
         } else {
+            input_block_blink(false);
             show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "1");
             set_timer(timer, 50, 3);
         }
@@ -78,17 +81,21 @@ void start_kernel(void) {
     init_keyboard();
 
     init_memman();
+    init_timer_ctl();
     init_win_sheet_ctl();
-    // init_timer_ctl();
 
     init_background_sheet();
     init_mouse_sheet();
     init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
-    message_box_t *msg_box =
-        message_box_new(80, 72, 168, 68, BOTTOM_WIN_SHEET_Z + 2, "Toy-OS");
+    init_input_block_sheet();
 
-    assert(msg_box != NULL, "msg_box is null");
+    message_box_t *msg_box = message_box_new(80, 72, 168, 68, "Toy-OS");
+    message_box_show(msg_box, BOTTOM_WIN_SHEET_Z + 2);
+
+    input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
+    input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
+    input_block_show();
 
     timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc(),
             *timer3 = timer_alloc();

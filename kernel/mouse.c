@@ -7,6 +7,7 @@
 #include "kutil.h"
 
 win_sheet_t *g_mouse_sht = NULL;
+win_sheet_t *g_input_block_sht = NULL;
 
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
@@ -128,13 +129,13 @@ int mouse_decode(unsigned char dat) {
 // 初始化鼠标图层
 void init_mouse_sheet(void) {
     g_mouse_sht = win_sheet_alloc();
-    assert(g_mouse_sht != NULL, "draw_mouse alloc sheet error");
+    assert(g_mouse_sht != NULL, "init_mouse_sheet alloc sheet error");
 
-    win_sheet_setbuf(g_mouse_sht, g_mdec.m_cursor, CURSOR_ICON_SIZE,
+    win_sheet_setbuf(g_mouse_sht, "mouse", g_mdec.m_cursor, CURSOR_ICON_SIZE,
                      CURSOR_ICON_SIZE, COLOR_INVISIBLE);
 
     win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
-    win_sheet_updown(g_mouse_sht, TOP_WIN_SHEET_Z);
+    win_sheet_updown(g_mouse_sht, MOUSE_WIN_SHEET_Z);
 }
 
 void draw_mouse(void) {
@@ -154,3 +155,39 @@ void int_handler_for_mouse(char *esp) {
     fifo8_put(&g_mouseinfo, data);
 }
 
+void init_input_block_sheet(void) {
+    g_input_block_sht = win_sheet_alloc();
+    assert(g_input_block_sht != NULL,
+           "init_input_block_sheet alloc sheet error");
+
+    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH, COLOR_WHITE, 0, 0,
+             INPUT_BLOCK_WIDTH, INPUT_BLOCK_HEIGHT);
+
+    win_sheet_setbuf(g_input_block_sht, "input-block", g_mdec.m_input_block,
+                     INPUT_BLOCK_WIDTH, INPUT_BLOCK_HEIGHT, COLOR_INVISIBLE);
+
+    win_sheet_slide(g_input_block_sht, 0, 0);
+}
+
+void input_block_show(void) {
+    win_sheet_updown(g_input_block_sht, INPUT_BLOCK_WIN_SHEET_Z);
+}
+
+void input_block_hide(void) {
+    win_sheet_updown(g_input_block_sht, HIDE_WIN_SHEET_Z);
+}
+
+void input_block_move(int vx, int vy) {
+    win_sheet_slide(g_input_block_sht, vx, vy);
+}
+
+bool input_block_is_visible(void) {
+    return g_input_block_sht->m_z >= BOTTOM_WIN_SHEET_Z;
+}
+
+// TODO
+void input_block_blink(bool is_white) {
+    if (is_white) {
+    } else {
+    }
+}

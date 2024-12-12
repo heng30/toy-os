@@ -216,7 +216,7 @@ void init_background_sheet(void) {
     assert(buf != NULL, "init_background_sht alloc 4k error");
 
     _set_background_vram(buf, xsize, ysize);
-    win_sheet_setbuf(g_background_sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_setbuf(g_background_sht, "background", buf, xsize, ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_background_sht, 0, 0);
     win_sheet_updown(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }
@@ -238,7 +238,7 @@ void init_canvas_sheet(int z) {
     assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
 
     g_canvas_sht->m_is_transparent_layer = true;
-    win_sheet_setbuf(g_canvas_sht, buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_setbuf(g_canvas_sht,"canvas", buf, xsize, ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_canvas_sht, 0, 0);
     win_sheet_updown(g_canvas_sht, z);
 }

@@ -20,7 +20,8 @@ static void _draw_background(const message_box_t *msg_box) {
     boxfill8(sht->m_buf, bxsize, COL8_000000, bxsize - 1, 0, bxsize - 1,
              bysize - 1);
     boxfill8(sht->m_buf, bxsize, COL8_C6C6C6, 2, 2, bxsize - 3, bysize - 3);
-    boxfill8(sht->m_buf, bxsize, COL8_000084, 3, 3, bxsize - 4, 20);
+    boxfill8(sht->m_buf, bxsize, COL8_000084, 3, 3, bxsize - 4,
+             MESSAGE_BOX_TITLE_HEIGHT);
     boxfill8(sht->m_buf, bxsize, COL8_848484, 1, bysize - 2, bxsize - 2,
              bysize - 2);
     boxfill8(sht->m_buf, bxsize, COL8_000000, 0, bysize - 1, bxsize - 1,
@@ -44,7 +45,7 @@ static void _draw_title(const message_box_t *msg_box, const char *title) {
     show_string(msg_box->m_sheet, 8, 4, COL8_000084, COL8_FFFFFF, title);
 }
 
-message_box_t *message_box_new(int x, int y, int width, int height, int sheet_z,
+message_box_t *message_box_new(int x, int y, int width, int height,
                                const char *title) {
     win_sheet_t *sht = win_sheet_alloc();
     assert(sht != NULL, "message_box_new sheet alloc error");
@@ -56,7 +57,7 @@ message_box_t *message_box_new(int x, int y, int width, int height, int sheet_z,
     unsigned char *buf = (unsigned char *)memman_alloc_4k(width * height);
     assert(buf != NULL, "message_box_new alloc 4k buf error");
 
-    win_sheet_setbuf(sht, buf, width, height, COLOR_INVISIBLE);
+    win_sheet_setbuf(sht, "message_box", buf, width, height, COLOR_INVISIBLE);
     msg_box->m_sheet = sht;
 
     _draw_background(msg_box);
@@ -64,7 +65,6 @@ message_box_t *message_box_new(int x, int y, int width, int height, int sheet_z,
     _draw_title(msg_box, title);
 
     win_sheet_slide(sht, x, y);
-    win_sheet_updown(sht, sheet_z);
 
     return msg_box;
 }
@@ -92,4 +92,12 @@ void message_box_hide(message_box_t *p) {
 
 bool message_box_is_visible(message_box_t *p) {
     return p->m_sheet->m_z >= BOTTOM_WIN_SHEET_Z;
+}
+
+const char *message_box_get_name(message_box_t *p) {
+    return p->m_sheet->m_name;
+}
+
+void message_box_set_name(message_box_t *p, const char *name) {
+    p->m_sheet->m_name = name;
 }

@@ -48,6 +48,7 @@ win_sheet_t *win_sheet_alloc(void) {
     for (int i = 0; i < MAX_SHEETS; i++) {
         if (g_sheet_ctl->m_sheets0[i].m_flags == SHEET_UNUSE) {
             win_sheet_t *sht = &g_sheet_ctl->m_sheets0[i];
+            sht->m_name = NULL;
             sht->m_vx0 = 0;
             sht->m_vy0 = 0;
             sht->m_flags = SHEET_USE;
@@ -66,8 +67,9 @@ void win_sheet_free(win_sheet_t *sheet) {
     sheet->m_flags = SHEET_UNUSE;
 }
 
-void win_sheet_setbuf(win_sheet_t *sht, unsigned char *buf, int bxsize,
-                      int bysize, int col_inv) {
+void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
+                      int bxsize, int bysize, int col_inv) {
+    sht->m_name = name;
     sht->m_buf = buf;
     sht->m_bxsize = bxsize;
     sht->m_bysize = bysize;
@@ -151,7 +153,7 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
     }
 }
 
-// 刷新当前图层，不会刷新其他图层
+// 刷新当前图层，不会刷新其他图层; 不会刷新map
 void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
     if (sht->m_index >= 0) {
         if (sht->m_is_transparent_layer) {
@@ -164,6 +166,16 @@ void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
                              sht->m_vx0 + bx1, sht->m_vy0 + by1, sht->m_index,
                              sht->m_index);
     }
+}
+
+// 强制刷新图层和map表
+void win_sheet_refresh_force(win_sheet_t *sht, int bx0, int by0, int bx1,
+                             int by1) {
+    win_sheet_refreshmap(sht->m_vx0 + bx0, sht->m_vy0 + by0, sht->m_vx0 + bx1,
+                         sht->m_vy0 + by1, sht->m_index);
+
+    win_sheet_refreshsub(sht->m_vx0 + bx0, sht->m_vy0 + by0, sht->m_vx0 + bx1,
+                         sht->m_vy0 + by1, sht->m_index, sht->m_index);
 }
 
 void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0) {
