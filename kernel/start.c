@@ -11,7 +11,7 @@
 
 #include "message_box.h"
 
-void show_mouse(void) {
+void mouse_callback(void) {
     unsigned char data = fifo8_get(&g_mouseinfo);
 
     io_sti();
@@ -21,7 +21,7 @@ void show_mouse(void) {
     }
 }
 
-void show_keyboard_input(void) {
+void keyboard_callback(void) {
     static int count = 0;
     unsigned int data = fifo8_get(&g_keyinfo);
 
@@ -41,6 +41,28 @@ void show_keyboard_input(void) {
     }
 }
 
+void timer_callback(timer_t *timer) {
+    unsigned char data = fifo8_get(&g_timerctl.m_fifo);
+    io_sti();
+
+    switch (data) {
+    case 1:
+        show_string_in_canvas(8, 0, COL8_FFFFFF, "3 Seconds");
+        break;
+    case 2:
+        show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
+        break;
+    default:
+        if (data == 3) {
+            show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "0");
+            set_timer(timer, 50, 4);
+        } else {
+            show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "1");
+            set_timer(timer, 50, 3);
+        }
+    }
+}
+
 void start_kernel(void) {
     init_pit();
     init_palette();
@@ -49,33 +71,34 @@ void start_kernel(void) {
 
     init_memman();
     init_win_sheet_ctl();
+    // init_timer_ctl();
 
     init_background_sheet();
     init_mouse_sheet();
-    init_canvas_sheet(TOP_WIN_SHEET_Z - 1);
+    init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
     message_box_t *msg_box =
         message_box_new(80, 72, 168, 68, BOTTOM_WIN_SHEET_Z + 2, "Toy-OS");
 
     assert(msg_box != NULL, "msg_box is null");
 
-    set_timer(100, g_timerctl.m_fifo, 1);
+    timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc(),
+            *timer3 = timer_alloc();
+
+    set_timer(timer1, 300, 1), set_timer(timer2, 500, 2),
+        set_timer(timer3, 50, 3);
 
     io_sti(); // 开中断
     enable_mouse();
 
     for (;;) {
-        char *p = int2hexstr(g_timerctl.m_timeout);
-        show_string(msg_box->m_sheet, 40, 28, COL8_FFFFFF, COL8_000000, p);
-
         io_cli();
         if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) +
-                fifo8_status(g_timerctl.m_fifo) ==
+                fifo8_status(&g_timerctl.m_fifo) ==
             0) {
-            io_sti(); // 保证循环不会被挂起
-            // io_stihlt();
+            io_sti(); // 开中断，保证循环不会被挂起
         } else if (fifo8_status(&g_keyinfo) != 0) {
-            show_keyboard_input();
+            keyboard_callback();
 
             if (message_box_is_visible(msg_box)) {
                 message_box_hide(msg_box);
@@ -83,18 +106,9 @@ void start_kernel(void) {
                 message_box_show(msg_box, BOTTOM_WIN_SHEET_Z + 2);
             }
         } else if (fifo8_status(&g_mouseinfo) != 0) {
-            show_mouse();
-        } else if (fifo8_status(g_timerctl.m_fifo) != 0) {
-            static int counter = 1;
-            fifo8_get(g_timerctl.m_fifo);
-            io_sti();
-
-            show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter));
-            show_string_in_canvas(80, 0, COL8_FFFFFF, int2hexstr(g_canvas_sht->m_index));
-            show_string_in_canvas(160, 0, COL8_FFFFFF, int2hexstr(g_mouse_sht->m_index));
-
-            reset_timer(100, 1);
-            counter += 1;
+            mouse_callback();
+        } else if (fifo8_status(&g_timerctl.m_fifo) != 0) {
+            timer_callback(timer3);
         }
     }
 }

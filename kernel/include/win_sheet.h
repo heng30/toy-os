@@ -5,6 +5,8 @@
 #define HIDE_WIN_SHEET_Z -1
 #define BOTTOM_WIN_SHEET_Z 0
 #define TOP_WIN_SHEET_Z 99
+
+#define CANVAS_WIN_SHEET_Z (TOP_WIN_SHEET_Z - 1)
 #define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
 
 // 窗口绘制层

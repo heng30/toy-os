@@ -1,6 +1,9 @@
 #include "timer.h"
 #include "def.h"
+#include "fifo8.h"
 #include "io.h"
+#include "kutil.h"
+#include "memory.h"
 
 #define PIC0_OCW2 0x20
 #define PIC1_OCW2 0xA0
@@ -8,21 +11,23 @@
 #define PIT_CTRL 0x0043
 #define PIT_CNT0 0x0040
 
-static unsigned char timerbuf[8];
-static fifo8_t timerinfo = {
-    .m_buf = timerbuf,
-    .m_size = sizeof(timerbuf),
-    .m_free = sizeof(timerbuf),
-    .m_flags = 0,
-    .m_p = 0,
-    .m_q = 0,
-};
+#define UNUSED 0
+#define USED 1
+#define RUNNING 2
+
+#define TIMER_FIFO_QUEUE 40960
 
 timerctl_t g_timerctl = {
     .m_count = 0,
-    .m_timeout = 0,
-    .m_fifo = &timerinfo,
-    .m_data = 0,
+    .m_fifo =
+        {
+            .m_buf = NULL,
+            .m_size = TIMER_FIFO_QUEUE,
+            .m_free = TIMER_FIFO_QUEUE,
+            .m_flags = 0,
+            .m_p = 0,
+            .m_q = 0,
+        },
 };
 
 void init_pit(void) {
@@ -31,20 +36,39 @@ void init_pit(void) {
     io_out8(PIT_CNT0, 0x2e);
 }
 
-void set_timer(unsigned int timeout, fifo8_t *fifo, unsigned char data) {
-    int eflags = io_load_eflags();
-    io_cli();                       // 暂时停止接收中断信号
-    g_timerctl.m_timeout = timeout; // 设定时间片
-    g_timerctl.m_fifo = fifo; // 设定数据队列，内核在主循环中将监控这个队列
-    g_timerctl.m_data = data;
-    io_store_eflags(eflags); // 恢复接收中断信号
+void init_timer_ctl(void) {
+    unsigned char *buf = (unsigned char *)memman_alloc_4k(TIMER_FIFO_QUEUE);
+    assert(buf != NULL, "init_timer_ctl alloc 4k buffer error");
+
+    if (!g_timerctl.m_fifo.m_buf)
+        g_timerctl.m_fifo.m_buf = buf;
+
+    for (int i = 0; i < MAX_TIMER; i++) {
+        g_timerctl.m_timer[i].m_flags = UNUSED;
+    }
 }
 
-void reset_timer(unsigned int timeout, unsigned char data) {
+timer_t *timer_alloc(void) {
+    for (int i = 0; i < MAX_TIMER; i++) {
+        if (g_timerctl.m_timer[i].m_flags == UNUSED) {
+            g_timerctl.m_timer[i].m_flags = USED;
+            g_timerctl.m_timer[i].m_timeout = 0;
+            g_timerctl.m_timer[i].m_data = 0;
+            return &g_timerctl.m_timer[i];
+        }
+    }
+
+    return NULL;
+}
+
+void timer_free(timer_t *timer) { timer->m_flags = UNUSED; }
+
+void set_timer(timer_t *timer, unsigned int timeout, unsigned char data) {
     int eflags = io_load_eflags();
-    io_cli();                       // 暂时停止接收中断信号
-    g_timerctl.m_timeout = timeout; // 设定时间片
-    g_timerctl.m_data = data;
+    io_cli(); // 暂时停止接收中断信号
+    timer->m_flags = RUNNING;
+    timer->m_timeout = timeout; // 设定时间片
+    timer->m_data = data;
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
@@ -53,11 +77,16 @@ void int_handler_for_timer(char *esp) {
     io_out8(PIC0_OCW2, 0x60); // 每次中断后都需要重新设置
     g_timerctl.m_count++;
 
-    if (g_timerctl.m_timeout > 0) {
-        g_timerctl.m_timeout--;
+    // 遍历所有定时器
+    for (int i = 0; i < MAX_TIMER; i++) {
+        if (g_timerctl.m_timer[i].m_flags == RUNNING) {
+            g_timerctl.m_timer[i].m_timeout--;
 
-        if (g_timerctl.m_timeout == 0) {
-            fifo8_put(g_timerctl.m_fifo, g_timerctl.m_data);
+            // 时间片用完，停止定时器
+            if (g_timerctl.m_timer[i].m_timeout == 0) {
+                g_timerctl.m_timer[i].m_flags = USED;
+                fifo8_put(&g_timerctl.m_fifo, g_timerctl.m_timer[i].m_data);
+            }
         }
     }
 }

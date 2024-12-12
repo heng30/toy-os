@@ -56,3 +56,15 @@ void assert(bool cond, const char *errmsg) {
         dead_loop();
     }
 }
+
+void memset(unsigned char *buf, unsigned char c, unsigned int n) {
+    for (unsigned int i = 0; i < n; i++) {
+        *(buf + i) = c;
+    }
+}
+
+void zero(unsigned char *buf, unsigned int n) {
+    for (unsigned int i = 0; i < n; i++) {
+        *(buf + i) = 0;
+    }
+}

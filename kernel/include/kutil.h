@@ -16,3 +16,9 @@ void dead_loop(void);
 
 // 断言
 void assert(bool cond, const char *errmsg);
+
+// 设置内存J
+void memset(unsigned char *buf, unsigned char c, unsigned int n);
+
+// 内存清零
+void zero(unsigned char *buf, unsigned int n);
