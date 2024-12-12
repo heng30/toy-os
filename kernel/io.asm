@@ -82,6 +82,10 @@ get_memory_block_buffer:
     mov  eax, MEM_CHK_BUF
     ret
 
+get_boot_info:
+    mov eax, BOOT_INFO
+    ret
+
 get_font_data:
     mov ax, SELECTOR_FONT
     mov es, ax
@@ -92,4 +96,3 @@ get_font_data:
     xor eax, eax
     mov al, byte [es:edi]
     ret
-

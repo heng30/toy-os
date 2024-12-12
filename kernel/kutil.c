@@ -68,3 +68,11 @@ void zero(unsigned char *buf, unsigned int n) {
         *(buf + i) = 0;
     }
 }
+
+unsigned int strlen(const char *s) {
+    unsigned int total = 0;
+    for (; *s != 0x00; s++) {
+        total++;
+    }
+    return total;
+}

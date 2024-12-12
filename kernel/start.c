@@ -23,21 +23,28 @@ void mouse_callback(void) {
 
 void keyboard_callback(void) {
     static int count = 0;
-    unsigned int data = fifo8_get(&g_keyinfo);
+    unsigned char data = fifo8_get(&g_keyinfo);
 
     io_sti();
 
-    int mem_count = get_memory_block_count();
-    addr_range_desc_t *mem_desc =
-        (addr_range_desc_t *)get_memory_block_buffer();
+    show_string_in_canvas(8, FONT_HEIGHT * 4, COL8_FFFFFF, char2hexstr(data));
 
     // 回车键
     if (data == 0x1C) {
+        int mem_count = get_memory_block_count();
+        addr_range_desc_t *mem_desc =
+            (addr_range_desc_t *)get_memory_block_buffer();
+
         show_memory_block_info(mem_desc + count, count, COL8_FFFFFF);
         count = (count + 1);
         if (count >= mem_count) {
             count = 0;
         }
+    } else if (data < sizeof(keydown_table) && keydown_table[data] != 0) {
+        char *buf = memman_alloc(2);
+        buf[0] = keydown_table[data], buf[1] = 0;
+        show_string_in_canvas(8, FONT_HEIGHT * 3, COL8_FFFFFF, buf);
+        memman_free(buf, 2);
     }
 }
 
@@ -65,6 +72,7 @@ void timer_callback(timer_t *timer) {
 
 void start_kernel(void) {
     init_pit();
+    init_boot_info();
     init_palette();
     init_cursor();
     init_keyboard();

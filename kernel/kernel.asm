@@ -2,7 +2,8 @@
 
 org   0x8000
 
-VRAM_ADDRESS  equ  0x000a0000
+; VRAM_ADDRESS  equ  0x000a0000 ; 320x200
+VRAM_ADDRESS    equ  0xe0000000
 
 jmp   LABEL_BEGIN
 
@@ -77,10 +78,8 @@ LABEL_MEM_CHK_FAIL:
     mov    dword [MEMORY_CHK_NUMBER], 0
 
 LABEL_MEM_CHK_OK:
-    ; 设置色彩显示模式
-    mov   al, 0x13
-    mov   ah, 0
-    int   0x10
+    ; 设置分辨率
+    %include "resolution.asm"
 
     ; 初始花8259A芯片，开启中断处理
     call init8259A
@@ -181,6 +180,8 @@ ALIGN 32
 [BITS 32]
 MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
+
+BOOT_INFO: times 3 dd 0
 
 [SECTION .gs]
 ALIGN 32

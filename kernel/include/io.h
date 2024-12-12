@@ -40,5 +40,8 @@ int get_memory_block_count(void);
 // 获取内存描述块地址
 void* get_memory_block_buffer(void);
 
+// 获取启动信息
+void* get_boot_info(void);
+
 // 获取字体数据 c << 4 + offset
 char get_font_data(int c, int offset);

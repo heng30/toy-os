@@ -10,8 +10,8 @@ CC = $(CROSS_COMPILE)gcc
 LD=$(CROSS_COMPILE)gcc
 
 DEFINE_FLAGS = -D __TEST__
-DEBUG_FLAGS = -g
-# RELEASE_FLAGS = -O3
+# DEBUG_FLAGS = -g
+RELEASE_FLAGS = -O3
 
 C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
 

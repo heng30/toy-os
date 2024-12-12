@@ -22,3 +22,6 @@ void memset(unsigned char *buf, unsigned char c, unsigned int n);
 
 // 内存清零
 void zero(unsigned char *buf, unsigned int n);
+
+// 获取字符串长度
+unsigned int strlen(const char *s);

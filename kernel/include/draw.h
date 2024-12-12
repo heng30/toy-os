@@ -10,8 +10,8 @@
 // 显示信息
 typedef struct {
     unsigned char *m_vga_ram; // vga显存地址
-    short m_screen_x;         // 屏幕宽
-    short m_screen_y;         // 屏幕高
+    unsigned int m_screen_x;  // 屏幕宽
+    unsigned int m_screen_y;  // 屏幕高
 } boot_info_t;
 
 // 显示信息
@@ -22,6 +22,9 @@ extern win_sheet_t *g_background_sht;
 
 // 画布图层
 extern win_sheet_t *g_canvas_sht;
+
+// 初始化屏幕分辨率
+void init_boot_info(void);
 
 // 设置颜色板
 void set_palette(int start, int end, unsigned char *rgb);
@@ -45,7 +48,8 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
                 char *font);
 
 // 显示一行字符串
-void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color, const char *s);
+void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color,
+                 const char *s);
 
 // 显示调试信息
 void show_debug_char(unsigned char data);
@@ -67,3 +71,6 @@ void clear_sheet(unsigned char *vram, int size, unsigned char c);
 
 // 绘制字符串到调试面板
 void show_string_in_canvas(int x, int y, char color, const char *s);
+
+// 计算一个字符串占用的像素
+unsigned int string_in_pixels(const char* s);

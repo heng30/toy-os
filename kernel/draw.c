@@ -18,10 +18,18 @@ extern char system_font[16];
 
 // vga显示信息
 boot_info_t g_boot_info = {
-    .m_vga_ram = (unsigned char *)0xa0000,
+    .m_vga_ram = (unsigned char *)0xa0000, // 320x200显存起始地址
     .m_screen_x = 320,
     .m_screen_y = 200,
 };
+
+void init_boot_info(void) {
+    // 640x480
+    unsigned int *bi = get_boot_info();
+    g_boot_info.m_vga_ram = (unsigned char *)(*bi);
+    g_boot_info.m_screen_x = *(bi + 1);
+    g_boot_info.m_screen_y = *(bi + 2);
+}
 
 void set_palette(int start, int end, unsigned char *rgb) {
     int eflags = io_load_eflags();
@@ -240,4 +248,8 @@ void show_string_in_canvas(int x, int y, char color, const char *s) {
         return;
 
     show_string(g_canvas_sht, x, y, COLOR_INVISIBLE, color, s);
+}
+
+unsigned int string_in_pixels(const char* s) {
+    return strlen(s) * FONT_WIDTH;
 }
