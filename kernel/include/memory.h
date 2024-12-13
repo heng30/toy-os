@@ -38,4 +38,7 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color);
 // 显示内存管理器信息
 void show_memman_info(void);
 
+// 依次显示内存管理器信息
+void show_all_memory_block_info(void);
+
 void memman_test(void);

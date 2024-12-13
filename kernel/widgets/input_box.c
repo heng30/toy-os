@@ -65,7 +65,22 @@ void input_box_focus(input_box_t *box) {
 }
 
 void input_box_draw_text(input_box_t *box, const char *text) {
-    strncpy(box->m_text, INPUT_BOX_TEXT_MAX_LEN, text);
+    strncpy(box->m_text, INPUT_BOX_TEXT_MAX_LEN + 1, text);
+    input_box_focus(box);
+}
+
+void input_box_push(input_box_t *box, char c) {
+    if (strlen(box->m_text) < INPUT_BOX_TEXT_MAX_LEN) {
+        strpush(box->m_text, c);
+        input_box_focus(box);
+    }
+}
+
+void input_box_pop(input_box_t *box) {
+    if (strlen(box->m_text) == 0)
+        return;
+
+    strpop(box->m_text);
     input_box_focus(box);
 }
 

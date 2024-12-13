@@ -51,3 +51,6 @@ char *strcat(char *dst, const char *src);
 
 // 拼接字符串，并在dst末尾添加上`\0`， 返回值指向des开头处
 char *strpush(char *dst, char c);
+
+// 移除尾部一个字符， 返回值指向des开头处
+char *strpop(char *dst);

@@ -194,6 +194,22 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
     }
 }
 
+void show_all_memory_block_info(void) {
+    static int memory_block_info_counts = 0;
+    int mem_count = get_memory_block_count();
+    addr_range_desc_t *mem_desc =
+        (addr_range_desc_t *)get_memory_block_buffer();
+
+    show_memory_block_info(mem_desc + memory_block_info_counts,
+                           memory_block_info_counts, COL8_FFFFFF);
+
+    memory_block_info_counts = (memory_block_info_counts + 1);
+
+    if (memory_block_info_counts >= mem_count) {
+        memory_block_info_counts = 0;
+    }
+}
+
 void show_memman_info(void) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     int xsize = g_boot_info.m_screen_x;

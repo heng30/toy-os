@@ -134,3 +134,13 @@ char *strpush(char *dst, const char c) {
     *(dst + len + 1) = '\0';
     return dst;
 }
+
+char *strpop(char *dst) {
+    unsigned int len = strlen(dst);
+    if (len == 0)
+        *dst = '\0';
+    else
+        *(dst + len - 1) = '\0';
+
+    return dst;
+}

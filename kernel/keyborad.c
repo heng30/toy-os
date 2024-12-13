@@ -35,3 +35,20 @@ void init_keyboard(void) {
     io_out8(PORT_KEYDAT, KBC_MODE);
 }
 
+char get_pressed_char(unsigned char code) {
+    return code < sizeof(keydown_table) ? keydown_table[code] : 0;
+}
+
+bool is_ctrl_key_down(unsigned char code) { return code == 0x1d; }
+
+bool is_ctrl_key_up(unsigned char code) { return code == 0x9d; }
+
+bool is_alt_key_down(unsigned char code) { return code == 0x38; }
+
+bool is_alt_key_up(unsigned char code) { return code == 0xb8; }
+
+bool is_backspace_down(unsigned char code) { return code == 0x0e; }
+
+bool is_enter_down(unsigned char code) { return code == 0x1c; }
+
+bool is_enter_up(unsigned char code) { return code == 0x9c; }

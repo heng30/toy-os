@@ -21,30 +21,28 @@ void mouse_callback(void) {
     }
 }
 
-void keyboard_callback(void) {
-    static int count = 0;
+void keyboard_callback(input_box_t *input_box) {
     unsigned char data = fifo8_get(&g_keyinfo);
 
     io_sti();
 
-    show_string_in_canvas(8, FONT_HEIGHT * 4, COL8_FFFFFF, char2hexstr(data));
+    show_string_in_canvas(8, FONT_HEIGHT * 8, COL8_FFFFFF, char2hexstr(data));
 
     // 回车键
-    if (data == 0x1C) {
-        int mem_count = get_memory_block_count();
-        addr_range_desc_t *mem_desc =
-            (addr_range_desc_t *)get_memory_block_buffer();
+    if (is_enter_down(data)) {
+        show_all_memory_block_info();
+    } else if (is_backspace_down(data)) {
+        input_box_pop(input_box);
+    } else {
+        char ch = get_pressed_char(data);
+        if (ch != 0) {
+            char *buf = memman_alloc(2);
+            buf[0] = keydown_table[data], buf[1] = 0;
+            show_string_in_canvas(8, FONT_HEIGHT * 9, COL8_FFFFFF, buf);
+            memman_free(buf, 2);
 
-        show_memory_block_info(mem_desc + count, count, COL8_FFFFFF);
-        count = (count + 1);
-        if (count >= mem_count) {
-            count = 0;
+            input_box_push(input_box, ch);
         }
-    } else if (data < sizeof(keydown_table) && keydown_table[data] != 0) {
-        char *buf = memman_alloc(2);
-        buf[0] = keydown_table[data], buf[1] = 0;
-        show_string_in_canvas(8, FONT_HEIGHT * 3, COL8_FFFFFF, buf);
-        memman_free(buf, 2);
     }
 }
 
@@ -93,9 +91,9 @@ void start_kernel(void) {
 
     timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc();
 
-    set_timer(timer1, 300, 1), set_timer(timer2, 500, 2),
+    set_timer(timer1, 300, 1), set_timer(timer2, 500, 2);
 
-        io_sti(); // 开中断
+    io_sti(); // 开中断
     enable_mouse();
 
     for (;;) {
@@ -105,14 +103,14 @@ void start_kernel(void) {
             0) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (fifo8_status(&g_keyinfo) != 0) {
-            keyboard_callback();
+            keyboard_callback(input_box);
 
-            win_sheet_t *sht = WIN_SHEET_OBJ(input_box);
-            if (win_sheet_is_visible(sht)) {
-                win_sheet_hide(sht);
-            } else {
-                win_sheet_show(sht, BOTTOM_WIN_SHEET_Z + 2);
-            }
+            // win_sheet_t *sht = WIN_SHEET_OBJ(input_box);
+            // if (win_sheet_is_visible(sht)) {
+            //     win_sheet_hide(sht);
+            // } else {
+            //     win_sheet_show(sht, BOTTOM_WIN_SHEET_Z + 2);
+            // }
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             mouse_callback();
         } else if (fifo8_status(&g_timerctl.m_fifo) != 0) {
