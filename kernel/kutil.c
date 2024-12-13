@@ -3,6 +3,10 @@
 #include "draw.h"
 #include "io.h"
 
+int max(int a, int b) { return a > b ? a : b; }
+
+int min(int a, int b) { return a > b ? b : a; }
+
 char char2hex(char c) {
     if (c >= 10) {
         return 'A' + c - 10;
@@ -103,6 +107,19 @@ char *stpcpy(char *dst, const char *src) {
 
 char *strcpy(char *dst, const char *src) {
     stpcpy(dst, src);
+    return dst;
+}
+
+char *strncpy(char *dst, unsigned int dst_size, const char *src) {
+    unsigned int len = min(strlen(src), dst_size - 1);
+
+    for (unsigned int i = 0; i < len; i++) {
+        *(dst + i) = *(src + i);
+    }
+
+    if (len > 0)
+        *(dst + len) = '\0';
+
     return dst;
 }
 

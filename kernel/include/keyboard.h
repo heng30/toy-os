@@ -36,3 +36,5 @@ inline bool is_ctrl_key_up(unsigned char code) { return code == 0x9d; }
 inline bool is_alt_key_down(unsigned char code) { return code == 0x38; }
 
 inline bool is_alt_key_up(unsigned char code) { return code == 0xb8; }
+
+inline bool is_backspace_down(unsigned char code) { return code == 0x0E; }

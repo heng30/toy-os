@@ -2,6 +2,10 @@
 
 #include "def.h"
 
+int max(int a, int b);
+
+int min(int a, int b);
+
 // 获取1个字符的16进制
 char char2hex(char c);
 
@@ -35,6 +39,9 @@ unsigned int strlen(const char *s);
 
 // 复制字符串，并在dst末尾添加上`\0`， 返回值指向des的`\0`处
 char *stpcpy(char *dst, const char *src);
+
+// 复制n个字符，并在dst末尾添加上`\0`， 返回值指向des的`\0`处
+char *strncpy(char *dst, unsigned int dst_size, const char *src);
 
 // 复制字符串，并在dst末尾添加上`\0`， 返回值指向des开头处
 char *strcpy(char *dst, const char *src);

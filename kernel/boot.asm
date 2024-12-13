@@ -26,7 +26,7 @@ db   0,0,0x29
 dd   0xFFFFFFFF
 db   "TOY OS"
 db   "FAT12"
-resb  18
+times 18  db 0 ; 保留18个字节的空间
 
 entry:
     mov  ax, 0

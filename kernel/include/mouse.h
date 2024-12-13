@@ -3,12 +3,14 @@
 #include "draw.h"
 #include "fifo8.h"
 #include "keyboard_mouse.h"
+#include "timer.h"
 #include "win_sheet.h"
 
 #define CURSOR_ICON_SIZE 16 // 鼠标图标大小
 
 #define INPUT_BLOCK_WIDTH FONT_WIDTH   // 输入光标宽度
 #define INPUT_BLOCK_HEIGHT FONT_HEIGHT // 输入光标高度
+#define INPUT_BLOCK_TIMER_DATA 255
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE 0xf4
@@ -43,6 +45,12 @@ extern mouse_dec_t g_mdec;
 // 鼠标图层
 extern win_sheet_t *g_mouse_sht;
 
+// 输入光标图层
+extern win_sheet_t *g_input_block_sht;
+
+// 输入光标定时器
+extern timer_t *g_input_block_timer;
+
 // 初始化鼠标
 void init_cursor(void);
 
@@ -70,6 +78,9 @@ void keep_mouse_sheet_on_top(void);
 // 初始化输入光标
 void init_input_block_sheet(void);
 
+// 初始化光标定时器
+void init_input_block_timer(void);
+
 // 显示输入光标
 void input_block_show(int z);
 
@@ -84,3 +95,7 @@ bool input_block_is_visible(void);
 
 // 闪烁输入光标
 void input_block_blink(void);
+
+void set_focus_sheet(win_sheet_t *p);
+
+bool is_focus_sheet(win_sheet_t *p);

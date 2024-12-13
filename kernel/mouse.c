@@ -8,6 +8,7 @@
 
 win_sheet_t *g_mouse_sht = NULL;
 win_sheet_t *g_input_block_sht = NULL;
+timer_t *g_input_block_timer = NULL;
 
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
@@ -32,6 +33,8 @@ mouse_dec_t g_mdec = {
     .m_abs_y = 80,
     .m_input_block_abs_x = 0,
     .m_input_block_abs_y = 0,
+    // .m_input_block_abs_x = 0x58,
+    // .m_input_block_abs_y = 0x0,
     .m_input_block_color = COLOR_WHITE,
     .m_focus_sheet = NULL,
 };
@@ -159,11 +162,17 @@ void int_handler_for_mouse(char *esp) {
     fifo8_put(&g_mouseinfo, data);
 }
 
+void init_input_block_timer(void) {
+    g_input_block_timer = timer_alloc();
+    set_timer(g_input_block_timer, 50, INPUT_BLOCK_TIMER_DATA);
+}
+
 void init_input_block_sheet(void) {
     g_input_block_sht = win_sheet_alloc();
     assert(g_input_block_sht != NULL,
            "init_input_block_sheet alloc sheet error");
 
+    // 绘制光标颜色
     boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
              g_mdec.m_input_block_color, 0, 0, INPUT_BLOCK_WIDTH - 1,
              INPUT_BLOCK_HEIGHT - 1);
@@ -191,15 +200,20 @@ bool input_block_is_visible(void) {
 }
 
 void input_block_blink(void) {
-    int vx = g_mdec.m_input_block_abs_x, vy = g_mdec.m_input_block_abs_y;
-
-    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
-             g_mdec.m_input_block_color, vx, vy, vx + INPUT_BLOCK_WIDTH - 1,
-             vy + INPUT_BLOCK_HEIGHT - 1);
-
-    win_sheet_refresh(g_input_block_sht, vx, vy, vx + INPUT_BLOCK_WIDTH,
-                      vy + INPUT_BLOCK_HEIGHT);
-
     g_mdec.m_input_block_color =
         g_mdec.m_input_block_color == COLOR_WHITE ? COLOR_BLACK : COLOR_WHITE;
+
+    // 重新绘制光标颜色
+    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
+             g_mdec.m_input_block_color, 0, 0, INPUT_BLOCK_WIDTH - 1,
+             INPUT_BLOCK_HEIGHT - 1);
+
+    win_sheet_refresh(g_input_block_sht, 0, 0, INPUT_BLOCK_WIDTH,
+                      INPUT_BLOCK_HEIGHT);
+
+    set_timer(g_input_block_timer, 50, INPUT_BLOCK_TIMER_DATA);
 }
+
+void set_focus_sheet(win_sheet_t *p) { g_mdec.m_focus_sheet = p; }
+
+bool is_focus_sheet(win_sheet_t *p) { return g_mdec.m_focus_sheet == p; }
