@@ -9,7 +9,7 @@
 #define CANVAS_WIN_SHEET_Z (TOP_WIN_SHEET_Z - 1)
 #define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
 
-#define WIN_SHEET_OBJ(obj) ((win_sheet_t *)(*(unsigned int*)(obj)))
+#define WIN_SHEET_OBJ(obj) ((win_sheet_t *)(*(unsigned int *)(obj)))
 
 // 窗口绘制层
 typedef struct {
@@ -53,20 +53,26 @@ void win_sheet_refresh_force(win_sheet_t *sht, int bx0, int by0, int bx1,
 // 移动图层
 void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
 
-// 调整图层Z轴高度
-void win_sheet_updown(win_sheet_t *sht, int z);
-
-void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0);
-
 // 判断一个图层是否合法
-bool is_valid_win_sheet_z(int z);
+bool win_sheet_is_valid_z(int z);
 
+// 图层是否可见
 bool win_sheet_is_visible(win_sheet_t *p);
 
+// 获取图层名称
 const char *win_sheet_get_name(win_sheet_t *p);
 
+// 设置图层名称
 void win_sheet_set_name(win_sheet_t *p, const char *name);
 
+// 显示图层
 void win_sheet_show(win_sheet_t *p, int sheet_z);
 
+// 隐藏图层
 void win_sheet_hide(win_sheet_t *p);
+
+// 图层获取焦点
+void win_sheet_set_focus(win_sheet_t *p);
+
+// 判断图层是否是焦点图层
+bool win_sheet_is_focus(win_sheet_t *p);

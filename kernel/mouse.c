@@ -7,8 +7,6 @@
 #include "kutil.h"
 
 win_sheet_t *g_mouse_sht = NULL;
-win_sheet_t *g_input_block_sht = NULL;
-timer_t *g_input_block_timer = NULL;
 
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
@@ -31,13 +29,9 @@ mouse_dec_t g_mdec = {
     .m_rel_y = 0,
     .m_abs_x = 80,
     .m_abs_y = 80,
-    .m_input_block_abs_x = 0,
-    .m_input_block_abs_y = 0,
-    .m_input_block_color = COLOR_WHITE,
-    .m_focus_sheet = NULL,
 };
 
-void init_cursor(void) {
+void init_mouse(void) {
     unsigned char *mouse = g_mdec.m_cursor;
 
     for (int y = 0; y < 16; y++) {
@@ -140,7 +134,7 @@ void init_mouse_sheet(void) {
                      CURSOR_ICON_SIZE, COLOR_INVISIBLE);
 
     win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
-    win_sheet_updown(g_mouse_sht, MOUSE_WIN_SHEET_Z);
+    win_sheet_show(g_mouse_sht, MOUSE_WIN_SHEET_Z);
 }
 
 void draw_mouse(void) {
@@ -149,7 +143,7 @@ void draw_mouse(void) {
 }
 
 void keep_mouse_sheet_on_top(void) {
-    win_sheet_updown(g_mouse_sht, MOUSE_WIN_SHEET_Z);
+    win_sheet_show(g_mouse_sht, MOUSE_WIN_SHEET_Z);
 }
 
 void int_handler_for_mouse(char *esp) {
@@ -159,59 +153,3 @@ void int_handler_for_mouse(char *esp) {
     unsigned char data = io_in8(PORT_KEYDAT);
     fifo8_put(&g_mouseinfo, data);
 }
-
-void init_input_block_timer(void) {
-    g_input_block_timer = timer_alloc();
-    set_timer(g_input_block_timer, 50, INPUT_BLOCK_TIMER_DATA);
-}
-
-void init_input_block_sheet(void) {
-    g_input_block_sht = win_sheet_alloc();
-    assert(g_input_block_sht != NULL,
-           "init_input_block_sheet alloc sheet error");
-
-    // 绘制光标颜色
-    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
-             g_mdec.m_input_block_color, 0, 0, INPUT_BLOCK_WIDTH - 1,
-             INPUT_BLOCK_HEIGHT - 1);
-
-    win_sheet_setbuf(g_input_block_sht, "input-block", g_mdec.m_input_block,
-                     INPUT_BLOCK_WIDTH, INPUT_BLOCK_HEIGHT, COLOR_INVISIBLE);
-
-    win_sheet_slide(g_input_block_sht, g_mdec.m_input_block_abs_x,
-                    g_mdec.m_input_block_abs_y);
-}
-
-void input_block_show(int z) { win_sheet_updown(g_input_block_sht, z); }
-
-void input_block_hide(void) {
-    win_sheet_updown(g_input_block_sht, HIDE_WIN_SHEET_Z);
-}
-
-void input_block_move(int vx, int vy) {
-    g_mdec.m_input_block_abs_x = vx, g_mdec.m_input_block_abs_y = vy;
-    win_sheet_slide(g_input_block_sht, vx, vy);
-}
-
-bool input_block_is_visible(void) {
-    return g_input_block_sht->m_z >= BOTTOM_WIN_SHEET_Z;
-}
-
-void input_block_blink(void) {
-    g_mdec.m_input_block_color =
-        g_mdec.m_input_block_color == COLOR_WHITE ? COLOR_BLACK : COLOR_WHITE;
-
-    // 重新绘制光标颜色
-    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
-             g_mdec.m_input_block_color, 0, 0, INPUT_BLOCK_WIDTH - 1,
-             INPUT_BLOCK_HEIGHT - 1);
-
-    win_sheet_refresh(g_input_block_sht, 0, 0, INPUT_BLOCK_WIDTH,
-                      INPUT_BLOCK_HEIGHT);
-
-    set_timer(g_input_block_timer, 50, INPUT_BLOCK_TIMER_DATA);
-}
-
-void set_focus_sheet(win_sheet_t *p) { g_mdec.m_focus_sheet = p; }
-
-bool is_focus_sheet(win_sheet_t *p) { return g_mdec.m_focus_sheet == p; }

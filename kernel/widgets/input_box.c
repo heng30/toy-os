@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "mouse.h"
 #include "win_sheet.h"
+#include "input_cursor.h"
 
 static void make_textbox8(win_sheet_t *sht, int x0, int y0, int sx, int sy,
                           int c) {
@@ -31,14 +32,14 @@ static void make_textbox8(win_sheet_t *sht, int x0, int y0, int sx, int sy,
 
 void input_box_focus(input_box_t *box) {
     int max_text_len =
-        (box->m_sheet->m_bxsize - FONT_WIDTH * 2 - INPUT_BLOCK_WIDTH) /
+        (box->m_sheet->m_bxsize - FONT_WIDTH * 2 - INPUT_CURSOR_WIDTH) /
         FONT_WIDTH;
     int text_len = min(max_text_len, strlen(box->m_text));
 
     char *dst = NULL;
     int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
 
-    set_focus_sheet(box->m_sheet);
+    win_sheet_set_focus(box->m_sheet);
 
     if (text_len > 0) {
         dst = memman_alloc_4k(text_len + 1);
@@ -47,7 +48,7 @@ void input_box_focus(input_box_t *box) {
         strncpy_tail(dst, text_len + 1, box->m_text);
     }
 
-    input_block_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
+    input_cursor_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
                      vy + MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT);
 
     if (text_len > 0) {
@@ -107,11 +108,11 @@ void input_box_free(const input_box_t *p) {
 
 void input_box_show(input_box_t *p, int z) {
     win_sheet_show(p->m_sheet, z);
-    win_sheet_show(g_input_block_sht, z);
+    win_sheet_show(g_input_cursor_sht, z);
     input_box_focus(p);
 }
 
 void input_box_hide(input_box_t *p) {
     win_sheet_hide(p->m_sheet);
-    win_sheet_hide(g_input_block_sht);
+    win_sheet_hide(g_input_cursor_sht);
 }

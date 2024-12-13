@@ -218,7 +218,7 @@ void init_background_sheet(void) {
     _set_background_vram(buf, xsize, ysize);
     win_sheet_setbuf(g_background_sht, "background", buf, xsize, ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_background_sht, 0, 0);
-    win_sheet_updown(g_background_sht, BOTTOM_WIN_SHEET_Z);
+    win_sheet_show(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }
 
 void clear_sheet(unsigned char *vram, int size, unsigned char c) {
@@ -240,7 +240,7 @@ void init_canvas_sheet(int z) {
     g_canvas_sht->m_is_transparent_layer = true;
     win_sheet_setbuf(g_canvas_sht,"canvas", buf, xsize, ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_canvas_sht, 0, 0);
-    win_sheet_updown(g_canvas_sht, z);
+    win_sheet_show(g_canvas_sht, z);
 }
 
 void show_string_in_canvas(int x, int y, char color, const char *s) {

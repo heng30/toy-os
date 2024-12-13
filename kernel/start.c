@@ -8,6 +8,7 @@
 #include "mouse.h"
 #include "timer.h"
 #include "win_sheet.h"
+#include "input_cursor.h"
 
 #include "widgets/input_box.h"
 
@@ -59,8 +60,8 @@ void timer_callback() {
     case 2:
         show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
         break;
-    case INPUT_BLOCK_TIMER_DATA:
-        input_block_blink();
+    case INPUT_CURSOR_TIMER_DATA:
+        input_cursor_blink();
     default:
         break;
     }
@@ -70,7 +71,7 @@ void start_kernel(void) {
     init_pit();
     init_boot_info();
     init_palette();
-    init_cursor();
+    init_mouse();
     init_keyboard();
 
     init_memman();
@@ -81,9 +82,8 @@ void start_kernel(void) {
     init_mouse_sheet();
     init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
-    init_input_block_sheet();
-    init_input_block_timer();
-    input_block_show(MOUSE_WIN_SHEET_Z - 2);
+    init_input_cursor();
+    input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
     input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
