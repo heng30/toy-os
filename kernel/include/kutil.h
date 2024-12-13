@@ -40,8 +40,11 @@ unsigned int strlen(const char *s);
 // 复制字符串，并在dst末尾添加上`\0`， 返回值指向des的`\0`处
 char *stpcpy(char *dst, const char *src);
 
-// 复制n个字符，并在dst末尾添加上`\0`， 返回值指向des的`\0`处
+// 复制n个字符，并在dst末尾添加上`\0`
 char *strncpy(char *dst, unsigned int dst_size, const char *src);
+
+// 复制最后n个字符，并在dst末尾添加上`\0`
+char *strncpy_tail(char *dst, unsigned int dst_size, const char *src);
 
 // 复制字符串，并在dst末尾添加上`\0`， 返回值指向des开头处
 char *strcpy(char *dst, const char *src);
@@ -54,3 +57,9 @@ char *strpush(char *dst, char c);
 
 // 移除尾部一个字符， 返回值指向des开头处
 char *strpop(char *dst);
+
+// 转为小写字符
+char to_lowercast(char ch);
+
+// 转为大写字符
+char to_uppercast(char ch);

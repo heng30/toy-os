@@ -33,8 +33,6 @@ mouse_dec_t g_mdec = {
     .m_abs_y = 80,
     .m_input_block_abs_x = 0,
     .m_input_block_abs_y = 0,
-    // .m_input_block_abs_x = 0x58,
-    // .m_input_block_abs_y = 0x0,
     .m_input_block_color = COLOR_WHITE,
     .m_focus_sheet = NULL,
 };

@@ -13,7 +13,7 @@ typedef struct {
 extern fifo8_t g_keyinfo;
 
 // 按下按键映射表
-extern char keydown_table[0x54];
+extern char keydown_code2char_table[0x54];
 
 // 初始化键盘
 void init_keyboard(void);
@@ -21,16 +21,12 @@ void init_keyboard(void);
 // 键盘中断函数
 void int_handler_from_c(char *esp);
 
-inline bool is_shift_key_down(unsigned char code) {
-    return code == 0x2a || code == 0x36;
-}
-
-inline bool is_shift_key_up(unsigned char code) {
-    return code == 0xaa || code == 0xb6;
-}
-
 // 获取按下的可见字符
 char get_pressed_char(unsigned char code);
+
+bool is_shift_key_down(unsigned char code);
+
+bool is_shift_key_up(unsigned char code);
 
 bool is_ctrl_key_down(unsigned char code);
 
@@ -45,3 +41,18 @@ bool is_backspace_down(unsigned char code);
 bool is_enter_down(unsigned char code);
 
 bool is_enter_up(unsigned char code);
+
+bool is_capslock_down(unsigned char code);
+
+bool is_capslock_up(unsigned char code);
+
+bool is_capslock_checked();
+
+bool is_shift_key_pressed();
+
+bool is_ctrl_key_pressed();
+
+bool is_alt_key_pressed();
+
+// 设置特殊按键的状态
+void set_modkey_status(unsigned char code);

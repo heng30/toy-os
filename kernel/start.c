@@ -22,22 +22,24 @@ void mouse_callback(void) {
 }
 
 void keyboard_callback(input_box_t *input_box) {
-    unsigned char data = fifo8_get(&g_keyinfo);
+    unsigned char code = fifo8_get(&g_keyinfo);
 
     io_sti();
 
-    show_string_in_canvas(8, FONT_HEIGHT * 8, COL8_FFFFFF, char2hexstr(data));
+    set_modkey_status(code);
+
+    show_string_in_canvas(8, FONT_HEIGHT * 8, COL8_FFFFFF, char2hexstr(code));
 
     // 回车键
-    if (is_enter_down(data)) {
+    if (is_enter_down(code)) {
         show_all_memory_block_info();
-    } else if (is_backspace_down(data)) {
+    } else if (is_backspace_down(code)) {
         input_box_pop(input_box);
     } else {
-        char ch = get_pressed_char(data);
+        char ch = get_pressed_char(code);
         if (ch != 0) {
             char *buf = memman_alloc(2);
-            buf[0] = keydown_table[data], buf[1] = 0;
+            buf[0] = keydown_code2char_table[code], buf[1] = 0;
             show_string_in_canvas(8, FONT_HEIGHT * 9, COL8_FFFFFF, buf);
             memman_free(buf, 2);
 
@@ -84,9 +86,8 @@ void start_kernel(void) {
     input_block_show(MOUSE_WIN_SHEET_Z - 2);
 
     input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
-    win_sheet_show(WIN_SHEET_OBJ(input_box), BOTTOM_WIN_SHEET_Z + 3);
-    set_focus_sheet(input_box->m_sheet);
-    // input_box_focus(input_box);
+    input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
+
     input_box_draw_text(input_box, "hello");
 
     timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc();
@@ -105,11 +106,10 @@ void start_kernel(void) {
         } else if (fifo8_status(&g_keyinfo) != 0) {
             keyboard_callback(input_box);
 
-            // win_sheet_t *sht = WIN_SHEET_OBJ(input_box);
-            // if (win_sheet_is_visible(sht)) {
-            //     win_sheet_hide(sht);
+            // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
+            //     input_box_hide(input_box);
             // } else {
-            //     win_sheet_show(sht, BOTTOM_WIN_SHEET_Z + 2);
+            //     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 2);
             // }
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             mouse_callback();

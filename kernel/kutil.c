@@ -123,6 +123,20 @@ char *strncpy(char *dst, unsigned int dst_size, const char *src) {
     return dst;
 }
 
+char *strncpy_tail(char *dst, unsigned int dst_size, const char *src) {
+    int src_len = strlen(src);
+    int len = min(src_len, dst_size - 1);
+
+    for (int i = len - 1, j = src_len - 1; i >= 0 && j >= 0; i--, j--) {
+        *(dst + i) = *(src + j);
+    }
+
+    if (len > 0)
+        *(dst + len) = '\0';
+
+    return dst;
+}
+
 char *strcat(char *dst, const char *src) {
     stpcpy(dst + strlen(dst), src);
     return dst;
@@ -143,4 +157,20 @@ char *strpop(char *dst) {
         *(dst + len - 1) = '\0';
 
     return dst;
+}
+
+char to_lowercast(char ch) {
+    if (ch >= 'A' && ch <= 'Z') {
+        ch = 'a' + ch - 'A';
+    }
+
+    return ch;
+}
+
+char to_uppercast(char ch) {
+    if (ch >= 'a' && ch <= 'z') {
+        ch = 'A' + ch - 'a';
+    }
+
+    return ch;
 }

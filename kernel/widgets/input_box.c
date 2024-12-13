@@ -38,18 +38,19 @@ void input_box_focus(input_box_t *box) {
     char *dst = NULL;
     int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
 
+    set_focus_sheet(box->m_sheet);
+
     if (text_len > 0) {
         dst = memman_alloc_4k(text_len + 1);
         assert(dst != NULL, "input_box_focus alloc 4k error");
 
-        strncpy(dst, text_len + 1, box->m_text);
+        strncpy_tail(dst, text_len + 1, box->m_text);
     }
 
     input_block_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
                      vy + MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT);
 
     if (text_len > 0) {
-
         // 重新绘制背景
         make_textbox8(
             box->m_sheet, FONT_WIDTH, MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT,
@@ -102,4 +103,15 @@ input_box_t *input_box_new(int x, int y, int width, int height,
 void input_box_free(const input_box_t *p) {
     message_box_free(p->m_sheet);
     memman_free_4k(p, sizeof(input_box_t));
+}
+
+void input_box_show(input_box_t *p, int z) {
+    win_sheet_show(p->m_sheet, z);
+    win_sheet_show(g_input_block_sht, z);
+    input_box_focus(p);
+}
+
+void input_box_hide(input_box_t *p) {
+    win_sheet_hide(p->m_sheet);
+    win_sheet_hide(g_input_block_sht);
 }
