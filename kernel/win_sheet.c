@@ -374,4 +374,18 @@ void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
     }
 }
 
-inline bool is_valid_sheet_z(int z) { return z <= TOP_WIN_SHEET_Z; }
+bool is_valid_win_sheet_z(int z) { return z <= TOP_WIN_SHEET_Z; }
+
+bool win_sheet_is_visible(win_sheet_t *p) {
+    return p->m_z >= BOTTOM_WIN_SHEET_Z;
+}
+
+const char *win_sheet_get_name(win_sheet_t *p) { return p->m_name; }
+
+void win_sheet_set_name(win_sheet_t *p, const char *name) { p->m_name = name; }
+
+void win_sheet_show(win_sheet_t *p, int sheet_z) {
+    win_sheet_updown(p, sheet_z);
+}
+
+void win_sheet_hide(win_sheet_t *p) { win_sheet_updown(p, HIDE_WIN_SHEET_Z); }

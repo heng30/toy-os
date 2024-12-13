@@ -9,8 +9,7 @@
 #include "timer.h"
 #include "win_sheet.h"
 
-#include "input_box.h"
-#include "message_box.h"
+#include "widgets/input_box.h"
 
 void mouse_callback(void) {
     unsigned char data = fifo8_get(&g_mouseinfo);
@@ -61,12 +60,11 @@ void timer_callback(timer_t *timer) {
         show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
         break;
     default:
+        input_block_blink();
         if (data == 3) {
-            input_block_blink(true);
             show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "0");
             set_timer(timer, 50, 4);
         } else {
-            input_block_blink(false);
             show_string_in_canvas(8, FONT_HEIGHT * 2, COL8_FFFFFF, "1");
             set_timer(timer, 50, 3);
         }
@@ -89,13 +87,10 @@ void start_kernel(void) {
     init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
     init_input_block_sheet();
-
-    message_box_t *msg_box = message_box_new(80, 72, 168, 68, "Toy-OS");
-    message_box_show(msg_box, BOTTOM_WIN_SHEET_Z + 2);
+    input_block_show(MOUSE_WIN_SHEET_Z - 2);
 
     input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
-    input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
-    input_block_show();
+    win_sheet_show(WIN_SHEET_OBJ(input_box), BOTTOM_WIN_SHEET_Z + 3);
 
     timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc(),
             *timer3 = timer_alloc();
@@ -115,10 +110,11 @@ void start_kernel(void) {
         } else if (fifo8_status(&g_keyinfo) != 0) {
             keyboard_callback();
 
-            if (message_box_is_visible(msg_box)) {
-                message_box_hide(msg_box);
+            win_sheet_t *sht = WIN_SHEET_OBJ(input_box);
+            if (win_sheet_is_visible(sht)) {
+                win_sheet_hide(sht);
             } else {
-                message_box_show(msg_box, BOTTOM_WIN_SHEET_Z + 2);
+                win_sheet_show(sht, BOTTOM_WIN_SHEET_Z + 2);
             }
         } else if (fifo8_status(&g_mouseinfo) != 0) {
             mouse_callback();

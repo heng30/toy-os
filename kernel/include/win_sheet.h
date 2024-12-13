@@ -8,7 +8,8 @@
 
 #define CANVAS_WIN_SHEET_Z (TOP_WIN_SHEET_Z - 1)
 #define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
-#define INPUT_BLOCK_WIN_SHEET_Z MOUSE_WIN_SHEET_Z - 1
+
+#define WIN_SHEET_OBJ(obj) ((win_sheet_t *)(*(unsigned int*)(obj)))
 
 // 窗口绘制层
 typedef struct {
@@ -58,4 +59,14 @@ void win_sheet_updown(win_sheet_t *sht, int z);
 void win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0);
 
 // 判断一个图层是否合法
-bool is_valid_sheet_z(int z);
+bool is_valid_win_sheet_z(int z);
+
+bool win_sheet_is_visible(win_sheet_t *p);
+
+const char *win_sheet_get_name(win_sheet_t *p);
+
+void win_sheet_set_name(win_sheet_t *p, const char *name);
+
+void win_sheet_show(win_sheet_t *p, int sheet_z);
+
+void win_sheet_hide(win_sheet_t *p);

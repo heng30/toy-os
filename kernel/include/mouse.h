@@ -7,8 +7,8 @@
 
 #define CURSOR_ICON_SIZE 16 // 鼠标图标大小
 
-#define INPUT_BLOCK_WIDTH FONT_WIDTH   // 输入闪烁块宽度
-#define INPUT_BLOCK_HEIGHT FONT_HEIGHT // 输入闪烁块高度
+#define INPUT_BLOCK_WIDTH FONT_WIDTH   // 输入光标宽度
+#define INPUT_BLOCK_HEIGHT FONT_HEIGHT // 输入光标高度
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
 #define MOUSECMD_ENABLE 0xf4
@@ -27,7 +27,11 @@ typedef struct {
     int m_abs_x, m_abs_y;   // 鼠标位置
 
     unsigned char
-        m_input_block[INPUT_BLOCK_WIDTH * INPUT_BLOCK_HEIGHT]; // 输入闪烁块
+        m_input_block[INPUT_BLOCK_HEIGHT * INPUT_BLOCK_WIDTH]; // 输入光标
+    unsigned int m_input_block_abs_x;  // 输入光标x轴
+    unsigned int m_input_block_abs_y;  // 输入光标y轴
+    unsigned char m_input_block_color; // 输入光标颜色
+    void *m_focus_sheet;               // 当前获取焦点图层
 } mouse_dec_t;
 
 // 在中断函数中, 保存鼠标数据
@@ -67,7 +71,7 @@ void keep_mouse_sheet_on_top(void);
 void init_input_block_sheet(void);
 
 // 显示输入光标
-void input_block_show(void);
+void input_block_show(int z);
 
 // 隐藏输入光标
 void input_block_hide(void);
@@ -79,4 +83,4 @@ void input_block_move(int vx, int vy);
 bool input_block_is_visible(void);
 
 // 闪烁输入光标
-void input_block_blink(bool is_white);
+void input_block_blink(void);

@@ -30,6 +30,10 @@ mouse_dec_t g_mdec = {
     .m_rel_y = 0,
     .m_abs_x = 80,
     .m_abs_y = 80,
+    .m_input_block_abs_x = 0,
+    .m_input_block_abs_y = 0,
+    .m_input_block_color = COLOR_WHITE,
+    .m_focus_sheet = NULL,
 };
 
 void init_cursor(void) {
@@ -160,24 +164,25 @@ void init_input_block_sheet(void) {
     assert(g_input_block_sht != NULL,
            "init_input_block_sheet alloc sheet error");
 
-    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH, COLOR_WHITE, 0, 0,
-             INPUT_BLOCK_WIDTH, INPUT_BLOCK_HEIGHT);
+    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
+             g_mdec.m_input_block_color, 0, 0, INPUT_BLOCK_WIDTH - 1,
+             INPUT_BLOCK_HEIGHT - 1);
 
     win_sheet_setbuf(g_input_block_sht, "input-block", g_mdec.m_input_block,
                      INPUT_BLOCK_WIDTH, INPUT_BLOCK_HEIGHT, COLOR_INVISIBLE);
 
-    win_sheet_slide(g_input_block_sht, 0, 0);
+    win_sheet_slide(g_input_block_sht, g_mdec.m_input_block_abs_x,
+                    g_mdec.m_input_block_abs_y);
 }
 
-void input_block_show(void) {
-    win_sheet_updown(g_input_block_sht, INPUT_BLOCK_WIN_SHEET_Z);
-}
+void input_block_show(int z) { win_sheet_updown(g_input_block_sht, z); }
 
 void input_block_hide(void) {
     win_sheet_updown(g_input_block_sht, HIDE_WIN_SHEET_Z);
 }
 
 void input_block_move(int vx, int vy) {
+    g_mdec.m_input_block_abs_x = vx, g_mdec.m_input_block_abs_y = vy;
     win_sheet_slide(g_input_block_sht, vx, vy);
 }
 
@@ -185,9 +190,16 @@ bool input_block_is_visible(void) {
     return g_input_block_sht->m_z >= BOTTOM_WIN_SHEET_Z;
 }
 
-// TODO
-void input_block_blink(bool is_white) {
-    if (is_white) {
-    } else {
-    }
+void input_block_blink(void) {
+    int vx = g_mdec.m_input_block_abs_x, vy = g_mdec.m_input_block_abs_y;
+
+    boxfill8(g_mdec.m_input_block, INPUT_BLOCK_WIDTH,
+             g_mdec.m_input_block_color, vx, vy, vx + INPUT_BLOCK_WIDTH - 1,
+             vy + INPUT_BLOCK_HEIGHT - 1);
+
+    win_sheet_refresh(g_input_block_sht, vx, vy, vx + INPUT_BLOCK_WIDTH,
+                      vy + INPUT_BLOCK_HEIGHT);
+
+    g_mdec.m_input_block_color =
+        g_mdec.m_input_block_color == COLOR_WHITE ? COLOR_BLACK : COLOR_WHITE;
 }
