@@ -48,10 +48,17 @@ void input_box_focus(input_box_t *box) {
     input_block_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
                      vy + MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT);
 
-    if (text_len > 0)
+    if (text_len > 0) {
+
+        // 重新绘制背景
+        make_textbox8(
+            box->m_sheet, FONT_WIDTH, MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT,
+            box->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT, COLOR_WHITE);
+
         show_string(box->m_sheet, FONT_WIDTH,
                     MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT, COLOR_WHITE,
                     COLOR_BLACK, dst);
+    }
 
     if (dst != NULL)
         memman_free_4k(dst, text_len + 1);
