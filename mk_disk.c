@@ -41,7 +41,7 @@ static void _load_kernel(char *kernel_file) {
     if (fsize % SECTOR_SIZE != 0)
         sector_count++;
 
-    debug("disk.img file size is %ld, sector count is %d", fsize, sector_count);
+    debug("kernel image file size is %ld, sector count is %d", fsize, sector_count);
 
     KERNEL_SIZE = sector_count * SECTOR_SIZE;
     KERNEL_IMAGE = (unsigned char *)malloc(KERNEL_SIZE);
@@ -54,8 +54,6 @@ static void _load_kernel(char *kernel_file) {
     assert(rb == fsize);
 
     fclose(fp);
-
-    debug("kernel image size is %d bytes", rb);
 }
 
 static void _mk_disk(char *disk_file) {

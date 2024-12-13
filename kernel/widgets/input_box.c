@@ -8,7 +8,7 @@
 #include "win_sheet.h"
 #include "input_cursor.h"
 
-static void make_textbox8(win_sheet_t *sht, int x0, int y0, int sx, int sy,
+static void _make_textbox8(win_sheet_t *sht, int x0, int y0, int sx, int sy,
                           int c) {
     int x1 = x0 + sx, y1 = y0 + sy;
     boxfill8(sht->m_buf, sht->m_bxsize, COL8_848484, x0 - 2, y0 - 3, x1 + 1,
@@ -53,7 +53,7 @@ void input_box_focus(input_box_t *box) {
 
     if (text_len > 0) {
         // 重新绘制背景
-        make_textbox8(
+        _make_textbox8(
             box->m_sheet, FONT_WIDTH, MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT,
             box->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT, COLOR_WHITE);
 
@@ -94,7 +94,7 @@ input_box_t *input_box_new(int x, int y, int width, int height,
     box->m_sheet = message_box_new(x, y, width, height, title);
     box->m_text[0] = '\0';
 
-    make_textbox8(
+    _make_textbox8(
         box->m_sheet, FONT_WIDTH, MESSAGE_BOX_TITLE_HEIGHT + FONT_HEIGHT,
         box->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT, COLOR_WHITE);
 

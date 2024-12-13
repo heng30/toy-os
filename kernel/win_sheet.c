@@ -34,7 +34,8 @@ void init_win_sheet_ctl(void) {
         g_boot_info.m_screen_x * g_boot_info.m_screen_y);
     assert(g_sheet_ctl->m_map != NULL, "init_win_sheet_ctl alloc map error");
 
-    g_sheet_ctl->m_focus_sheet = NULL, g_sheet_ctl->m_top = -1;
+    g_sheet_ctl->m_focus_sheet = NULL;
+    g_sheet_ctl->m_top = -1;
 
     for (int i = 0; i < MAX_SHEETS; i++) {
         g_sheet_ctl->m_sheets0[i].m_flags = SHEET_UNUSE;
@@ -374,6 +375,9 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
 void win_sheet_free(win_sheet_t *sheet) {
     _win_sheet_updown(sheet, HIDE_WIN_SHEET_Z);
     sheet->m_flags = SHEET_UNUSE;
+
+    if (g_sheet_ctl->m_focus_sheet == sheet)
+        win_sheet_set_focus(NULL);
 }
 
 bool win_sheet_is_valid_z(int z) { return z <= TOP_WIN_SHEET_Z; }
@@ -390,7 +394,12 @@ void win_sheet_show(win_sheet_t *p, int sheet_z) {
     _win_sheet_updown(p, sheet_z);
 }
 
-void win_sheet_hide(win_sheet_t *p) { _win_sheet_updown(p, HIDE_WIN_SHEET_Z); }
+void win_sheet_hide(win_sheet_t *p) {
+    _win_sheet_updown(p, HIDE_WIN_SHEET_Z);
+
+    if (g_sheet_ctl->m_focus_sheet == p)
+        win_sheet_set_focus(NULL);
+}
 
 void win_sheet_set_focus(win_sheet_t *p) { g_sheet_ctl->m_focus_sheet = p; }
 
