@@ -26,3 +26,6 @@ void multi_task_test(void);
 
 // 切换到任务B
 void multi_task_test_switch_to_task_b(void);
+
+// 在main任务的定时回调函数中调用
+void multi_task_test_in_main_timer_callback(void);

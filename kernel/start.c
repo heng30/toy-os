@@ -69,13 +69,7 @@ void timer_callback() {
         // show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
         break;
     case MULTI_TASK_TEST_B_MAIN_TIMER_DATA:
-        show_string_in_canvas(0, 144, COL8_FFFFFF, "switch to task b");
-        multi_task_test_switch_to_task_b();
-        show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main");
-
-        // 重新启动光标定时器
-        set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
-                  INPUT_CURSOR_TIMER_DATA);
+        multi_task_test_in_main_timer_callback();
         break;
     case INPUT_CURSOR_TIMER_DATA:
         input_cursor_blink();

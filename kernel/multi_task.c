@@ -51,7 +51,6 @@ static void _multi_task_test_task_b_main(void) {
                 // set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3,
                 //           MULTI_TASK_TEST_B_MAIN_TIMER_DATA);
 
-
                 // load_tr(9 << 3);
                 taskswitch7(); // 切换回到主任务
             default:
@@ -142,4 +141,14 @@ void multi_task_test(void) {
 void multi_task_test_switch_to_task_b(void) {
     // load_tr(8 << 3); // 7和8是同一个TSS32对象
     taskswitch9();
+}
+
+void multi_task_test_in_main_timer_callback(void) {
+    show_string_in_canvas(0, 144, COL8_FFFFFF, "switch to task b");
+    multi_task_test_switch_to_task_b();
+    show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main");
+
+    // 重新启动光标定时器
+    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+              INPUT_CURSOR_TIMER_DATA);
 }
