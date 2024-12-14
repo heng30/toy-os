@@ -19,7 +19,7 @@ void set_segmdesc(segment_descriptor_t *sd, unsigned int limit, unsigned int bas
     sd->base_mid = (base >> 16) & 0xff;
     sd->access_right = ar & 0xff;
     sd->limit_high = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
-    sd->base_high = (base >> 24) & 0xff;
+    sd->base_high = (unsigned char)((base >> 24) & 0xff);
 }
 
 // 测试任务B
@@ -36,7 +36,7 @@ static void _multi_task_test_task_b_main(void) {
         if (fifo8_is_empty(&g_timerctl.m_fifo)) {
             io_sti();
         } else {
-            unsigned char data = fifo8_get(&g_timerctl.m_fifo);
+            unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
             io_sti();
 
             switch (data) {
