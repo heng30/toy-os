@@ -7,8 +7,8 @@
 #include "kutil.h"
 #include "timer.h"
 
-void set_segmdesc(segment_descriptor_t *sd, unsigned int limit, int base,
-                  int ar) {
+void set_segmdesc(segment_descriptor_t *sd, unsigned int limit, unsigned int base,
+                  unsigned int ar) {
     if (limit > 0xfffff) {
         ar |= 0x8000; // G_bit = 1
         limit /= 0x1000;
