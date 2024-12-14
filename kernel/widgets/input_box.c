@@ -37,10 +37,15 @@ void input_box_moving(void *p) {
     if (!win_sheet_is_moving(box->m_sheet))
         return;
 
-    int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
+    unsigned int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
     int dx = g_mdec.m_rel_x, dy = g_mdec.m_rel_y;
 
-    win_sheet_slide(box->m_sheet, vx + dx, vy + dy);
+    vx = (unsigned int)bound(
+        vx + dx, 0, (int)g_boot_info.m_screen_x - box->m_sheet->m_bxsize);
+    vy = (unsigned int)bound(
+        vy + dy, 0, (int)g_boot_info.m_screen_y - box->m_sheet->m_bysize);
+
+    win_sheet_slide(box->m_sheet, vx, vy);
     input_box_focus(box);
 }
 

@@ -4,8 +4,9 @@
 #include "io.h"
 
 int max(int a, int b) { return a > b ? a : b; }
-
 int min(int a, int b) { return a > b ? b : a; }
+unsigned int max_unsigned(unsigned int a, unsigned int b) { return a > b ? a : b; }
+unsigned int min_unsigned(unsigned int a, unsigned int b) { return a > b ? b : a; }
 
 char char2hex(char c) {
     if (c >= 10) {
@@ -195,3 +196,14 @@ int strcmp(const char *str1, const char *str2) {
     else
         return 1;
 }
+
+int bound(int n, int l, int h) {
+    assert(l <= h, "bound assert failed");
+    return min(max(n, l), h);
+}
+
+unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h) {
+    assert(l <= h, "bound assert failed");
+    return min_unsigned(max_unsigned(n, l), h);
+}
+

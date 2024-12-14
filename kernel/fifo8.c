@@ -39,12 +39,12 @@ int fifo8_put(fifo8_t *fifo, unsigned char data) {
     return 0;
 }
 
-int fifo8_get(fifo8_t *fifo) {
+unsigned char fifo8_get(fifo8_t *fifo) {
     if (fifo->m_free == fifo->m_size) {
         return -1;
     }
 
-    int data = fifo->m_buf[fifo->m_q];
+    unsigned char data = fifo->m_buf[fifo->m_q];
     fifo->m_q++;
     if (fifo->m_q == fifo->m_size) {
         fifo->m_q = 0;

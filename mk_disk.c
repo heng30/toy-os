@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,13 +18,13 @@ static unsigned char BOOT_IMAGE[BOOT_SIZE] = {
 };
 
 static unsigned char *KERNEL_IMAGE = NULL;
-static int KERNEL_SIZE = 0;
+static unsigned int KERNEL_SIZE = 0;
 
 static void _load_boot(char *boot_file) {
     FILE *fp = fopen(boot_file, "rb");
     assert(fp);
 
-    int rb = fread(BOOT_IMAGE, 1, BOOT_SIZE - 2, fp);
+    size_t rb = fread(BOOT_IMAGE, 1, BOOT_SIZE - 2, fp);
     assert(rb > 0);
 
     // make sure the boot image is small than 510 bytes
@@ -35,13 +36,14 @@ static void _load_boot(char *boot_file) {
 
 static void _load_kernel(char *kernel_file) {
     long fsize = file_size(kernel_file);
-    assert(fsize > 0);
+    assert(fsize > 0 && fsize < UINT_MAX);
 
-    int sector_count = fsize / SECTOR_SIZE;
+    unsigned int sector_count = (unsigned int)fsize / SECTOR_SIZE;
     if (fsize % SECTOR_SIZE != 0)
         sector_count++;
 
-    debug("kernel image file size is %ld, sector count is %d", fsize, sector_count);
+    debug("kernel image file size is %ld, sector count is %d", fsize,
+          sector_count);
 
     KERNEL_SIZE = sector_count * SECTOR_SIZE;
     KERNEL_IMAGE = (unsigned char *)malloc(KERNEL_SIZE);
@@ -50,8 +52,8 @@ static void _load_kernel(char *kernel_file) {
     FILE *fp = fopen(kernel_file, "rb");
     assert(fp);
 
-    int rb = fread(KERNEL_IMAGE, 1, KERNEL_SIZE, fp);
-    assert(rb == fsize);
+    size_t rb = fread(KERNEL_IMAGE, 1, KERNEL_SIZE, fp);
+    assert(rb == (size_t)fsize);
 
     fclose(fp);
 }
@@ -64,18 +66,18 @@ static void _mk_disk(char *disk_file) {
     floppy_disk_write_sector(BOOT_IMAGE);
 
     // 写入kernel到一个柱面
-    int sector_count = KERNEL_SIZE / SECTOR_SIZE;
+    unsigned int sector_count = KERNEL_SIZE / SECTOR_SIZE;
 
     // 从第1个柱面第1个扇区开始写入
-    for (int i = 0; i < sector_count; i++) {
-        int cylinder_index = i / SECTOR_COUNT + 1;
-        int sector_index = i % SECTOR_COUNT;
+    for (unsigned int i = 0; i < sector_count; i++) {
+        unsigned int cylinder_index = i / SECTOR_COUNT + 1;
+        unsigned int sector_index = i % SECTOR_COUNT;
 
         floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, cylinder_index, sector_index);
         floppy_disk_write_sector(KERNEL_IMAGE + i * SECTOR_SIZE);
 
-        debug("write a sector in cylinder %d and sector %d", cylinder_index,
-              sector_index + 1);
+        // debug("write a sector in cylinder %d and sector %d", cylinder_index,
+        //       sector_index + 1);
     }
 
     floppy_disk_make(disk_file);

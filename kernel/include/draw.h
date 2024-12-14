@@ -44,11 +44,12 @@ void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
                int py0, char *buf, int bxsize);
 
 // 显示1个字符
-void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
-                char *font);
+void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x, unsigned int y, unsigned char c,
+                const char *font);
 
 // 显示一行字符串
-void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color,
+void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
+                 unsigned char bg_color, unsigned char text_color,
                  const char *s);
 
 // 显示调试信息
@@ -58,7 +59,7 @@ void show_debug_char(unsigned char data);
 void show_debug_int(unsigned int data);
 
 // 显示调试信息
-void show_debug_string(int x, int y, char color, const char *s);
+void show_debug_string(unsigned int x, unsigned int y, unsigned char color, const char *s);
 
 // 绘制J背景
 void init_background_sheet(void);
@@ -67,10 +68,11 @@ void init_background_sheet(void);
 void init_canvas_sheet(int z);
 
 // 清空图层所有数据，使图层透明
-void clear_sheet(unsigned char *vram, int size, unsigned char c);
+void clear_sheet(unsigned char *vram, unsigned int size, unsigned char c);
 
 // 绘制字符串到调试面板
-void show_string_in_canvas(int x, int y, char color, const char *s);
+void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
+                           const char *s);
 
 // 计算一个字符串占用的像素
-unsigned int string_in_pixels(const char* s);
+unsigned int string_in_pixels(const char *s);

@@ -16,9 +16,11 @@ DEFINE_FLAGS = #-D __DEBUG__ __USE_CALLBAK_MOVING_FUNCTION__
 DEBUG_FLAGS =
 RELEASE_FLAGS =
 
-C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O0  -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin
+C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous-unwind-tables -s -c -O0  -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin -Wconversion -Wextra -Wsign-compare -Wfloat-equal -Warray-bounds -fno-delete-null-pointer-checks
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
+NASM_FLAG = -w-zeroing
+REVERT_ASM_TOOL_FLAG = -v0
 
 EXCLUDE_SRC_DIR := grep -v build | grep -v backup
 
@@ -47,16 +49,16 @@ $(BUILD_DIR)/$(TARGET_OBJ): $(OBJ)
 
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
-	$(REVERT_ASM_TOOL) -fnasm $< $@
+	$(REVERT_ASM_TOOL) $(REVERT_ASM_TOOL_FLAG) -fnasm $< $@
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
-	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
+	@sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
 boot-img:
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
 
 kernel-img:
-	nasm -o $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
+	nasm $(NASM_FLAG) -o  $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
 
 build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm boot-img kernel-img
 

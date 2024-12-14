@@ -18,7 +18,7 @@ fifo8_t *fifo8_alloc(unsigned int queue_size);
 void fifo8_reset(fifo8_t *f);
 
 // 获取数据
-int fifo8_get(fifo8_t *fifo);
+unsigned char fifo8_get(fifo8_t *fifo);
 
 // 添加数据
 int fifo8_put(fifo8_t *fifo, unsigned char data);

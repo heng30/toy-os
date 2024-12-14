@@ -6,6 +6,9 @@ int max(int a, int b);
 
 int min(int a, int b);
 
+unsigned int max_unsigned(unsigned int a, unsigned int b);
+unsigned int min_unsigned(unsigned int a, unsigned int b);
+
 // 获取1个字符的16进制
 char char2hex(char c);
 
@@ -66,3 +69,9 @@ char to_uppercast(char ch);
 
 // 判断字符串大小， 1: str1 > str2; 0: str1 == str2; 1: str1 < str2
 int strcmp(const char *str1, const char *str2);
+
+// if n <= l, return l;
+// if n >= h, return h;
+// if l < n < h, return n;
+int bound(int n, int l, int h);
+unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h);

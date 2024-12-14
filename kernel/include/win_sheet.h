@@ -14,13 +14,13 @@
 
 // 窗口绘制层
 typedef struct {
-    const char *m_name;   // 图层名称
-    unsigned char *m_buf; // 绘制图像
-    int m_bxsize;         // 绘制图像宽度
-    int m_bysize;         // 绘制图像高度
-    int m_vx0;            // 绘制开始的x轴
-    int m_vy0;            // 绘制开始的y轴
-    int m_col_inv;        // 不需要绘制像素颜色
+    const char *m_name;      // 图层名称
+    unsigned char *m_buf;    // 绘制图像
+    unsigned int m_bxsize;   // 绘制图像宽度
+    unsigned int m_bysize;   // 绘制图像高度
+    unsigned int m_vx0;      // 绘制开始的x轴
+    unsigned int m_vy0;      // 绘制开始的y轴
+    unsigned char m_col_inv; // 不需要绘制像素颜色
 
     int m_index;                 // 图层在图层数组中的下标
     int m_z;                     // 图层Z轴高度
@@ -41,20 +41,21 @@ void win_sheet_free(win_sheet_t *sheet);
 
 // 设置一个图层信息
 void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
-                      int bxsize, int bysize, int col_inv);
+                      unsigned int bxsize, unsigned int bysize,
+                      unsigned char col_inv);
 
 // 刷新图层指定区域
-void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1);
+void win_sheet_refreshsub(unsigned int vx0, unsigned int vy0, unsigned int vx1, unsigned int vy1, int h0, int h1);
 
 // 刷新图层, 非透明图层不会刷新map
-void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1);
+void win_sheet_refresh(win_sheet_t *sht, unsigned int bx0, unsigned int by0, unsigned int bx1, unsigned int by1);
 
 // 强制刷新图层和map表
-void win_sheet_refresh_force(win_sheet_t *sht, int bx0, int by0, int bx1,
-                             int by1);
+void win_sheet_refresh_force(win_sheet_t *sht, unsigned int bx0, unsigned int by0, unsigned int bx1,
+                             unsigned int by1);
 
 // 移动图层
-void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0);
+void win_sheet_slide(win_sheet_t *sht, unsigned int vx0, unsigned int vy0);
 
 // 判断一个图层是否合法
 bool win_sheet_is_valid_z(int z);

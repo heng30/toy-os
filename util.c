@@ -1,10 +1,10 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <stdio.h>
 
-#include "util.h"
 #include "logger.h"
+#include "util.h"
 
 int max(int a, int b) { return a > b ? a : b; }
 
@@ -12,7 +12,7 @@ int min(int a, int b) { return a > b ? b : a; }
 
 int rand_num(int l, int h, unsigned int seed) {
     assert(l <= h);
-    srand(time(NULL) * seed);
+    srand((unsigned int)time(NULL) * seed);
     return l + (rand() % (h - l + 1));
 }
 
@@ -23,7 +23,8 @@ int bound(int n, int l, int h) {
 
 long file_size(const char *filename) {
     FILE *fp = fopen(filename, "r");
-    if (fp == NULL) return -1;
+    if (fp == NULL)
+        return -1;
 
     if (fseek(fp, 0, SEEK_END) != 0) {
         fclose(fp);
@@ -46,7 +47,7 @@ void util_test(void) {
     assert(bound(-1, 1, 3) == 1);
     assert(bound(4, 1, 3) == 3);
 
-    for (int i = 0; i < 100; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
         int n = rand_num(1, 10, i);
         assert(n >= 1 && n <= 10);
 

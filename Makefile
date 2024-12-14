@@ -13,7 +13,7 @@ DEFINE_FLAGS = -D __TEST__
 # DEBUG_FLAGS = -g
 RELEASE_FLAGS = -O3
 
-C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst))
+C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -Wconversion -Wextra -Wsign-compare -Wfloat-equal -Warray-bounds -fno-delete-null-pointer-checks
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 

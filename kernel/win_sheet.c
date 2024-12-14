@@ -45,15 +45,8 @@ void init_win_sheet_ctl(void) {
 }
 
 // 更新各个图层像素管理映射表，表中保存每个像素归那个图层管理，图层更新时只更新自己管理的像素
-static void _win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
-    if (vx0 < 0) {
-        vx0 = 0;
-    }
-
-    if (vy0 < 0) {
-        vy0 = 0;
-    }
-
+static void _win_sheet_refreshmap(unsigned int vx0, unsigned int vy0,
+                                  unsigned int vx1, unsigned int vy1, int h0) {
     if (vx1 > g_boot_info.m_screen_x) {
         vx1 = g_boot_info.m_screen_x;
     }
@@ -64,37 +57,35 @@ static void _win_sheet_refreshmap(int vx0, int vy0, int vx1, int vy1, int h0) {
 
     for (int h = h0; h <= g_sheet_ctl->m_top; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
-        unsigned char sid = sht - g_sheet_ctl->m_sheets0;
+        unsigned char sid = (unsigned char)(sht - g_sheet_ctl->m_sheets0);
 
         // 计算局部坐标系，相对于绘制的窗口的偏移
-        int bx0 = vx0 - sht->m_vx0, by0 = vy0 - sht->m_vy0;
-        int bx1 = vx1 - sht->m_vx0, by1 = vy1 - sht->m_vy0;
+        unsigned int bx0 =
+            (unsigned int)bound((int)vx0 - (int)sht->m_vx0, 0, 0);
+        unsigned int by0 =
+            (unsigned int)bound((int)vy0 - (int)sht->m_vy0, 0, 0);
+        unsigned int bx1 = (unsigned int)bound((int)vx1 - (int)sht->m_vx0, 0,
+                                               (int)sht->m_bxsize);
+        unsigned int by1 = (unsigned int)bound((int)vy1 - (int)sht->m_vy0, 0,
+                                               (int)sht->m_bysize);
 
-        if (bx0 < 0) {
-            bx0 = 0;
-        }
+        for (unsigned int by = by0; by < by1; by++) {
+            unsigned int vy = sht->m_vy0 + by; // 转换为全局坐标系
 
-        if (by0 < 0) {
-            by0 = 0;
-        }
-
-        if (bx1 > sht->m_bxsize) {
-            bx1 = sht->m_bxsize;
-        }
-
-        if (by1 > sht->m_bysize) {
-            by1 = sht->m_bysize;
-        }
-
-        for (int by = by0; by < by1; by++) {
-            int vy = sht->m_vy0 + by; // 转换为全局坐标系
-
-            for (int bx = bx0; bx < bx1; bx++) {
-                int vx = sht->m_vx0 + bx; // 转换为全局坐标系
+            for (unsigned int bx = bx0; bx < bx1; bx++) {
+                unsigned int vx = sht->m_vx0 + bx; // 转换为全局坐标系
+                                                   //
+                unsigned int max_pos = sht->m_bxsize * sht->m_bysize;
+                unsigned int pos = by * sht->m_bxsize + bx;
 
                 // 不是不可见像素，则归我管
-                if (sht->m_buf[by * sht->m_bxsize + bx] != sht->m_col_inv) {
-                    g_sheet_ctl->m_map[vy * g_boot_info.m_screen_x + vx] = sid;
+                if (pos < max_pos && sht->m_buf[pos] != sht->m_col_inv) {
+                    unsigned int max_pos_screen =
+                        g_boot_info.m_screen_x * g_boot_info.m_screen_y;
+                    unsigned int pos = vy * g_boot_info.m_screen_x + vx;
+                    if (pos < max_pos_screen) {
+                        g_sheet_ctl->m_map[pos] = sid;
+                    }
                 }
             }
         }
@@ -130,7 +121,8 @@ win_sheet_t *win_sheet_alloc(void) {
 }
 
 void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
-                      int bxsize, int bysize, int col_inv) {
+                      unsigned int bxsize, unsigned int bysize,
+                      unsigned char col_inv) {
     sht->m_name = name;
     sht->m_buf = buf;
     sht->m_bxsize = bxsize;
@@ -138,16 +130,18 @@ void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
     sht->m_col_inv = col_inv;
 }
 
-static unsigned char _color_under_transparent_layer(int index, int vx, int vy) {
+static unsigned char _color_under_transparent_layer(int index, unsigned int vx,
+                                                    unsigned int vy) {
     for (; index >= 0; index--) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[index];
-        int x0 = sht->m_vx0, y0 = sht->m_vy0;
-        int x1 = sht->m_vx0 + sht->m_bxsize, y1 = sht->m_vy0 + sht->m_bysize;
+        unsigned int x0 = sht->m_vx0, y0 = sht->m_vy0;
+        unsigned int x1 = sht->m_vx0 + sht->m_bxsize,
+                     y1 = sht->m_vy0 + sht->m_bysize;
 
         // 像素点落在图层内
         if (x0 <= vx && vx < x1 && y0 <= vy && vy < y1) {
-            int dx = vx - x0, dy = vy - y0;
-            int pos = sht->m_bxsize * dy + dx;
+            unsigned int dx = vx - x0, dy = vy - y0;
+            unsigned int pos = sht->m_bxsize * dy + dx;
             unsigned char c = sht->m_buf[pos];
 
             if (c != COLOR_INVISIBLE)
@@ -158,9 +152,10 @@ static unsigned char _color_under_transparent_layer(int index, int vx, int vy) {
     return COLOR_INVISIBLE;
 }
 
-void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
-    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
-    int max_pos = xsize * ysize;
+void win_sheet_refreshsub(unsigned int vx0, unsigned int vy0, unsigned int vx1,
+                          unsigned int vy1, int h0, int h1) {
+    unsigned int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+    unsigned int max_pos = xsize * ysize;
 
     if (h0 < 0)
         h0 = 0;
@@ -168,25 +163,24 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
     for (int h = h0; h <= h1; h++) {
         win_sheet_t *sht = g_sheet_ctl->m_sheets[h];
         unsigned char *buf = sht->m_buf;
-        unsigned char sid = sht - g_sheet_ctl->m_sheets0;
+        unsigned char sid = (unsigned char)(sht - g_sheet_ctl->m_sheets0);
 
-        for (int by = 0; by < sht->m_bysize; by++) {
-            int vy = sht->m_vy0 + by;
+        for (unsigned int by = 0; by < sht->m_bysize; by++) {
+            unsigned int vy = sht->m_vy0 + by;
 
             // 绘制1行图像
-            for (int bx = 0; bx < sht->m_bxsize; bx++) {
-                int vx = sht->m_vx0 + bx;
+            for (unsigned int bx = 0; bx < sht->m_bxsize; bx++) {
+                unsigned int vx = sht->m_vx0 + bx;
 
                 // 跳过不在指定绘制区域内的像素
                 if (vx0 <= vx && vx < vx1 && vy0 <= vy && vy < vy1) {
                     unsigned char c = buf[by * sht->m_bxsize + bx];
-                    int pos = vy * xsize + vx;
+                    unsigned int pos = vy * xsize + vx;
 
                     // 如果是透明图层强制绘制像素
                     if (sht->m_is_transparent_layer) {
                         // 这个像素的管理图层高度没当前图层高，侧需要进行处理
-                        if (g_sheet_ctl->m_map[pos] == sid && pos >= 0 &&
-                            pos < max_pos) {
+                        if (g_sheet_ctl->m_map[pos] == sid && pos < max_pos) {
                             //  获取下层可见像素
                             if (c == sht->m_col_inv) {
                                 c = _color_under_transparent_layer(
@@ -203,7 +197,7 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
                         // 判断是否是不可见像素
                         if (c != sht->m_col_inv) {
                             // 判断像素是否归自己管
-                            if (g_sheet_ctl->m_map[pos] == sid && pos >= 0 &&
+                            if (g_sheet_ctl->m_map[pos] == sid &&
                                 pos < max_pos) {
                                 g_boot_info.m_vga_ram[pos] = c;
                             }
@@ -216,7 +210,8 @@ void win_sheet_refreshsub(int vx0, int vy0, int vx1, int vy1, int h0, int h1) {
 }
 
 // 刷新当前图层，不会刷新其他图层; 不会刷新map
-void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
+void win_sheet_refresh(win_sheet_t *sht, unsigned int bx0, unsigned int by0,
+                       unsigned int bx1, unsigned int by1) {
     if (sht->m_index >= 0) {
         if (sht->m_is_transparent_layer) {
             _win_sheet_refreshmap(sht->m_vx0 + bx0, sht->m_vy0 + by0,
@@ -231,8 +226,9 @@ void win_sheet_refresh(win_sheet_t *sht, int bx0, int by0, int bx1, int by1) {
 }
 
 // 强制刷新图层和map表
-void win_sheet_refresh_force(win_sheet_t *sht, int bx0, int by0, int bx1,
-                             int by1) {
+void win_sheet_refresh_force(win_sheet_t *sht, unsigned int bx0,
+                             unsigned int by0, unsigned int bx1,
+                             unsigned int by1) {
     _win_sheet_refreshmap(sht->m_vx0 + bx0, sht->m_vy0 + by0, sht->m_vx0 + bx1,
                           sht->m_vy0 + by1, sht->m_index);
 
@@ -240,10 +236,13 @@ void win_sheet_refresh_force(win_sheet_t *sht, int bx0, int by0, int bx1,
                          sht->m_vy0 + by1, sht->m_index, sht->m_index);
 }
 
-void win_sheet_slide(win_sheet_t *sht, int vx0, int vy0) {
-    int old_vx0 = sht->m_vx0, old_vy0 = sht->m_vy0;
-    sht->m_vx0 = vx0;
-    sht->m_vy0 = vy0;
+void win_sheet_slide(win_sheet_t *sht, unsigned int vx0, unsigned int vy0) {
+    unsigned int old_vx0 =
+        bound_unsigned(sht->m_vx0, 0, g_boot_info.m_screen_x);
+    unsigned int old_vy0 =
+        bound_unsigned(sht->m_vy0, 0, g_boot_info.m_screen_y);
+    sht->m_vx0 = bound_unsigned(vx0, 0, g_boot_info.m_screen_x);
+    sht->m_vy0 = bound_unsigned(vy0, 0, g_boot_info.m_screen_y);
 
     if (sht->m_index >= 0) {
         _win_sheet_refreshmap(old_vx0, old_vy0, old_vx0 + sht->m_bxsize,
@@ -427,6 +426,6 @@ bool win_sheet_is_moving(win_sheet_t *p) {
     return g_sheet_ctl->m_moving_sheet == p;
 }
 
-win_sheet_t* win_sheet_get_moving_sheet(void) {
+win_sheet_t *win_sheet_get_moving_sheet(void) {
     return g_sheet_ctl->m_moving_sheet;
 }

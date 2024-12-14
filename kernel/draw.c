@@ -71,10 +71,10 @@ void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
         }
 }
 
-void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
-                char *font) {
-    for (int i = 0; i < FONT_HEIGHT; i++) {
-        char d = font[i];
+void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x, unsigned int y, unsigned char c,
+                const char *font) {
+    for (unsigned int i = 0; i < FONT_HEIGHT; i++) {
+        unsigned char d = font[i];
         if ((d & 0x80) != 0) {
             vram[(y + i) * xsize + x + 0] = c;
         }
@@ -102,7 +102,8 @@ void show_font8(unsigned char *vram, int xsize, int x, int y, char c,
     }
 }
 
-void show_string(win_sheet_t *sht, int x, int y, char bg_color, char text_color,
+void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
+                 unsigned char bg_color, unsigned char text_color,
                  const char *s) {
     int begin = x;
 
@@ -173,9 +174,9 @@ void show_debug_int(unsigned int data) {
     }
 }
 
-void show_debug_string(int x, int y, char color, const char *s) {
+void show_debug_string(unsigned int x, unsigned int y, unsigned char color, const char *s) {
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
+    unsigned int xsize = g_boot_info.m_screen_x;
 
     for (; *s != 0x00; s++) {
         show_font8(vram, xsize, x, y, color, system_font + *s * 16);
@@ -183,7 +184,7 @@ void show_debug_string(int x, int y, char color, const char *s) {
     }
 }
 
-static void _set_background_vram(unsigned char *vram, int xsize, int ysize) {
+static void _set_background_vram(unsigned char *vram, unsigned int xsize, unsigned int ysize) {
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     boxfill8(vram, xsize, COL8_C6C6C6, 0, ysize - 28, xsize - 1, ysize - 28);
     boxfill8(vram, xsize, COL8_FFFFFF, 0, ysize - 27, xsize - 1, ysize - 27);
@@ -207,7 +208,7 @@ static void _set_background_vram(unsigned char *vram, int xsize, int ysize) {
 }
 
 void init_background_sheet(void) {
-    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+    unsigned int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
 
     g_background_sht = win_sheet_alloc();
     assert(g_background_sht != NULL, "init_background_sht alloc sheet error");
@@ -216,19 +217,20 @@ void init_background_sheet(void) {
     assert(buf != NULL, "init_background_sht alloc 4k error");
 
     _set_background_vram(buf, xsize, ysize);
-    win_sheet_setbuf(g_background_sht, "background", buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_setbuf(g_background_sht, "background", buf, xsize, ysize,
+                     COLOR_INVISIBLE);
     win_sheet_slide(g_background_sht, 0, 0);
     win_sheet_show(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }
 
-void clear_sheet(unsigned char *vram, int size, unsigned char c) {
-    for (int i = 0; i < size; i++) {
+void clear_sheet(unsigned char *vram, unsigned int size, unsigned char c) {
+    for (unsigned int i = 0; i < size; i++) {
         vram[i] = c;
     }
 }
 
 void init_canvas_sheet(int z) {
-    int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
+    unsigned int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
     unsigned char *buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
     assert(buf != NULL, "show_string_in_canvas memory alloc error");
 
@@ -238,18 +240,18 @@ void init_canvas_sheet(int z) {
     assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
 
     g_canvas_sht->m_is_transparent_layer = true;
-    win_sheet_setbuf(g_canvas_sht,"canvas", buf, xsize, ysize, COLOR_INVISIBLE);
+    win_sheet_setbuf(g_canvas_sht, "canvas", buf, xsize, ysize,
+                     COLOR_INVISIBLE);
     win_sheet_slide(g_canvas_sht, 0, 0);
     win_sheet_show(g_canvas_sht, z);
 }
 
-void show_string_in_canvas(int x, int y, char color, const char *s) {
+void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
+                           const char *s) {
     if (!g_canvas_sht)
         return;
 
     show_string(g_canvas_sht, x, y, COLOR_INVISIBLE, color, s);
 }
 
-unsigned int string_in_pixels(const char* s) {
-    return strlen(s) * FONT_WIDTH;
-}
+unsigned int string_in_pixels(const char *s) { return strlen(s) * FONT_WIDTH; }

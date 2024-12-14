@@ -31,7 +31,7 @@ static struct {
     .m_level = LOGGER_LV_DEBUG,
 };
 
-const static char *_level_flag_get(logger_level_t level,
+static const char *_level_flag_get(logger_level_t level,
                                    const char **color_code,
                                    const char **bg_color_code) {
     switch (level) {
@@ -75,12 +75,12 @@ void time_str(char *buf, unsigned int size) {
 
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    int ms = tv.tv_usec / 1000;
+    long int ms = tv.tv_usec / 1000;
 
     char tmp[64] = {0};
     strftime(tmp, size, "%Y-%m-%dT%H:%M:%S", &ltm);
 
-    snprintf(buf, size, "%s.%d", tmp, ms);
+    snprintf(buf, size, "%s.%ld", tmp, ms);
 }
 
 void logger_do(unsigned char level, const char *file, const char *func,

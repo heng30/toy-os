@@ -117,7 +117,7 @@ void floppy_disk_make(const char *disk_file) {
     FILE *fp = fopen(disk_file, "wb");
     assert(fp);
 
-    int wb = fwrite(disk, 1, DISK_SIZE * FLOPPY_DISK_COUNT, fp);
+    size_t wb = fwrite(disk, 1, DISK_SIZE * FLOPPY_DISK_COUNT, fp);
     assert(wb == DISK_SIZE * FLOPPY_DISK_COUNT);
 
     fclose(fp);
@@ -156,11 +156,12 @@ void floppy_disk_test(void) {
     unsigned char dst[SECTOR_SIZE] = {0};
     floppy_disk_init();
 
-    for (int i = 0; i < 1000; i++) {
+    for (unsigned int i = 0; i < 1000; i++) {
         unsigned int disk = 0;
         floppy_disk_magnetic_head_t head = i % 2;
-        unsigned int cylinder = rand_num(0, CYLINDER_COUNT - 1, i);
-        unsigned int sector = rand_num(0, SECTOR_COUNT - 1, i);
+        unsigned int cylinder =
+            (unsigned int)rand_num(0, CYLINDER_COUNT - 1, i);
+        unsigned int sector = (unsigned int)rand_num(0, SECTOR_COUNT - 1, i);
 
         assert(floppy_disk_set_pos(head, disk, cylinder, sector) ==
                FLOPPY_DISK_ERROR_NONE);
