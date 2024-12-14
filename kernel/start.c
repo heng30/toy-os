@@ -1,6 +1,7 @@
 #include "colo8.h"
 #include "def.h"
 #include "draw.h"
+#include "input_cursor.h"
 #include "io.h"
 #include "keyboard.h"
 #include "kutil.h"
@@ -8,20 +9,21 @@
 #include "mouse.h"
 #include "timer.h"
 #include "win_sheet.h"
-#include "input_cursor.h"
 
 #include "widgets/input_box.h"
 
 void mouse_callback(void) {
-    unsigned char data = fifo8_get(&g_mouseinfo);
+    unsigned char code = fifo8_get(&g_mouseinfo);
 
     io_sti();
 
-    if (mouse_decode(data) == 1) {
+    if (mouse_decode(code) == 1) {
         draw_mouse();
 
-        // TODO: 捕获鼠标左键按下
-        moving_sheet();
+        if (is_mouse_left_btn_pressed()) {
+            // TODO: 捕获鼠标左键按下
+            moving_sheet();
+        }
     }
 }
 

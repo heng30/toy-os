@@ -57,3 +57,12 @@ void draw_mouse(void);
 
 // 保证鼠标在最高图层
 void keep_mouse_sheet_on_top(void);
+
+// 鼠标左键压下
+bool is_mouse_left_btn_pressed(void);
+
+// 鼠标右键压下
+bool is_mouse_right_btn_pressed(void);
+
+// 鼠标中键压下
+bool is_mouse_middle_btn_pressed(void);

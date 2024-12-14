@@ -12,8 +12,6 @@
 typedef struct {
     unsigned char
         m_input_cursor[INPUT_CURSOR_HEIGHT * INPUT_CURSOR_WIDTH]; // 输入光标
-    unsigned int m_input_cursor_abs_x;  // 输入光标x轴
-    unsigned int m_input_cursor_abs_y;  // 输入光标y轴
     unsigned char m_input_cursor_color; // 输入光标颜色
 } input_cursor_t;
 

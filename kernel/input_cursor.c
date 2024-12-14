@@ -7,8 +7,6 @@ win_sheet_t *g_input_cursor_sht = NULL;
 timer_t *g_input_cursor_timer = NULL;
 
 input_cursor_t g_input_cursor = {
-    .m_input_cursor_abs_x = 0,
-    .m_input_cursor_abs_y = 0,
     .m_input_cursor_color = COLOR_WHITE,
 };
 
@@ -32,8 +30,7 @@ static void _init_input_cursor_sheet(void) {
                      g_input_cursor.m_input_cursor, INPUT_CURSOR_WIDTH,
                      INPUT_CURSOR_HEIGHT, COLOR_INVISIBLE);
 
-    win_sheet_slide(g_input_cursor_sht, g_input_cursor.m_input_cursor_abs_x,
-                    g_input_cursor.m_input_cursor_abs_y);
+    win_sheet_slide(g_input_cursor_sht, 0, 0);
 }
 
 void init_input_cursor(void) {
@@ -48,8 +45,6 @@ void input_cursor_hide(void) {
 }
 
 void input_cursor_move(int vx, int vy) {
-    g_input_cursor.m_input_cursor_abs_x = vx,
-    g_input_cursor.m_input_cursor_abs_y = vy;
     win_sheet_slide(g_input_cursor_sht, vx, vy);
 }
 

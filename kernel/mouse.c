@@ -153,3 +153,15 @@ void int_handler_for_mouse(char *esp) {
     unsigned char data = io_in8(PORT_KEYDAT);
     fifo8_put(&g_mouseinfo, data);
 }
+
+bool is_mouse_left_btn_pressed(void) {
+    return (g_mdec.m_btn & 0x01) != 0;
+}
+
+bool is_mouse_right_btn_pressed(void) {
+    return (g_mdec.m_btn & 0x2) != 0;
+}
+
+bool is_mouse_middle_btn_pressed(void) {
+    return (g_mdec.m_btn & 0x4) != 0;
+}
