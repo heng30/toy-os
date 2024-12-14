@@ -63,3 +63,6 @@ char to_lowercast(char ch);
 
 // 转为大写字符
 char to_uppercast(char ch);
+
+// 判断字符串大小， 1: str1 > str2; 0: str1 == str2; 1: str1 < str2
+int strcmp(const char *str1, const char *str2);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "def.h"
+#include "sheet_userdata.h"
 
 #define HIDE_WIN_SHEET_Z -1
 #define BOTTOM_WIN_SHEET_Z 0
@@ -25,6 +26,8 @@ typedef struct {
     int m_z;                     // 图层Z轴高度
     bool m_is_transparent_layer; // 是否为透明图层
     int m_flags;                 // 0: 可用, 1: 占用
+
+    sheet_userdata_t m_userdata; // 用户数据
 } win_sheet_t;
 
 // 初始化窗口图层管理器
@@ -76,3 +79,12 @@ void win_sheet_set_focus(win_sheet_t *p);
 
 // 判断图层是否是焦点图层
 bool win_sheet_is_focus(win_sheet_t *p);
+
+// 设置图层是否移动
+void win_sheet_set_moving(win_sheet_t *p);
+
+// 判断图层释放可移动
+bool win_sheet_is_moving(win_sheet_t *p);
+
+// 已经设置了可移动图层
+win_sheet_t *win_sheet_get_moving_sheet(void);

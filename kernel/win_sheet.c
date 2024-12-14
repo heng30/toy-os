@@ -18,8 +18,9 @@ typedef struct {
     // 在刷新图层时，只刷新自己管理的像素
     unsigned char *m_map;
 
-    int m_top;           // 图层数量, 总是指向最高图层的下标
-    void *m_focus_sheet; // 当前获取焦点图层
+    int m_top; // 图层数量, 总是指向最高图层的下标
+    win_sheet_t *m_focus_sheet;  // 当前获取焦点图层
+    win_sheet_t *m_moving_sheet; // 需要移动的图层
     win_sheet_t *m_sheets[MAX_SHEETS];
     win_sheet_t m_sheets0[MAX_SHEETS];
 } win_sheet_ctl_t;
@@ -35,6 +36,7 @@ void init_win_sheet_ctl(void) {
     assert(g_sheet_ctl->m_map != NULL, "init_win_sheet_ctl alloc map error");
 
     g_sheet_ctl->m_focus_sheet = NULL;
+    g_sheet_ctl->m_moving_sheet = NULL;
     g_sheet_ctl->m_top = -1;
 
     for (int i = 0; i < MAX_SHEETS; i++) {
@@ -114,6 +116,12 @@ win_sheet_t *win_sheet_alloc(void) {
             sht->m_index = -1;
             sht->m_z = HIDE_WIN_SHEET_Z;
             sht->m_is_transparent_layer = false;
+
+            sheet_userdata_t userdata = {
+                .m_type = SHEET_USERDATA_TYPE_NONE,
+                .m_data = NULL,
+            };
+            sht->m_userdata = userdata;
             return sht;
         }
     }
@@ -378,6 +386,9 @@ void win_sheet_free(win_sheet_t *sheet) {
 
     if (g_sheet_ctl->m_focus_sheet == sheet)
         win_sheet_set_focus(NULL);
+
+    if (g_sheet_ctl->m_moving_sheet == sheet)
+        win_sheet_set_moving(NULL);
 }
 
 bool win_sheet_is_valid_z(int z) { return z <= TOP_WIN_SHEET_Z; }
@@ -399,10 +410,23 @@ void win_sheet_hide(win_sheet_t *p) {
 
     if (g_sheet_ctl->m_focus_sheet == p)
         win_sheet_set_focus(NULL);
+
+    if (g_sheet_ctl->m_moving_sheet == p)
+        win_sheet_set_moving(NULL);
 }
 
 void win_sheet_set_focus(win_sheet_t *p) { g_sheet_ctl->m_focus_sheet = p; }
 
 bool win_sheet_is_focus(win_sheet_t *p) {
     return g_sheet_ctl->m_focus_sheet == p;
+}
+
+void win_sheet_set_moving(win_sheet_t *p) { g_sheet_ctl->m_moving_sheet = p; }
+
+bool win_sheet_is_moving(win_sheet_t *p) {
+    return g_sheet_ctl->m_moving_sheet == p;
+}
+
+win_sheet_t* win_sheet_get_moving_sheet(void) {
+    return g_sheet_ctl->m_moving_sheet;
 }

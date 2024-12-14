@@ -174,3 +174,24 @@ char to_uppercast(char ch) {
 
     return ch;
 }
+
+int strcmp(const char *str1, const char *str2) {
+    if (!str1 && !str2)
+        return 0;
+    else if (!str1)
+        return -1;
+    else if (!str2)
+        return 1;
+
+    while (*str1 && *str2 && *str1 == *str2) {
+        str1++;
+        str2++;
+    }
+
+    if (*str1 == *str2)
+        return 0;
+    else if (!*str1)
+        return -1;
+    else
+        return 1;
+}

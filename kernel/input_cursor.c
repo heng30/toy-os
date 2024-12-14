@@ -36,7 +36,7 @@ static void _init_input_cursor_sheet(void) {
                     g_input_cursor.m_input_cursor_abs_y);
 }
 
-void init_input_cursor() {
+void init_input_cursor(void) {
     _init_input_cursor_sheet();
     _init_input_cursor_timer();
 }

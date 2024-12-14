@@ -19,6 +19,9 @@ void mouse_callback(void) {
 
     if (mouse_decode(data) == 1) {
         draw_mouse();
+
+        // TODO: 捕获鼠标左键按下
+        moving_sheet();
     }
 }
 
@@ -55,10 +58,10 @@ void timer_callback() {
 
     switch (data) {
     case 1:
-        show_string_in_canvas(8, 0, COL8_FFFFFF, "3 Seconds");
+        // show_string_in_canvas(8, 0, COL8_FFFFFF, "3 Seconds");
         break;
     case 2:
-        show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
+        // show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
         break;
     case INPUT_CURSOR_TIMER_DATA:
         input_cursor_blink();
@@ -87,6 +90,7 @@ void start_kernel(void) {
 
     input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
+    win_sheet_set_moving(input_box->m_sheet);
 
     input_box_draw_text(input_box, "hello");
 

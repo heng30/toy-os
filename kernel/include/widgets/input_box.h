@@ -34,3 +34,6 @@ void input_box_push(input_box_t *box, char c);
 
 // 移除一个字符
 void input_box_pop(input_box_t *box);
+
+// 移动窗口回调函数
+void input_box_moving(void *p);
