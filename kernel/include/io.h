@@ -45,3 +45,19 @@ void* get_boot_info(void);
 
 // 获取字体数据 c << 4 + offset
 char get_font_data(int c, int offset);
+
+// 获取段描述符表
+unsigned int get_addr_gdt(void);
+
+// 获取代码段地址
+unsigned int get_code32_addr(void);
+
+// 告诉cpu第n (value = n << 3)个段描述符中存储一个TSS32对象,
+// 当有进程切换时会见当前的TSS32对象存到第n个段描述符中
+void load_tr(unsigned int value);
+
+// 任务切换
+void taskswitch6(void);
+void taskswitch7(void);
+void taskswitch8(void);
+void taskswitch9(void);

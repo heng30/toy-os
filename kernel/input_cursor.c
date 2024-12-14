@@ -65,5 +65,6 @@ void input_cursor_blink(void) {
     win_sheet_refresh(g_input_cursor_sht, 0, 0, INPUT_CURSOR_WIDTH,
                       INPUT_CURSOR_HEIGHT);
 
-    set_timer(g_input_cursor_timer, 50, INPUT_CURSOR_TIMER_DATA);
+    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+              INPUT_CURSOR_TIMER_DATA);
 }

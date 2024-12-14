@@ -96,3 +96,31 @@ get_font_data:
     xor eax, eax
     mov al, byte [es:edi]
     ret
+
+get_addr_gdt:
+    mov  eax, LABEL_GDT
+    ret
+
+get_code32_addr:
+    mov  eax, LABEL_SEG_CODE32
+    ret
+
+load_tr:
+    ltr  [esp + 4]
+    ret
+
+taskswitch6:
+    jmp  6*8:0
+    ret
+
+taskswitch7:
+    jmp  7*8:0
+    ret
+
+taskswitch8:
+    jmp  8*8:0
+    ret
+
+taskswitch9:
+    jmp 9*8:0
+    ret

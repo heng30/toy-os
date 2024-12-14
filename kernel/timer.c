@@ -58,6 +58,7 @@ timer_t *timer_alloc(void) {
         }
     }
 
+    assert(false, "timer_alloc failed");
     return NULL;
 }
 

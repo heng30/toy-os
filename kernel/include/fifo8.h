@@ -2,7 +2,8 @@
 
 #include "fifo8.h"
 
-#define FLAGS_OVERRUN 0x0001
+#define FIFO8_FLAGS_OVERFLOW 0x0001
+#define FIFO8_EMPTY_STATUS 0    // 没有数据
 
 // 保存键盘和鼠标数据
 typedef struct {

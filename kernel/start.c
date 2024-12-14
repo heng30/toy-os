@@ -7,6 +7,7 @@
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
+#include "multi_task.h"
 #include "timer.h"
 #include "win_sheet.h"
 
@@ -34,7 +35,8 @@ void keyboard_callback(input_box_t *input_box) {
 
     set_modkey_status(code);
 
-    show_string_in_canvas(8, FONT_HEIGHT * 8, COL8_FFFFFF, char2hexstr(code));
+    show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10, 0,
+                          COL8_FFFFFF, char2hexstr(code));
 
     // 回车键
     if (is_enter_down(code)) {
@@ -46,7 +48,8 @@ void keyboard_callback(input_box_t *input_box) {
         if (ch != 0) {
             char *buf = memman_alloc(2);
             buf[0] = keydown_code2char_table[code], buf[1] = 0;
-            show_string_in_canvas(8, FONT_HEIGHT * 9, COL8_FFFFFF, buf);
+            show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10,
+                                  FONT_HEIGHT, COL8_FFFFFF, buf);
             memman_free(buf, 2);
 
             input_box_push(input_box, ch);
@@ -64,6 +67,15 @@ void timer_callback() {
         break;
     case 2:
         // show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
+        break;
+    case MULTI_TASK_TEST_B_MAIN_TIMER_DATA:
+        show_string_in_canvas(0, 144, COL8_FFFFFF, "switch to task b");
+        multi_task_test_switch_to_task_b();
+        show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main");
+
+        // 重新启动光标定时器
+        set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+                  INPUT_CURSOR_TIMER_DATA);
         break;
     case INPUT_CURSOR_TIMER_DATA:
         input_cursor_blink();
@@ -90,7 +102,7 @@ void start_kernel(void) {
     init_input_cursor();
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
-    input_box_t *input_box = input_box_new(80, 150, 168, 68, "Input-Box");
+    input_box_t *input_box = input_box_new(200, 150, 168, 68, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
     win_sheet_set_moving(input_box->m_sheet);
 
@@ -98,18 +110,22 @@ void start_kernel(void) {
 
     timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc();
 
-    set_timer(timer1, 300, 1), set_timer(timer2, 500, 2);
+    set_timer(timer1, TIMER_ONE_SECOND_TIME_SLICE * 3,
+              MULTI_TASK_TEST_B_MAIN_TIMER_DATA);
+    set_timer(timer2, TIMER_ONE_SECOND_TIME_SLICE * 3, 2);
 
     io_sti(); // 开中断
     enable_mouse();
+
+    multi_task_test();
 
     for (;;) {
         io_cli();
         if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) +
                 fifo8_status(&g_timerctl.m_fifo) ==
-            0) {
+            FIFO8_EMPTY_STATUS) {
             io_sti(); // 开中断，保证循环不会被挂起
-        } else if (fifo8_status(&g_keyinfo) != 0) {
+        } else if (fifo8_status(&g_keyinfo) != FIFO8_EMPTY_STATUS) {
             keyboard_callback(input_box);
 
             // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
@@ -117,9 +133,9 @@ void start_kernel(void) {
             // } else {
             //     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 2);
             // }
-        } else if (fifo8_status(&g_mouseinfo) != 0) {
+        } else if (fifo8_status(&g_mouseinfo) != FIFO8_EMPTY_STATUS) {
             mouse_callback();
-        } else if (fifo8_status(&g_timerctl.m_fifo) != 0) {
+        } else if (fifo8_status(&g_timerctl.m_fifo) != FIFO8_EMPTY_STATUS) {
             timer_callback();
         }
     }

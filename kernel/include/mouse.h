@@ -1,5 +1,6 @@
 #pragma once
 
+#include "def.h"
 #include "draw.h"
 #include "fifo8.h"
 #include "keyboard_mouse.h"

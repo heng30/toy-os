@@ -2,9 +2,6 @@
 
 org   0x8000
 
-; VRAM_ADDRESS  equ  0x000a0000 ; 320x200
-VRAM_ADDRESS    equ  0xe0000000
-
 jmp   LABEL_BEGIN
 
 [SECTION .gdt]
@@ -13,12 +10,18 @@ LABEL_GDT:          Descriptor        0,            0,                      0
 LABEL_DESC_CODE32:  Descriptor        0,            0fffffh,                DA_C | DA_32 | DA_LIMIT_4K
 LABEL_DESC_VIDEO:   Descriptor        0B8000h,      0fffffh,                DA_DRW
 LABEL_DESC_VRAM:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
-LABEL_DESC_STACK:   Descriptor        0,            TOP_OF_STACK,           DA_DRWA | DA_32
+LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_DRWA | DA_32
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
+; 进程切换相关
+LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
+LABEL_DESC_7:       Descriptor        0,            0,                      0
+LABEL_DESC_8:       Descriptor        0,            0,                      0
+LABEL_DESC_9:       Descriptor        0,            0,                      0
 
-GDT_LEN    equ    $ - LABEL_GDT
+
+GDT_LEN     equ    $ - LABEL_GDT
 GDT_PTR     dw     GDT_LEN - 1
-           dd     0
+            dd     0
 
 SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
 SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
@@ -29,21 +32,21 @@ SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 ; 中断描述符
 LABEL_IDT:
 %rep  32
-    Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
 %endrep
 
 .020h:
-    Gate SELECTOR_CODE32, TIMER_HANDLER,0, DA_386IGate
+    Gate SELECTOR_CODE32, TIMER_HANDLER,    0, DA_386IGate
 
 .021h:
     Gate SELECTOR_CODE32, KEYBOARD_HANDLER, 0, DA_386IGate
 
 %rep  10
-    Gate  SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
 %endrep
 
 .2CH:
-    Gate SELECTOR_CODE32, MOUSE_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, MOUSE_HANDLER,    0, DA_386IGate
 
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1
@@ -142,6 +145,7 @@ LABEL_MEM_CHK_OK:
     mov   cr0, eax
 
     jmp   dword  SELECTOR_CODE32: 0
+    ; jmp   dword  1*8: 0
 
     %include "init_8259A.asm"
 
@@ -151,7 +155,7 @@ LABEL_SEG_CODE32:
     ; 初始化堆栈
     mov   ax, SELECTOR_STACK
     mov   ss, ax
-    mov   esp, TOP_OF_STACK
+    mov   esp, TOP_OF_STACK1
 
     mov   ax, SELECTOR_VRAM
     mov   ds, ax
@@ -188,8 +192,12 @@ ALIGN 32
 [BITS 32]
 LABEL_STACK:
     times 1024 db 0 ; 分配1024字节的堆栈
+    TOP_OF_STACK1 equ $ - LABEL_STACK
 
-TOP_OF_STACK equ $ - LABEL_STACK
+    times 1024 db 0
+    TOP_OF_STACK2 equ $ - LABEL_STACK
+
+LEN_OF_STACK_SECTION equ $ - LABEL_STACK
 
 LABEL_SYSTEM_FONT:
     %include "font_data.inc"

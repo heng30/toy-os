@@ -4,6 +4,9 @@
 
 #define MAX_TIMER 500
 
+#define TIMER_ONE_SECOND_TIME_SLICE 100
+#define TIMER_INPUT_CURSOR_TIME_SLICE 50
+
 typedef struct {
     unsigned char m_data; // 用户数据
     unsigned int m_flags; // 标志位

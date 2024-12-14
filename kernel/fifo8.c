@@ -25,7 +25,7 @@ void fifo8_reset(fifo8_t *f) {
 
 int fifo8_put(fifo8_t *fifo, unsigned char data) {
     if (fifo->m_free == 0) {
-        fifo->m_flags |= FLAGS_OVERRUN;
+        fifo->m_flags |= FIFO8_FLAGS_OVERFLOW;
         return -1;
     }
 
