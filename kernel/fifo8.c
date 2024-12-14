@@ -39,7 +39,7 @@ int fifo8_put(fifo8_t *fifo, unsigned char data) {
     return 0;
 }
 
-unsigned char fifo8_get(fifo8_t *fifo) {
+int fifo8_get(fifo8_t *fifo) {
     if (fifo->m_free == fifo->m_size) {
         return -1;
     }
@@ -54,4 +54,4 @@ unsigned char fifo8_get(fifo8_t *fifo) {
     return data;
 }
 
-int fifo8_status(fifo8_t *fifo) { return fifo->m_size - fifo->m_free; }
+bool fifo8_is_empty(fifo8_t *fifo) { return fifo->m_size == fifo->m_free; }

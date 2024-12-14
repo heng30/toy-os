@@ -5,8 +5,12 @@
 
 int max(int a, int b) { return a > b ? a : b; }
 int min(int a, int b) { return a > b ? b : a; }
-unsigned int max_unsigned(unsigned int a, unsigned int b) { return a > b ? a : b; }
-unsigned int min_unsigned(unsigned int a, unsigned int b) { return a > b ? b : a; }
+unsigned int max_unsigned(unsigned int a, unsigned int b) {
+    return a > b ? a : b;
+}
+unsigned int min_unsigned(unsigned int a, unsigned int b) {
+    return a > b ? b : a;
+}
 
 char char2hex(char c) {
     if (c >= 10) {
@@ -18,11 +22,11 @@ char char2hex(char c) {
 
 char *char2hexstr(unsigned char c) {
     static char str[5] = {'0', 'X', 0, 0, 0};
-    char m = c % 16;
+    char m = (char)(c % 16);
 
     str[3] = char2hex(m);
-    c = c / 16;
-    str[2] = char2hex(c);
+    char n = (char)(c / 16);
+    str[2] = char2hex(n);
 
     return str;
 }
@@ -36,7 +40,7 @@ char *int2hexstr(unsigned int d) {
     }
 
     for (int p = 9; p > 1 && d > 0; p--) {
-        int e = d % 16;
+        char e = d % 16;
         d /= 16;
         if (e >= 10) {
             str[p] = 'A' + e - 10;
@@ -112,9 +116,9 @@ char *strcpy(char *dst, const char *src) {
 }
 
 char *strncpy(char *dst, unsigned int dst_size, const char *src) {
-    unsigned int len = min(strlen(src), dst_size - 1);
+    int len = min((int)strlen(src), (int)dst_size - 1);
 
-    for (unsigned int i = 0; i < len; i++) {
+    for (int i = 0; i < len; i++) {
         *(dst + i) = *(src + i);
     }
 
@@ -125,8 +129,8 @@ char *strncpy(char *dst, unsigned int dst_size, const char *src) {
 }
 
 char *strncpy_tail(char *dst, unsigned int dst_size, const char *src) {
-    int src_len = strlen(src);
-    int len = min(src_len, dst_size - 1);
+    int src_len = (int)strlen(src);
+    int len = min(src_len, (int)dst_size - 1);
 
     for (int i = len - 1, j = src_len - 1; i >= 0 && j >= 0; i--, j--) {
         *(dst + i) = *(src + j);
@@ -206,4 +210,3 @@ unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h) {
     assert(l <= h, "bound assert failed");
     return min_unsigned(max_unsigned(n, l), h);
 }
-

@@ -33,7 +33,7 @@ static void _multi_task_test_task_b_main(void) {
 
     for (;;) {
         io_cli();
-        if (fifo8_status(&g_timerctl.m_fifo) == FIFO8_EMPTY_STATUS) {
+        if (fifo8_is_empty(&g_timerctl.m_fifo)) {
             io_sti();
         } else {
             unsigned char data = fifo8_get(&g_timerctl.m_fifo);

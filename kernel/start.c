@@ -14,7 +14,7 @@
 #include "widgets/input_box.h"
 
 void mouse_callback(void) {
-    unsigned char code = fifo8_get(&g_mouseinfo);
+    unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
 
     io_sti();
 
@@ -29,7 +29,7 @@ void mouse_callback(void) {
 }
 
 void keyboard_callback(input_box_t *input_box) {
-    unsigned char code = fifo8_get(&g_keyinfo);
+    unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
 
     io_sti();
 
@@ -58,7 +58,7 @@ void keyboard_callback(input_box_t *input_box) {
 }
 
 void timer_callback() {
-    unsigned char data = fifo8_get(&g_timerctl.m_fifo);
+    unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
     io_sti();
 
     switch (data) {
@@ -115,11 +115,10 @@ void start_kernel(void) {
 
     for (;;) {
         io_cli();
-        if (fifo8_status(&g_keyinfo) + fifo8_status(&g_mouseinfo) +
-                fifo8_status(&g_timerctl.m_fifo) ==
-            FIFO8_EMPTY_STATUS) {
+        if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_mouseinfo) &&
+            fifo8_is_empty(&g_timerctl.m_fifo)) {
             io_sti(); // 开中断，保证循环不会被挂起
-        } else if (fifo8_status(&g_keyinfo) != FIFO8_EMPTY_STATUS) {
+        } else if (!fifo8_is_empty(&g_keyinfo)) {
             keyboard_callback(input_box);
 
             // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
@@ -127,9 +126,9 @@ void start_kernel(void) {
             // } else {
             //     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 2);
             // }
-        } else if (fifo8_status(&g_mouseinfo) != FIFO8_EMPTY_STATUS) {
+        } else if (!fifo8_is_empty(&g_mouseinfo)) {
             mouse_callback();
-        } else if (fifo8_status(&g_timerctl.m_fifo) != FIFO8_EMPTY_STATUS) {
+        } else if (!fifo8_is_empty(&g_timerctl.m_fifo)) {
             timer_callback();
         }
     }

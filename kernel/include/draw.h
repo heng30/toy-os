@@ -27,25 +27,24 @@ extern win_sheet_t *g_canvas_sht;
 void init_boot_info(void);
 
 // 设置颜色板
-void set_palette(int start, int end, unsigned char *rgb);
+void set_palette(unsigned int start, unsigned int end, unsigned char *rgb);
 
 // 初始化颜色板
 void init_palette(void);
 
-// 绘制一个像素
-void draw_pixel(unsigned char *vram, int pos, unsigned char c);
-
 // 绘制一个矩形
-void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0,
-              int x1, int y1);
+void boxfill8(unsigned char *vram, unsigned int xsize, unsigned char c,
+              unsigned int x0, unsigned int y0, unsigned int x1,
+              unsigned int y1);
 
 // 根据buf来显示一个图像，通常用来显示鼠标
-void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
-               int py0, char *buf, int bxsize);
+void put_block(unsigned char *vram, unsigned int xsize, unsigned int pxsize,
+               unsigned int pysize, unsigned int px0, unsigned int py0,
+               const char *buf, unsigned int bxsize);
 
 // 显示1个字符
-void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x, unsigned int y, unsigned char c,
-                const char *font);
+void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x,
+                unsigned int y, unsigned char c, const char *font);
 
 // 显示一行字符串
 void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
@@ -59,7 +58,8 @@ void show_debug_char(unsigned char data);
 void show_debug_int(unsigned int data);
 
 // 显示调试信息
-void show_debug_string(unsigned int x, unsigned int y, unsigned char color, const char *s);
+void show_debug_string(unsigned int x, unsigned int y, unsigned char color,
+                       const char *s);
 
 // 绘制J背景
 void init_background_sheet(void);

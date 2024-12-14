@@ -31,14 +31,14 @@ void init_boot_info(void) {
     g_boot_info.m_screen_y = *(bi + 2);
 }
 
-void set_palette(int start, int end, unsigned char *rgb) {
+void set_palette(unsigned int start, unsigned int end, unsigned char *rgb) {
     int eflags = io_load_eflags();
     io_cli();
-    io_out8(0x03c8, start);
-    for (int i = start; i <= end; i++) {
-        io_out8(0x03c9, rgb[0] / 4);
-        io_out8(0x03c9, rgb[1] / 4);
-        io_out8(0x03c9, rgb[2] / 4);
+    io_out8(0x03c8, (char)start);
+    for (unsigned int i = start; i <= end; i++) {
+        io_out8(0x03c9, (char)(rgb[0] / 4));
+        io_out8(0x03c9, (char)(rgb[1] / 4));
+        io_out8(0x03c9, (char)(rgb[2] / 4));
 
         rgb += 3;
     }
@@ -52,29 +52,28 @@ void init_palette(void) {
     return;
 }
 
-void draw_pixel(unsigned char *vram, int pos, unsigned char c) {
-    vram[pos] = c;
-}
-
-void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0,
-              int x1, int y1) {
-    for (int y = y0; y <= y1; y++)
-        for (int x = x0; x <= x1; x++)
+void boxfill8(unsigned char *vram, unsigned int xsize, unsigned char c,
+              unsigned int x0, unsigned int y0, unsigned int x1,
+              unsigned int y1) {
+    for (unsigned int y = y0; y <= y1; y++)
+        for (unsigned int x = x0; x <= x1; x++)
             vram[y * xsize + x] = c;
 }
 
-void put_block(unsigned char *vram, int xsize, int pxsize, int pysize, int px0,
-               int py0, char *buf, int bxsize) {
-    for (int y = 0; y < pysize; y++)
-        for (int x = 0; x < pxsize; x++) {
-            vram[(py0 + y) * xsize + (px0 + x)] = buf[y * bxsize + x];
+void put_block(unsigned char *vram, unsigned int xsize, unsigned int pxsize,
+               unsigned int pysize, unsigned int px0, unsigned int py0,
+               const char *buf, unsigned int bxsize) {
+    for (unsigned int y = 0; y < pysize; y++)
+        for (unsigned int x = 0; x < pxsize; x++) {
+            vram[(py0 + y) * xsize + (px0 + x)] =
+                (unsigned char)buf[y * bxsize + x];
         }
 }
 
-void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x, unsigned int y, unsigned char c,
-                const char *font) {
+void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x,
+                unsigned int y, unsigned char c, const char *font) {
     for (unsigned int i = 0; i < FONT_HEIGHT; i++) {
-        unsigned char d = font[i];
+        unsigned char d = (unsigned char)font[i];
         if ((d & 0x80) != 0) {
             vram[(y + i) * xsize + x + 0] = c;
         }
@@ -105,7 +104,7 @@ void show_font8(unsigned char *vram, unsigned int xsize, unsigned int x, unsigne
 void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
                  unsigned char bg_color, unsigned char text_color,
                  const char *s) {
-    int begin = x;
+    unsigned int begin = x;
 
     for (; *s != 0x00; s++) {
         if (x + FONT_WIDTH > sht->m_bxsize) {
@@ -125,13 +124,13 @@ void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
 }
 
 void show_debug_char(unsigned char data) {
-    static int pos_x = 0;
-    static int pos_y = 0;
+    static unsigned int pos_x = 0;
+    static unsigned int pos_y = 0;
 
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    int ysize = g_boot_info.m_screen_y;
-    char *pstr = char2hexstr(data);
+    unsigned int xsize = g_boot_info.m_screen_x;
+    unsigned int ysize = g_boot_info.m_screen_y;
+    const char *pstr = char2hexstr(data);
 
     show_debug_string(pos_x, pos_y, COL8_FFFFFF, pstr);
     pos_x += 32;
@@ -150,12 +149,12 @@ void show_debug_char(unsigned char data) {
 }
 
 void show_debug_int(unsigned int data) {
-    static int pos_x = 0;
-    static int pos_y = 0;
+    static unsigned int pos_x = 0;
+    static unsigned int pos_y = 0;
 
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    int ysize = g_boot_info.m_screen_y;
+    unsigned int xsize = g_boot_info.m_screen_x;
+    unsigned int ysize = g_boot_info.m_screen_y;
     char *pstr = int2hexstr(data);
 
     show_debug_string(pos_x, pos_y, COL8_FFFFFF, pstr);
@@ -174,7 +173,8 @@ void show_debug_int(unsigned int data) {
     }
 }
 
-void show_debug_string(unsigned int x, unsigned int y, unsigned char color, const char *s) {
+void show_debug_string(unsigned int x, unsigned int y, unsigned char color,
+                       const char *s) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     unsigned int xsize = g_boot_info.m_screen_x;
 
@@ -184,7 +184,8 @@ void show_debug_string(unsigned int x, unsigned int y, unsigned char color, cons
     }
 }
 
-static void _set_background_vram(unsigned char *vram, unsigned int xsize, unsigned int ysize) {
+static void _set_background_vram(unsigned char *vram, unsigned int xsize,
+                                 unsigned int ysize) {
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
     boxfill8(vram, xsize, COL8_C6C6C6, 0, ysize - 28, xsize - 1, ysize - 28);
     boxfill8(vram, xsize, COL8_FFFFFF, 0, ysize - 27, xsize - 1, ysize - 27);
