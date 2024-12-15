@@ -38,10 +38,10 @@ void debug_char(void);
 unsigned int get_memory_block_count(void);
 
 // 获取内存描述块地址
-void* get_memory_block_buffer(void);
+void *get_memory_block_buffer(void);
 
 // 获取启动信息
-void* get_boot_info(void);
+void *get_boot_info(void);
 
 // 获取字体数据 c << 4 + offset
 char get_font_data(int c, int offset);
@@ -63,4 +63,6 @@ void taskswitch8(void);
 void taskswitch9(void);
 
 // 进程切换用的远跳转
-void farjmp(int a, int tr);
+// 将esp+4指向的栈中的值赋值给eip寄存器(指向下一条要执行的代码)
+// 并且自动读取接下来的2个字节作为段描述符的索引下标，即gdt+n的位置, n = tr >> 3
+void farjmp(unsigned int a,  unsigned short tr);
