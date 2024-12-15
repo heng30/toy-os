@@ -92,5 +92,5 @@ void int_handler_for_timer(char *esp) {
         }
     }
 
-    multi_task_switch(g_multi_task_next_tr);
+    multi_task_switch(g_multi_task_ctl->m_next_tr);
 }

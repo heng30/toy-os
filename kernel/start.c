@@ -89,7 +89,7 @@ void start_kernel(void) {
 
     init_memman();
     init_timer_ctl();
-    init_multi_task(7); // gdt+7, 主线程
+    init_multi_task_ctl();
     init_win_sheet_ctl();
 
     init_background_sheet();

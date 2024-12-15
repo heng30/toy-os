@@ -63,7 +63,8 @@ void multi_task_test(void) {
     tss_b.m_ldtr = 0, tss_b.m_iomap = 0x40000000;
 
     // 设置TSS32对象地址到段描述符中
-    set_segmdesc(gdt + 7, 103, (ptr_t)&tss_a, AR_TSS32);
+    set_segmdesc(gdt + 7, 103, (ptr_t)&tss_a,
+                 AR_TSS32); // 需要和TASK_GDT0保持一致
     set_segmdesc(gdt + 8, 103, (ptr_t)&tss_a, AR_TSS32);
 
     set_segmdesc(gdt + 9, 103, (ptr_t)&tss_b, AR_TSS32); // 任务B的TSS32对象
@@ -168,7 +169,7 @@ static void _multi_task_test_task_b_main_auto(void) {
                 set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
                           MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
 
-                yeild(7); // gdt+7跳回到主线程
+                multi_task_yeild(7); // gdt+7跳回到主线程
 
                 set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
                           MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
@@ -191,7 +192,7 @@ void multi_task_test_in_main_timer_callback_auto(void) {
                           int2hexstr(_main_timer_callback_auto_counter++));
 
     show_string_in_canvas(0, 144, COL8_FFFFFF, "switch to task b auto");
-    yeild(9); // 切换到任务B
+    multi_task_yeild(9); // 切换到任务B
     show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main auto");
 
     // 重新启动光标定时器
@@ -208,7 +209,8 @@ void multi_task_test_auto(void) {
     tss_b.m_ldtr = 0, tss_b.m_iomap = 0x40000000;
 
     // 设置TSS32对象地址到段描述符中
-    set_segmdesc(gdt + 7, 103, (ptr_t)&tss_a, AR_TSS32);
+    set_segmdesc(gdt + 7, 103, (ptr_t)&tss_a,
+                 AR_TSS32); // 需要和TASK_GDT0保持一致
     set_segmdesc(gdt + 8, 103, (ptr_t)&tss_a, AR_TSS32);
 
     set_segmdesc(gdt + 9, 103, (ptr_t)&tss_b, AR_TSS32); // 任务B的TSS32对象

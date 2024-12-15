@@ -14,7 +14,7 @@ LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_D
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 ; 进程切换相关
 LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
-LABEL_DESC_7:       Descriptor        0,            0,                      0
+LABEL_DESC_7:       Descriptor        0,            0,                      0 ; 主任务的TSS32对象
 LABEL_DESC_8:       Descriptor        0,            0,                      0
 LABEL_DESC_9:       Descriptor        0,            0,                      0
 
