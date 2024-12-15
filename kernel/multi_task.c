@@ -2,13 +2,11 @@
 #include "io.h"
 #include "draw.h"
 
-unsigned char g_multi_task_prev_tr = 0;
 unsigned char g_multi_task_current_tr = 0;
 unsigned char g_multi_task_next_tr = 0;
 static volatile unsigned int g_switch_task_counts = 0; // 任务切换次数
 
 void init_multi_task(unsigned char tr) {
-    g_multi_task_prev_tr = tr;
     g_multi_task_current_tr = tr;
     g_multi_task_next_tr = tr;
 }
@@ -17,7 +15,6 @@ void multi_task_switch(unsigned char tr) {
     if (g_multi_task_current_tr == tr)
         return;
 
-    g_multi_task_prev_tr = g_multi_task_current_tr;
     g_multi_task_current_tr = tr;
 
     if (g_multi_task_current_tr > 0) {
