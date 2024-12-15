@@ -62,17 +62,18 @@ void timer_callback() {
     io_sti();
 
     switch (data) {
-    case 1:
-        // show_string_in_canvas(8, 0, COL8_FFFFFF, "3 Seconds");
+    case INPUT_CURSOR_TIMER_DATA:
+        input_cursor_blink();
         break;
-    case 2:
-        // show_string_in_canvas(8, FONT_HEIGHT, COL8_FFFFFF, "5 Seconds");
-        break;
+
     case MULTI_TASK_TEST_B_MAIN_TIMER_DATA:
         multi_task_test_in_main_timer_callback();
         break;
-    case INPUT_CURSOR_TIMER_DATA:
-        input_cursor_blink();
+
+    case MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA:
+        multi_task_test_in_main_timer_callback_auto();
+        break;
+
     default:
         break;
     }
@@ -87,6 +88,7 @@ void start_kernel(void) {
 
     init_memman();
     init_timer_ctl();
+    init_multi_task(7); // gdt+7, 主线程
     init_win_sheet_ctl();
 
     init_background_sheet();
@@ -96,30 +98,29 @@ void start_kernel(void) {
     init_input_cursor();
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
-    input_box_t *input_box = input_box_new(200, 150, 168, 68, "Input-Box");
+    input_box_t *input_box = input_box_new(300, 150, 168, 68, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
     win_sheet_set_moving(input_box->m_sheet);
 
     input_box_draw_text(input_box, "hello");
 
-    timer_t *timer1 = timer_alloc(), *timer2 = timer_alloc();
-
-    set_timer(timer1, TIMER_ONE_SECOND_TIME_SLICE * 3,
-              MULTI_TASK_TEST_B_MAIN_TIMER_DATA);
-    set_timer(timer2, TIMER_ONE_SECOND_TIME_SLICE * 3, 2);
+    timer_t *timer = timer_alloc();
+    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3, 2);
 
     io_sti(); // 开中断
     enable_mouse();
 
-    multi_task_test();
+    // multi_task_test();
+    multi_task_test_auto();
 
+    unsigned int counter = 0, timer_count = 0;
     for (;;) {
         io_cli();
         if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_mouseinfo) &&
             fifo8_is_empty(&g_timerctl.m_fifo)) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
-            keyboard_callback(input_box);
+            // keyboard_callback(input_box);
 
             // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
             //     input_box_hide(input_box);

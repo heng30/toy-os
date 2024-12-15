@@ -124,3 +124,7 @@ taskswitch8:
 taskswitch9:
     jmp 9*8:0
     ret
+
+farjmp:
+    jmp FAR [esp + 4]
+    ret

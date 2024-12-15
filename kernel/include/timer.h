@@ -7,6 +7,11 @@
 #define TIMER_ONE_SECOND_TIME_SLICE 100
 #define TIMER_INPUT_CURSOR_TIME_SLICE 50
 
+// 数据范围0-255，一个共同时指出256个不同的定时器并发
+#define INPUT_CURSOR_TIMER_DATA 255 // 通过这个数据开区分不同的定时器
+#define MULTI_TASK_TEST_B_MAIN_TIMER_DATA 254 // 测试任务b的定时器
+#define MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA 253 // 测试自动切换任务b的定时器
+
 typedef struct {
     unsigned char m_data; // 用户数据
     unsigned int m_flags; // 标志位

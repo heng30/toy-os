@@ -7,7 +7,6 @@
 
 #define INPUT_CURSOR_WIDTH FONT_WIDTH   // 输入光标宽度
 #define INPUT_CURSOR_HEIGHT FONT_HEIGHT // 输入光标高度
-#define INPUT_CURSOR_TIMER_DATA 255 // 通过这个数据开区分不同的定时器
 
 typedef struct {
     unsigned char

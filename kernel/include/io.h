@@ -61,3 +61,6 @@ void taskswitch6(void);
 void taskswitch7(void);
 void taskswitch8(void);
 void taskswitch9(void);
+
+// 进程切换用的远跳转
+void farjmp(int a, int tr);

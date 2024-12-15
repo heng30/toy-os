@@ -4,6 +4,7 @@
 #include "io.h"
 #include "kutil.h"
 #include "memory.h"
+#include "multi_task.h"
 
 #define PIC0_OCW2 0x20
 #define PIC1_OCW2 0xA0
@@ -90,4 +91,6 @@ void int_handler_for_timer(char *esp) {
             }
         }
     }
+
+    multi_task_switch(g_multi_task_next_tr);
 }
