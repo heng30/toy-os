@@ -206,7 +206,7 @@ static void _multi_task_test_task_b_main_auto(void) {
     unsigned int pos = 0;
     unsigned int counter = 0;
     for (;;) {
-        show_string_in_canvas(0, 0, COL8_FFFFFF,
+        show_string_in_canvas(FONT_WIDTH * 15, 0, COL8_FFFFFF,
                               int2hexstr(counter++));
         io_cli();
         if (fifo8_is_empty(&g_timerctl.m_fifo)) {

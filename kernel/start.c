@@ -113,14 +113,16 @@ void start_kernel(void) {
     // multi_task_test();
     multi_task_test_auto();
 
-    unsigned int counter = 0, timer_count = 0;
+    unsigned int counter = 0;
     for (;;) {
+        show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter++));
+
         io_cli();
         if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_mouseinfo) &&
             fifo8_is_empty(&g_timerctl.m_fifo)) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
-            // keyboard_callback(input_box);
+            keyboard_callback(input_box);
 
             // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
             //     input_box_hide(input_box);
