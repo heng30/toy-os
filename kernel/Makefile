@@ -52,7 +52,7 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 	$(REVERT_ASM_TOOL) $(REVERT_ASM_TOOL_FLAG) -fnasm $< $@
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
-	@sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
+	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
 boot-img:
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
