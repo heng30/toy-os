@@ -45,8 +45,7 @@ typedef struct {
         m_running_time_slice; // 该任务设置的运行时间片，时间片用完就会进行任务切换
     unsigned int
         m_remain_time_slice; // 任务剩余的时间片，时间片归零进行任务切换
-    unsigned int
-        m_sleep_time_slice; // 任务剩余的睡眠时间片，时间片归零恢复任务
+    unsigned int m_sleep_time_slice; // 任务剩余的睡眠时间片，时间片归零恢复任务
     TSS32_t m_tss;
 } task_t;
 
@@ -69,6 +68,15 @@ task_t *multi_task_alloc(unsigned int running_time_slice);
 
 // 恢复一个任务, 这个任务会添加到任务队列, 等待任务调度
 void multi_task_resume(task_t *task);
+
+// 挂起一个任务
+void multi_task_suspend(task_t *task);
+
+// 任务睡眠
+void multi_task_sleep(task_t *task, unsigned int sleep_time_slice);
+
+// 任务调度
+void multi_task_schedul(void);
 
 // 切换到tr指定的任务
 void multi_task_switch(unsigned char tr);

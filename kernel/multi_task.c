@@ -78,6 +78,14 @@ void multi_task_resume(task_t *task) {
     g_multi_task_ctl->m_running_task_counts++;
 }
 
+void multi_task_suspend(task_t *task) {
+
+}
+
+void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
+
+}
+
 // 获取下一个可运行的任务
 static unsigned char _get_next_availible_task(unsigned char current_index) {
     for (unsigned int i = current_index + 1;
