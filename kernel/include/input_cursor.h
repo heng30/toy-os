@@ -31,7 +31,7 @@ void input_cursor_show(int z);
 void input_cursor_hide(void);
 
 // 移动输入光标
-void input_cursor_move(int vx, int vy);
+void input_cursor_move(unsigned int vx, unsigned int vy);
 
 // 输入光标是否可见
 bool input_cursor_is_visible(void);

@@ -44,7 +44,7 @@ void input_cursor_hide(void) {
     win_sheet_show(g_input_cursor_sht, HIDE_WIN_SHEET_Z);
 }
 
-void input_cursor_move(int vx, int vy) {
+void input_cursor_move(unsigned int vx, unsigned int vy) {
     win_sheet_slide(g_input_cursor_sht, vx, vy);
 }
 
