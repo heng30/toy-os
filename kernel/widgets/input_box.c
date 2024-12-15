@@ -9,9 +9,9 @@
 
 #include "widgets/input_box.h"
 
-static void _make_textbox8(win_sheet_t *sht, int x0, int y0, int sx, int sy,
-                           int c) {
-    int x1 = x0 + sx, y1 = y0 + sy;
+static void _make_textbox8(win_sheet_t *sht, unsigned int x0, unsigned int y0,
+                           unsigned int sx, unsigned int sy, unsigned char c) {
+    unsigned int x1 = x0 + sx, y1 = y0 + sy;
     boxfill8(sht->m_buf, sht->m_bxsize, COL8_848484, x0 - 2, y0 - 3, x1 + 1,
              y0 - 3);
     boxfill8(sht->m_buf, sht->m_bxsize, COL8_848484, x0 - 3, y0 - 3, x0 - 3,
@@ -40,10 +40,12 @@ void input_box_moving(void *p) {
     unsigned int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
     int dx = g_mdec.m_rel_x, dy = g_mdec.m_rel_y;
 
-    vx = (unsigned int)bound(
-        vx + dx, 0, (int)g_boot_info.m_screen_x - box->m_sheet->m_bxsize);
-    vy = (unsigned int)bound(
-        vy + dy, 0, (int)g_boot_info.m_screen_y - box->m_sheet->m_bysize);
+    vx = (unsigned int)bound((int)vx + dx, 0,
+                             (int)g_boot_info.m_screen_x -
+                                 (int)box->m_sheet->m_bxsize);
+    vy = (unsigned int)bound((int)vy + dy, 0,
+                             (int)g_boot_info.m_screen_y -
+                                 (int)box->m_sheet->m_bysize);
 
     win_sheet_slide(box->m_sheet, vx, vy);
     input_box_focus(box);
@@ -51,12 +53,13 @@ void input_box_moving(void *p) {
 
 void input_box_focus(input_box_t *box) {
     int max_text_len =
-        (box->m_sheet->m_bxsize - FONT_WIDTH * 2 - INPUT_CURSOR_WIDTH) /
+        ((int)box->m_sheet->m_bxsize - FONT_WIDTH * 2 - INPUT_CURSOR_WIDTH) /
         FONT_WIDTH;
-    int text_len = min(max_text_len, strlen(box->m_text));
+    unsigned int text_len =
+        (unsigned int)min(max(0, max_text_len), (int)strlen(box->m_text));
 
     char *dst = NULL;
-    int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
+    unsigned int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;
 
     win_sheet_set_focus(box->m_sheet);
 
@@ -105,7 +108,7 @@ void input_box_pop(input_box_t *box) {
     input_box_focus(box);
 }
 
-input_box_t *input_box_new(int x, int y, int width, int height,
+input_box_t *input_box_new(unsigned int x, unsigned int y, unsigned int width, unsigned int height,
                            const char *title) {
     input_box_t *box = (input_box_t *)memman_alloc_4k(sizeof(input_box_t));
     assert(box != NULL, "input_box_new alloc 4k error");

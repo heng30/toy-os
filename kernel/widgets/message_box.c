@@ -7,8 +7,7 @@
 #include "memory.h"
 
 static void _draw_background(win_sheet_t *sht) {
-    int bxsize = sht->m_bxsize;
-    int bysize = sht->m_bysize;
+    unsigned int bxsize = sht->m_bxsize, bysize = sht->m_bysize;
 
     boxfill8(sht->m_buf, bxsize, COL8_C6C6C6, 0, 0, bxsize - 1, 0);
     boxfill8(sht->m_buf, bxsize, COL8_FFFFFF, 1, 1, bxsize - 2, 1);
@@ -28,11 +27,11 @@ static void _draw_background(win_sheet_t *sht) {
 }
 
 static void _draw_closebtn(win_sheet_t *sht) {
-    const char *icon =
+    const unsigned char *icon =
         closebtn_icon_buf(COL8_000000, COL8_FFFFFF, COL8_848484, COL8_C6C6C6);
 
-    for (int y = 0; y < CLOSEBTN_ICON_HEIGHT; y++) {
-        for (int x = 0; x < CLOSEBTN_ICON_WIDTH; x++) {
+    for (unsigned int y = 0; y < CLOSEBTN_ICON_HEIGHT; y++) {
+        for (unsigned int x = 0; x < CLOSEBTN_ICON_WIDTH; x++) {
             unsigned char c = *(icon + y * CLOSEBTN_ICON_WIDTH + x);
             sht->m_buf[(5 + y) * sht->m_bxsize + (sht->m_bxsize - 21 + x)] = c;
         }
@@ -43,8 +42,8 @@ static void _draw_title(win_sheet_t *sht, const char *title) {
     show_string(sht, 8, 4, COL8_000084, COL8_FFFFFF, title);
 }
 
-win_sheet_t *message_box_new(int x, int y, int width, int height,
-                             const char *title) {
+win_sheet_t *message_box_new(unsigned int x, unsigned int y, unsigned int width,
+                             unsigned int height, const char *title) {
     win_sheet_t *sht = win_sheet_alloc();
     assert(sht != NULL, "message_box_new sheet alloc error");
 

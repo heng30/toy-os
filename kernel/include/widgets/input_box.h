@@ -11,7 +11,7 @@ typedef struct {
 } input_box_t;
 
 // 分配对象
-input_box_t *input_box_new(int x, int y, int width, int height,
+input_box_t *input_box_new(unsigned int x, unsigned int y, unsigned int width, unsigned int height,
                            const char *title);
 
 // 释放对象

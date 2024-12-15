@@ -23,7 +23,7 @@ typedef struct {
     unsigned char m_phase;  // 解析鼠标数据的阶段
     unsigned char m_btn;    // 鼠标按键
     int m_rel_x, m_rel_y;   // 鼠标相对偏移
-    int m_abs_x, m_abs_y;   // 鼠标位置
+    unsigned int m_abs_x, m_abs_y;   // 鼠标位置
 } mouse_dec_t;
 
 // 在中断函数中, 保存鼠标数据

@@ -57,27 +57,12 @@ void enable_mouse(void) {
 }
 
 void compute_mouse_position(void) {
-    int xsize = g_boot_info.m_screen_x;
-    int ysize = g_boot_info.m_screen_y;
-
-    g_mdec.m_abs_x += g_mdec.m_rel_x;
-    g_mdec.m_abs_y += g_mdec.m_rel_y;
-
-    if (g_mdec.m_abs_x < 0) {
-        g_mdec.m_abs_x = 0;
-    }
-
-    if (g_mdec.m_abs_y < 0) {
-        g_mdec.m_abs_y = 0;
-    }
-
-    if (g_mdec.m_abs_x > xsize - 16) {
-        g_mdec.m_abs_x = xsize - 16;
-    }
-
-    if (g_mdec.m_abs_y > ysize - 16) {
-        g_mdec.m_abs_y = ysize - 16;
-    }
+    g_mdec.m_abs_x =
+        (unsigned int)bound((int)g_mdec.m_abs_x + g_mdec.m_rel_x, 0,
+                            (int)g_boot_info.m_screen_x - CURSOR_ICON_SIZE);
+    g_mdec.m_abs_y =
+        (unsigned int)bound((int)g_mdec.m_abs_y + g_mdec.m_rel_y, 0,
+                            (int)g_boot_info.m_screen_y - CURSOR_ICON_SIZE);
 }
 
 int mouse_decode(unsigned char dat) {
@@ -111,11 +96,11 @@ int mouse_decode(unsigned char dat) {
         g_mdec.m_rel_y = g_mdec.m_buf[2];
 
         if ((g_mdec.m_buf[0] & 0x10) != 0) {
-            g_mdec.m_rel_x |= 0xffffff00;
+            g_mdec.m_rel_x |= (int)0xffffff00;
         }
 
         if ((g_mdec.m_buf[0] & 0x20) != 0) {
-            g_mdec.m_rel_y |= 0xffffff00;
+            g_mdec.m_rel_y |= (int)0xffffff00;
         }
 
         g_mdec.m_rel_y = -g_mdec.m_rel_y;
@@ -154,14 +139,8 @@ void int_handler_for_mouse(char *esp) {
     fifo8_put(&g_mouseinfo, data);
 }
 
-bool is_mouse_left_btn_pressed(void) {
-    return (g_mdec.m_btn & 0x01) != 0;
-}
+bool is_mouse_left_btn_pressed(void) { return (g_mdec.m_btn & 0x01) != 0; }
 
-bool is_mouse_right_btn_pressed(void) {
-    return (g_mdec.m_btn & 0x2) != 0;
-}
+bool is_mouse_right_btn_pressed(void) { return (g_mdec.m_btn & 0x2) != 0; }
 
-bool is_mouse_middle_btn_pressed(void) {
-    return (g_mdec.m_btn & 0x4) != 0;
-}
+bool is_mouse_middle_btn_pressed(void) { return (g_mdec.m_btn & 0x4) != 0; }

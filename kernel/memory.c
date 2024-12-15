@@ -10,7 +10,7 @@ typedef struct {
 } freeinfo_t;
 
 typedef struct {
-    int m_frees, m_lostsize, m_losts;
+    unsigned int m_frees, m_lostsize, m_losts;
     freeinfo_t *m_free;
 } memman_t;
 
@@ -22,12 +22,12 @@ memman_t g_memman = {
 };
 
 void init_memman(void) {
-    int cnt = get_memory_block_count();
+    unsigned int cnt = get_memory_block_count();
     unsigned int mem_size = 0, max_mem_index = 0;
     addr_range_desc_t *desc = (addr_range_desc_t *)get_memory_block_buffer();
 
     // 获取最大可用的内存区域
-    for (int i = 0; i < cnt; i++) {
+    for (unsigned int i = 0; i < cnt; i++) {
         if (desc[i].m_type == 1) {
             if (desc[i].m_length_low > mem_size) {
                 mem_size = desc[i].m_length_low;
@@ -47,7 +47,7 @@ void init_memman(void) {
 
 unsigned int memman_total(void) {
     unsigned int t = 0;
-    for (int i = 0; i < g_memman.m_frees; i++) {
+    for (unsigned int i = 0; i < g_memman.m_frees; i++) {
         t += g_memman.m_free[i].m_size;
     }
 
@@ -55,7 +55,7 @@ unsigned int memman_total(void) {
 }
 
 void *memman_alloc(unsigned int size) {
-    for (int i = 0; i < g_memman.m_frees; i++) {
+    for (unsigned int i = 0; i < g_memman.m_frees; i++) {
         if (g_memman.m_free[i].m_size >= size) {
             unsigned int a = g_memman.m_free[i].m_addr;
             g_memman.m_free[i].m_addr += size;
@@ -63,7 +63,7 @@ void *memman_alloc(unsigned int size) {
 
             // 将成员向前推进1位来释放内存
             if (g_memman.m_free[i].m_size == 0) {
-                for (int j = i; j < g_memman.m_frees - 1; j++) {
+                for (unsigned int j = i; j < g_memman.m_frees - 1; j++) {
                     g_memman.m_free[i].m_addr = g_memman.m_free[i + 1].m_addr;
                     g_memman.m_free[i].m_size = g_memman.m_free[i + 1].m_size;
                 }
@@ -80,7 +80,7 @@ void *memman_alloc(unsigned int size) {
 
 int memman_free(const void *address, unsigned int size) {
     unsigned int addr = (unsigned int)address;
-    int i = 0;
+    unsigned int i = 0;
 
     // 查找释放点
     for (i = 0; i < g_memman.m_frees; i++) {
@@ -100,6 +100,8 @@ int memman_free(const void *address, unsigned int size) {
             if (i < g_memman.m_frees) {
                 if (addr + size == g_memman.m_free[i].m_addr) {
                     g_memman.m_free[i - 1].m_size += g_memman.m_free[i].m_size;
+                    assert(g_memman.m_frees > 0,
+                           "g_memman.m_free count is less than 1");
                     g_memman.m_frees--;
                 }
             }
@@ -120,7 +122,7 @@ int memman_free(const void *address, unsigned int size) {
 
     if (g_memman.m_frees < MEMMAN_FREES) {
         // 向后挪动1个位置，给新的成员
-        for (int j = g_memman.m_frees; j > i; j--) {
+        for (unsigned int j = g_memman.m_frees; j > i; j--) {
             g_memman.m_free[j].m_addr = g_memman.m_free[j - 1].m_addr;
             g_memman.m_free[j].m_size = g_memman.m_free[j - 1].m_size;
         }
@@ -150,26 +152,23 @@ int memman_free_4k(const void *addr, unsigned int size) {
 
 void show_memory_block_counts_and_addr(void) {
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    int gap = 13 * 8;
-    char *p = NULL;
+    unsigned int xsize = g_boot_info.m_screen_x;
+    unsigned int gap = 13 * 8;
 
-    int cnt = get_memory_block_count();
-    p = int2hexstr(cnt);
+    unsigned int cnt = get_memory_block_count();
     show_debug_string(0, 0, COL8_FFFFFF, "pages: ");
-    show_debug_string(gap, 0, COL8_FFFFFF, p);
+    show_debug_string(gap, 0, COL8_FFFFFF, int2hexstr(cnt));
 
     addr_range_desc_t *desc = (addr_range_desc_t *)get_memory_block_buffer();
-    p = int2hexstr((int)desc);
     show_debug_string(0, 16, COL8_FFFFFF, "address: ");
-    show_debug_string(gap, 16, COL8_FFFFFF, p);
+    show_debug_string(gap, 16, COL8_FFFFFF, int2hexstr((unsigned int)desc));
 }
 
-void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
+void show_memory_block_info(addr_range_desc_t *desc, unsigned int page,
+                            unsigned char color) {
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    int x = 0, y = 0, gap = 13 * 8;
-    char *p = NULL;
+    unsigned int xsize = g_boot_info.m_screen_x;
+    unsigned int x = 0, y = 0, gap = 13 * 8;
 
     boxfill8(vram, xsize, COL8_008484, 0, 0, xsize, 100);
 
@@ -178,7 +177,7 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
         "length_low: ", "length_high: ", "type: ",
     };
 
-    const int ele[] = {
+    const unsigned int ele[] = {
         page,
         desc->m_base_addr_low,
         desc->m_base_addr_high,
@@ -187,16 +186,16 @@ void show_memory_block_info(addr_range_desc_t *desc, int page, int color) {
         desc->m_type,
     };
 
-    for (int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]); i++, y += 16) {
+    for (unsigned int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]);
+         i++, y += 16) {
         show_debug_string(x, y, color, title[i]);
-        p = int2hexstr(ele[i]);
-        show_debug_string(gap, y, color, p);
+        show_debug_string(gap, y, color, int2hexstr((unsigned int)ele[i]));
     }
 }
 
 void show_all_memory_block_info(void) {
-    static int memory_block_info_counts = 0;
-    int mem_count = get_memory_block_count();
+    static unsigned int memory_block_info_counts = 0;
+    unsigned int mem_count = get_memory_block_count();
     addr_range_desc_t *mem_desc =
         (addr_range_desc_t *)get_memory_block_buffer();
 
@@ -212,9 +211,9 @@ void show_all_memory_block_info(void) {
 
 void show_memman_info(void) {
     unsigned char *vram = g_boot_info.m_vga_ram;
-    int xsize = g_boot_info.m_screen_x;
-    int total = memman_total() / (1024 * 1024);
-    char *p = int2hexstr(total);
+    unsigned int xsize = g_boot_info.m_screen_x;
+    unsigned int total = memman_total() / (1024 * 1024);
+    const char *p = int2hexstr(total);
 
     show_debug_string(0, 0, COL8_FFFFFF, "Total memory is:");
     show_debug_string(17 * 8, 0, COL8_FFFFFF, p);
@@ -222,12 +221,12 @@ void show_memman_info(void) {
 }
 
 void memman_test(void) {
-    int total = memman_total();
+    unsigned int total = memman_total();
     show_debug_int(total);
 
     void *buf[5];
 
-    for (int i = 0; i < 5; i++) {
+    for (unsigned int i = 0; i < 5; i++) {
         buf[i] = memman_alloc(32 * (i + 1));
         total = memman_total();
         show_debug_int(total);
@@ -245,7 +244,7 @@ void memman_test(void) {
 
     show_debug_int(0xFFFFFFFF);
 
-    for (int i = 0; i < 5; i++) {
+    for (unsigned int i = 0; i < 5; i++) {
         memman_free(buf[i], 32 * (i + 1));
     }
 

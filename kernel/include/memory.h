@@ -33,7 +33,7 @@ int memman_free_4k(const void *addr, unsigned int size);
 void show_memory_block_counts_and_addr(void);
 
 // 显示内存块信息
-void show_memory_block_info(addr_range_desc_t *desc, int page, int color);
+void show_memory_block_info(addr_range_desc_t *desc, unsigned int page, unsigned char color);
 
 // 显示内存管理器信息
 void show_memman_info(void);

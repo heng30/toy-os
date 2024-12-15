@@ -1,4 +1,4 @@
-char cursor_icon[16][16] = {
+unsigned char cursor_icon[16][16] = {
 	"**************..",
 	"*OOOOOOOOOOO*...",
 	"*OOOOOOOOOO*....",
