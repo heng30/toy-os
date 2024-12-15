@@ -65,4 +65,5 @@ void taskswitch9(void);
 // 进程切换用的远跳转
 // 将esp+4指向的栈中的值赋值给eip寄存器(指向下一条要执行的代码)
 // 并且自动读取接下来的2个字节作为段描述符的索引下标，即gdt+n的位置, n = tr >> 3
+// 从段描述符中加载TSS32对象到cpu中，从而实现任务切换
 void farjmp(unsigned int a,  unsigned short tr);

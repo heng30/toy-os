@@ -126,5 +126,5 @@ taskswitch9:
     ret
 
 farjmp:
-    jmp FAR [esp + 4]
+    jmp FAR [esp + 4] ; 获取到第一个参数的值
     ret
