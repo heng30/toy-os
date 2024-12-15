@@ -31,7 +31,8 @@ static void _load_boot(char *boot_file) {
     assert(feof(fp));
     fclose(fp);
 
-    debug("boot image size is %d bytes, and it will be written in first sector",
+    debug("boot image size is %d bytes, and it will be written in the sector 1 of "
+          "cylinder 0",
           rb);
 }
 
@@ -43,7 +44,7 @@ static void _load_kernel(char *kernel_file) {
     if (fsize % SECTOR_SIZE != 0)
         sector_count++;
 
-    debug("kernel image size is %ld bytes, about %d sectors", fsize,
+    debug("kernel image size is %ld bytes about %d sectors", fsize,
           sector_count);
 
     KERNEL_SIZE = sector_count * SECTOR_SIZE;
@@ -66,7 +67,7 @@ static void _mk_disk(char *disk_file) {
     floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, 0, 0);
     floppy_disk_write_sector(BOOT_IMAGE);
 
-    debug("finish writing boot image in first sectors");
+    debug("finish writing boot image in the sector 1 of cylinder 0");
 
     // 写入kernel到一个柱面
     unsigned int sector_count = KERNEL_SIZE / SECTOR_SIZE;
@@ -83,8 +84,8 @@ static void _mk_disk(char *disk_file) {
         //       sector_index + 1);
     }
 
-    debug("finish writing kernel in first cylinder and total size is %d cylinders "
-          "and %d sectors",
+    debug("finish writing kernel in the start of sector 1 of cylinder 1, and "
+          "total size is %d cylinders and %d sectors",
           sector_count / SECTOR_COUNT, sector_count % SECTOR_COUNT);
 
     floppy_disk_make(disk_file);
