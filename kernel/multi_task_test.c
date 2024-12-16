@@ -1,13 +1,14 @@
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 
 #include "multi_task_test.h"
 #include "colo8.h"
 #include "draw.h"
+#include "multi_task.h"
+
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 #include "fifo8.h"
 #include "input_cursor.h"
 #include "io.h"
 #include "kutil.h"
-#include "multi_task.h"
 
 /*************************************单次任务切换测试****************************/
 // 测试任务B
@@ -250,5 +251,41 @@ void multi_task_test_auto(void) {
     timer_t *timer = timer_alloc();
     set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE, 1,
               MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
+}
+
+#else
+
+void print_A(task_t *task) {
+    static unsigned int print_A_pos = 0;
+
+    for (;;) {
+        show_string_in_canvas(print_A_pos, 250, COL8_FFFFFF, "A");
+        print_A_pos += 8;
+
+        multi_task_sleep(task, TIMER_ONE_SECOND_TIME_SLICE);
+    }
+}
+
+void print_B(task_t *task) {
+    static unsigned int print_B_pos = 0;
+    for (;;) {
+        show_string_in_canvas(print_B_pos, 250 + FONT_HEIGHT, COL8_FFFFFF, "B");
+        print_B_pos += 8;
+
+        multi_task_sleep(task, TIMER_ONE_SECOND_TIME_SLICE);
+    }
+}
+
+void multi_task_test_schedul(void) {
+    unsigned int addr_code32 = get_code32_addr();
+    task_t *task = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
+
+    task->m_tss.m_eip = print_B - addr_code32;
+    task->m_tss.m_es = 0;
+    task->m_tss.m_cs = 1 * 8; // 6 * 8;
+    task->m_tss.m_ss = 4 * 8;
+    task->m_tss.m_ds = 3 * 8;
+    task->m_tss.m_fs = 0;
+    task->m_tss.m_gs = 2 * 8;
 }
 #endif

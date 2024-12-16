@@ -41,11 +41,16 @@ typedef struct {
 typedef struct {
     unsigned char m_tr;    // gdt对应的TSS32位置下标, 用于任务切换
     unsigned char m_flags; // 任务状态
-    unsigned int
-        m_running_time_slice; // 该任务设置的运行时间片，时间片用完就会进行任务切换
-    unsigned int
-        m_remain_time_slice; // 任务剩余的时间片，时间片归零进行任务切换
-    unsigned int m_sleep_time_slice; // 任务剩余的睡眠时间片，时间片归零恢复任务
+
+    // 该任务设置的运行时间片.
+    // 当remain_time_slice归零，并且重新运行后，会使用这个值重新设置remain_time_slice
+    unsigned int m_running_time_slice;
+
+    // 任务剩余的时间片，时间片归零进行任务切换
+    unsigned int m_remain_time_slice;
+
+    // 任务剩余的睡眠时间片，时间片归零恢复任务
+    unsigned int m_sleep_time_slice;
     TSS32_t m_tss;
 } task_t;
 
