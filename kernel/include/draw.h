@@ -76,3 +76,9 @@ void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
 
 // 计算一个字符串占用的像素
 unsigned int string_in_pixels(const char *s);
+
+// 屏幕最大能显示的字体列数
+unsigned int max_screen_font_column(void);
+
+// 屏幕最大能显示的字体行数
+unsigned int max_screen_font_rows(void);

@@ -1,5 +1,17 @@
 This is a project for learning os knowledge.
 
+### 注意事项
+- 整个结构体赋值会出问题，导致整个程序异常退出。应该是objconv反汇编出问题。
+```
+struct Foo {
+    int a;
+    int b;
+}
+
+Foo a = { .a = 0, .b = 0 };
+Foo b = a; // 此处会出问题，可能导致内核在刚启动就异常退出，而不是代码运行到此处
+```
+
 ### Build tool version
 - `gcc (GCC) 13.3.0`
 - objconv: `Object file converter version 2.54 for x86 and x86-64 platforms`

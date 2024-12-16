@@ -256,3 +256,6 @@ void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
 }
 
 unsigned int string_in_pixels(const char *s) { return strlen(s) * FONT_WIDTH; }
+
+unsigned int max_screen_font_column(void) { return g_boot_info.m_screen_x / FONT_WIDTH; }
+unsigned int max_screen_font_rows(void) { return g_boot_info.m_screen_y / FONT_HEIGHT; }

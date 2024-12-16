@@ -49,16 +49,30 @@ typedef struct {
     TSS32_t m_tss;
 } task_t;
 
+typedef struct {
+    unsigned int m_total_task_counts;   // 所有可分配任务数
+    unsigned int m_used_task_counts;    // 已经使用的任务数
+    unsigned int m_running_task_counts; // 正在运行的任务数量
+    unsigned int m_sleep_task_counts;   // 睡眠任务数量
+    unsigned int m_suspend_task_counts; // 挂起任务数量
+} multi_task_statistics_t;
+
 // 任务管理器
 typedef struct {
-    int m_running_task_counts;  // 正在运行的任务数量
-    unsigned char m_current_tr; // 当前任务的tr
-    unsigned char m_next_tr;    // 下一个要运行的任务tr
+    int m_tasks_counts; // 运行的任务数量, 包括TASK_STATUS_RUNNING,
+                        // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
+    unsigned char m_current_tr;           // 当前任务的tr
+    unsigned char m_next_tr;              // 下一个要运行的任务tr
+    multi_task_statistics_t m_statistics; // 任务统计
     task_t *m_tasks[MAX_TASKS]; // 任务列表，长度为running_task_counts
     task_t m_tasks0[MAX_TASKS]; // 预分配内存
 } multi_task_ctl_t;
 
 extern multi_task_ctl_t *g_multi_task_ctl;
+
+// 设置段描述符
+void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
+                  unsigned int base, unsigned int ar);
 
 // 初始化
 void init_multi_task_ctl();
@@ -66,13 +80,19 @@ void init_multi_task_ctl();
 // 分配一个任务
 task_t *multi_task_alloc(unsigned int running_time_slice);
 
-// 恢复一个任务, 这个任务会添加到任务队列, 等待任务调度
+// 释放一个任务
+void multi_task_free(task_t *task);
+
+// 启动一个任务，这个任务必须是刚创建的
+void multi_task_run(task_t *task);
+
+// 恢复一个任务, 这个任务必须是suspend的
 void multi_task_resume(task_t *task);
 
-// 挂起一个任务
+// 挂起一个任务, 使用resume进行恢复. 只有TASK_STATUS_RUNNING任务才能挂起
 void multi_task_suspend(task_t *task);
 
-// 任务睡眠
+// 任务睡眠, 只有TASK_STATUS_RUNNING任务才能睡眠
 void multi_task_sleep(task_t *task, unsigned int sleep_time_slice);
 
 // 任务调度
@@ -81,9 +101,8 @@ void multi_task_schedul(void);
 // 切换到tr指定的任务
 void multi_task_switch(unsigned char tr);
 
-// 设置段描述符
-void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
-                  unsigned int base, unsigned int ar);
-
-// 切换到tr指定的任务
+// 放弃cpu的使用权，不会重置时间片，切换到tr指定的任务
 void multi_task_yeild(unsigned char tr);
+
+// 显示任务统计信息
+void multi_task_statistics_display(void);

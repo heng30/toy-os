@@ -1,3 +1,5 @@
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
+
 #include "multi_task_test.h"
 #include "colo8.h"
 #include "draw.h"
@@ -14,7 +16,7 @@ static void _multi_task_test_task_b_main(void) {
 
     unsigned int counter = 1;
     timer_t *timer = timer_alloc();
-    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3,
+    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3, 1,
               MULTI_TASK_TEST_B_MAIN_TIMER_DATA);
 
     for (;;) {
@@ -50,7 +52,7 @@ void multi_task_test_in_main_timer_callback(void) {
     show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main");
 
     // 重新启动光标定时器
-    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE, 1,
               INPUT_CURSOR_TIMER_DATA);
 }
 
@@ -133,7 +135,7 @@ void multi_task_test(void) {
 
     // 启动定器
     timer_t *timer = timer_alloc();
-    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3,
+    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE * 3, 1,
               MULTI_TASK_TEST_B_MAIN_TIMER_DATA);
 }
 
@@ -143,7 +145,7 @@ static void _multi_task_test_task_b_main_auto(void) {
     show_string_in_canvas(0, 160, COL8_FFFFFF, "enter task b auto");
 
     timer_t *timer = timer_alloc();
-    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
+    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE, 1,
               MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
 
     unsigned int pos = 0;
@@ -166,12 +168,12 @@ static void _multi_task_test_task_b_main_auto(void) {
                 show_string_in_canvas(pos, 250 + FONT_HEIGHT, COL8_FFFFFF, "B");
                 pos += 8;
 
-                set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
+                set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE, 1,
                           MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
 
                 multi_task_yeild(7); // gdt+7跳回到主线程
 
-                set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
+                set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE, 1,
                           MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
                 break;
             default:
@@ -196,7 +198,7 @@ void multi_task_test_in_main_timer_callback_auto(void) {
     show_string_in_canvas(0, 176 + 16, COL8_FFFFFF, "enter task main auto");
 
     // 重新启动光标定时器
-    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE, 1,
               INPUT_CURSOR_TIMER_DATA);
 }
 
@@ -246,6 +248,7 @@ void multi_task_test_auto(void) {
     tss_b.m_gs = tss_a.m_gs;
 
     timer_t *timer = timer_alloc();
-    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE,
+    set_timer(timer, TIMER_ONE_SECOND_TIME_SLICE, 1,
               MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
 }
+#endif

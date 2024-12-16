@@ -1,4 +1,5 @@
 #include "multi_task.h"
+#include "colo8.h"
 #include "draw.h"
 #include "io.h"
 #include "kutil.h"
@@ -8,7 +9,24 @@ static volatile unsigned int g_switch_task_counts = 0; // 任务切换次数
 
 multi_task_ctl_t *g_multi_task_ctl = NULL;
 
+void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
+                  unsigned int base, unsigned int ar) {
+    if (limit > 0xfffff) {
+        ar |= 0x8000; // G_bit = 1
+        limit /= 0x1000;
+    }
+
+    sd->m_limit_low = limit & 0xffff;
+    sd->m_base_low = base & 0xffff;
+    sd->m_base_mid = (base >> 16) & 0xff;
+    sd->m_access_right = ar & 0xff;
+    sd->m_limit_high = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
+    sd->m_base_high = (unsigned char)((base >> 24) & 0xff);
+}
+
 void init_multi_task_ctl(void) {
+    assert(MAX_TASKS <= 256, "init_multi_task_ctl MAX_TASKS is more than 256");
+
     g_multi_task_ctl =
         (multi_task_ctl_t *)memman_alloc_4k(sizeof(multi_task_ctl_t));
 
@@ -24,15 +42,19 @@ void init_multi_task_ctl(void) {
                      (ptr_t)&g_multi_task_ctl->m_tasks0[i].m_tss, AR_TSS32);
     }
 
-    task_t *task = multi_task_alloc(DEFAULT_RUNNING_TIME_SLICE);
-    assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
-
-    task->m_flags = TASK_STATUS_RUNNING;
-
-    g_multi_task_ctl->m_running_task_counts = 1;
+    g_multi_task_ctl->m_tasks_counts = 1;
     g_multi_task_ctl->m_current_tr = TASK_GDT0;
     g_multi_task_ctl->m_next_tr = TASK_GDT0;
-    g_multi_task_ctl->m_tasks[0] = task;
+
+    g_multi_task_ctl->m_statistics.m_total_task_counts = MAX_TASKS;
+    g_multi_task_ctl->m_statistics.m_used_task_counts = 0;
+    g_multi_task_ctl->m_statistics.m_running_task_counts = 0;
+    g_multi_task_ctl->m_statistics.m_sleep_task_counts = 0;
+    g_multi_task_ctl->m_statistics.m_suspend_task_counts = 0;
+
+    task_t *task = multi_task_alloc(DEFAULT_RUNNING_TIME_SLICE);
+    assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
+    multi_task_run(task);
 
     load_tr(task->m_tr << 3);
 }
@@ -64,6 +86,8 @@ task_t *multi_task_alloc(unsigned int running_time_slice) {
             task->m_tss.m_gs = 0;
             task->m_tss.m_ldtr = 0;
             task->m_tss.m_iomap = 0x40000000;
+
+            g_multi_task_ctl->m_statistics.m_used_task_counts++;
             return task;
         }
     }
@@ -72,24 +96,78 @@ task_t *multi_task_alloc(unsigned int running_time_slice) {
     return NULL;
 }
 
-void multi_task_resume(task_t *task) {
+void multi_task_free(task_t *task) {
+    for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
+        if (task == g_multi_task_ctl->m_tasks[i]) {
+            // 更新统计信息
+            g_multi_task_ctl->m_statistics.m_used_task_counts--;
+            if (task->m_flags == TASK_STATUS_RUNNING) {
+                g_multi_task_ctl->m_statistics.m_running_task_counts--;
+            } else if (task->m_flags == TASK_STATUS_SLEEP) {
+                g_multi_task_ctl->m_statistics.m_sleep_task_counts--;
+            } else if (task->m_flags == TASK_STATUS_SUSPEND) {
+                g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
+            }
+
+            task->m_flags = TASK_STATUS_UNUSED;
+
+            // 剩余的任务迁移一位，覆盖掉被移除的任务
+            for (unsigned char j = i; j < g_multi_task_ctl->m_tasks_counts - 1;
+                 j++) {
+                g_multi_task_ctl->m_tasks[j] = g_multi_task_ctl->m_tasks[j + 1];
+            }
+
+            g_multi_task_ctl->m_tasks_counts--;
+
+            return;
+        }
+    }
+}
+
+void multi_task_run(task_t *task) {
+    assert(task->m_flags == TASK_STATUS_USED,
+           "multi_task_run wrong task status. only `used task` can call this "
+           "function");
+
     task->m_flags = TASK_STATUS_RUNNING;
-    g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_running_task_counts] = task;
-    g_multi_task_ctl->m_running_task_counts++;
+    g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_tasks_counts] = task;
+    g_multi_task_ctl->m_tasks_counts++;
+    g_multi_task_ctl->m_statistics.m_running_task_counts++;
+}
+
+void multi_task_resume(task_t *task) {
+    assert(task->m_flags == TASK_STATUS_SUSPEND,
+           "multi_task_resume wrong task status. only suspend task can resume");
+
+    task->m_flags = TASK_STATUS_RUNNING;
+    g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
+    g_multi_task_ctl->m_statistics.m_running_task_counts++;
 }
 
 void multi_task_suspend(task_t *task) {
+    assert(
+        task->m_flags == TASK_STATUS_RUNNING,
+        "multi_task_suspend wrong task status. only running task can suspend");
 
+    task->m_flags = TASK_STATUS_SUSPEND;
+    g_multi_task_ctl->m_statistics.m_running_task_counts--;
+    g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
 }
 
 void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
+    assert(task->m_flags == TASK_STATUS_RUNNING,
+           "multi_task_sleep wrong task status. only running task can sleep");
 
+    task->m_flags = TASK_STATUS_SLEEP;
+    task->m_sleep_time_slice = sleep_time_slice;
+    g_multi_task_ctl->m_statistics.m_running_task_counts--;
+    g_multi_task_ctl->m_statistics.m_sleep_task_counts++;
 }
 
 // 获取下一个可运行的任务
 static unsigned char _get_next_availible_task(unsigned char current_index) {
     for (unsigned int i = current_index + 1;
-         i < (unsigned int)g_multi_task_ctl->m_running_task_counts; i++) {
+         i < (unsigned int)g_multi_task_ctl->m_tasks_counts; i++) {
         if (g_multi_task_ctl->m_tasks[i]->m_flags == TASK_STATUS_RUNNING) {
             return (unsigned char)i;
         }
@@ -105,9 +183,19 @@ static unsigned char _get_next_availible_task(unsigned char current_index) {
 }
 
 void multi_task_schedul(void) {
-    for (unsigned char i = 0; i < g_multi_task_ctl->m_running_task_counts;
-         i++) {
+    for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
         task_t *task = g_multi_task_ctl->m_tasks[i];
+
+        // 减少睡眠任务的睡眠时间片
+        if (task->m_flags == TASK_STATUS_SLEEP) {
+            if (task->m_sleep_time_slice == 0) {
+                task->m_flags = TASK_STATUS_RUNNING; // 等待下一次调度
+                g_multi_task_ctl->m_statistics.m_running_task_counts++;
+                g_multi_task_ctl->m_statistics.m_sleep_task_counts--;
+            } else {
+                task->m_sleep_time_slice--;
+            }
+        }
 
         // 找到当前正在运行的任务
         if (task->m_tr == g_multi_task_ctl->m_current_tr) {
@@ -133,14 +221,6 @@ void multi_task_schedul(void) {
                 task->m_remain_time_slice--;
             }
         }
-
-        if (task->m_flags == TASK_STATUS_SLEEP) {
-            if (task->m_sleep_time_slice == 0) {
-                task->m_flags = TASK_STATUS_RUNNING; // 等待下一次调度
-            } else {
-                task->m_sleep_time_slice--;
-            }
-        }
     }
 }
 
@@ -160,33 +240,41 @@ void multi_task_yeild(unsigned char tr) {
     unsigned int counts = g_switch_task_counts;
     g_multi_task_ctl->m_next_tr = tr;
 
-#ifdef __MULTI_TASK_DEBUG__
-    static unsigned int _multi_task_yeild_debug_count = 0;
-#endif
-
     // 等待任务切换完成, 在任务切换后g_switch_task_counts值会变。
     // 再次切换回来后判断就会为false，从而跳出死循环
     while (counts == g_switch_task_counts) {
         io_delay();
 
 #ifdef __MULTI_TASK_DEBUG__
+        static unsigned int _multi_task_yeild_debug_count = 0;
         show_string_in_canvas(FONT_WIDTH * 20, FONT_HEIGHT, COL8_FFFFFF,
                               int2hexstr(_multi_task_yeild_debug_count++));
 #endif
     }
 }
 
-void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
-                  unsigned int base, unsigned int ar) {
-    if (limit > 0xfffff) {
-        ar |= 0x8000; // G_bit = 1
-        limit /= 0x1000;
-    }
+void multi_task_statistics_display(void) {
+    multi_task_statistics_t *stats = &g_multi_task_ctl->m_statistics;
 
-    sd->m_limit_low = limit & 0xffff;
-    sd->m_base_low = base & 0xffff;
-    sd->m_base_mid = (base >> 16) & 0xff;
-    sd->m_access_right = ar & 0xff;
-    sd->m_limit_high = ((limit >> 16) & 0x0f) | ((ar >> 8) & 0xf0);
-    sd->m_base_high = (unsigned char)((base >> 24) & 0xff);
+    const char *headers[] = {
+        "total tasks counts: ",  "used tasks counts: ",
+        "unused tasks counts: ", "running tasks counts: ",
+        "sleep tasks counts: ",  "suspend tasks counts: ",
+    };
+
+    unsigned int datas[] = {
+        stats->m_total_task_counts,
+        stats->m_used_task_counts,
+        stats->m_total_task_counts - stats->m_used_task_counts,
+        stats->m_running_task_counts,
+        stats->m_sleep_task_counts,
+        stats->m_suspend_task_counts,
+    };
+    for (unsigned int i = 0; i < sizeof(datas) / sizeof(datas[0]); i++) {
+        unsigned int start_y = FONT_HEIGHT + i * FONT_HEIGHT;
+
+        show_string_in_canvas(0, start_y, COL8_FFFFFF, headers[i]);
+        show_string_in_canvas(FONT_WIDTH * 30, start_y, COL8_FFFFFF,
+                              int2hexstr(datas[i]));
+    }
 }

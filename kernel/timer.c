@@ -25,7 +25,7 @@ timerctl_t g_timerctl = {
             .m_buf = NULL,
             .m_size = TIMER_FIFO_QUEUE,
             .m_free = TIMER_FIFO_QUEUE,
-            .m_flags = 0,
+            .m_flags = UNUSED,
             .m_p = 0,
             .m_q = 0,
         },
@@ -54,6 +54,8 @@ timer_t *timer_alloc(void) {
         if (g_timerctl.m_timer[i].m_flags == UNUSED) {
             g_timerctl.m_timer[i].m_flags = USED;
             g_timerctl.m_timer[i].m_timeout = 0;
+            g_timerctl.m_timer[i].m_const_timeout = 0;
+            g_timerctl.m_timer[i].m_run_count = 0;
             g_timerctl.m_timer[i].m_data = 0;
             return &g_timerctl.m_timer[i];
         }
@@ -65,11 +67,14 @@ timer_t *timer_alloc(void) {
 
 void timer_free(timer_t *timer) { timer->m_flags = UNUSED; }
 
-void set_timer(timer_t *timer, unsigned int timeout, unsigned char data) {
+void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
+               unsigned char data) {
     int eflags = io_load_eflags();
     io_cli(); // 暂时停止接收中断信号
     timer->m_flags = RUNNING;
     timer->m_timeout = timeout; // 设定时间片
+    timer->m_const_timeout = timeout;
+    timer->m_run_count = run_count;
     timer->m_data = data;
     io_store_eflags(eflags); // 恢复接收中断信号
 }
@@ -84,13 +89,28 @@ void int_handler_for_timer(char *esp) {
         if (g_timerctl.m_timer[i].m_flags == RUNNING) {
             g_timerctl.m_timer[i].m_timeout--;
 
-            // 时间片用完，停止定时器
+            // 时间片用完
             if (g_timerctl.m_timer[i].m_timeout == 0) {
-                g_timerctl.m_timer[i].m_flags = USED;
+                // 重复次数也归零，则停止定时器
+                if (g_timerctl.m_timer[i].m_run_count == 0) {
+                    g_timerctl.m_timer[i].m_flags = USED;
+                } else {
+                    g_timerctl.m_timer[i].m_run_count--;
+
+                    // 重新启动定时器
+                    g_timerctl.m_timer[i].m_timeout =
+                        g_timerctl.m_timer[i].m_const_timeout;
+                }
+
                 fifo8_put(&g_timerctl.m_fifo, g_timerctl.m_timer[i].m_data);
             }
         }
     }
 
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
     multi_task_switch(g_multi_task_ctl->m_next_tr);
+#else
+    // 每次中断都进行任务调度，更新任务时间片和检查睡眠任务
+    multi_task_schedul();
+#endif
 }

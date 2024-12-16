@@ -12,7 +12,7 @@ input_cursor_t g_input_cursor = {
 
 static void _init_input_cursor_timer(void) {
     g_input_cursor_timer = timer_alloc();
-    set_timer(g_input_cursor_timer, INPUT_CURSOR_BLINK_INTERVAL,
+    set_timer(g_input_cursor_timer, 1, TIMER_MAX_RUN_COUNTS,
               INPUT_CURSOR_TIMER_DATA);
 }
 
@@ -65,6 +65,6 @@ void input_cursor_blink(void) {
     win_sheet_refresh(g_input_cursor_sht, 0, 0, INPUT_CURSOR_WIDTH,
                       INPUT_CURSOR_HEIGHT);
 
-    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE,
+    set_timer(g_input_cursor_timer, TIMER_INPUT_CURSOR_TIME_SLICE, 1,
               INPUT_CURSOR_TIMER_DATA);
 }
