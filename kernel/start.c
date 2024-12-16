@@ -83,7 +83,8 @@ void timer_callback() {
         break;
 
     case 111:
-        show_string_in_canvas(FONT_WIDTH * 16, 0, COL8_FFFFFF, "infinite timer counter:");
+        show_string_in_canvas(FONT_WIDTH * 16, 0, COL8_FFFFFF,
+                              "infinite timer counter:");
         show_string_in_canvas(FONT_WIDTH * 40, 0, COL8_FFFFFF,
                               int2hexstr(timer_callback_timer_counter++));
         break;
@@ -112,7 +113,7 @@ void start_kernel(void) {
     init_input_cursor();
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
-    input_box_t *input_box = input_box_new(300, 150, 168, 68, "Input-Box");
+    input_box_t *input_box = input_box_new(300, 200, 168, 68, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
     win_sheet_set_moving(input_box->m_sheet);
 
@@ -131,6 +132,8 @@ void start_kernel(void) {
 #ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
     // multi_task_test();
     multi_task_test_auto();
+#else
+    multi_task_test_schedul();
 #endif
 
     unsigned int counter = 0;

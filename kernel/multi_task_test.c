@@ -1,13 +1,12 @@
-
 #include "multi_task_test.h"
 #include "colo8.h"
 #include "draw.h"
+#include "io.h"
 #include "multi_task.h"
 
 #ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 #include "fifo8.h"
 #include "input_cursor.h"
-#include "io.h"
 #include "kutil.h"
 
 /*************************************单次任务切换测试****************************/
@@ -253,39 +252,71 @@ void multi_task_test_auto(void) {
               MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA);
 }
 
-#else
+#else // 测试任务调度算法
+static task_t *g_task_print_A = NULL;
+static task_t *g_task_print_B = NULL;
 
-void print_A(task_t *task) {
-    static unsigned int print_A_pos = 0;
+void multi_task_test_schedul_print_A(void) {
+    unsigned int pos = 0;
 
     for (;;) {
-        show_string_in_canvas(print_A_pos, 250, COL8_FFFFFF, "A");
-        print_A_pos += 8;
+        show_string_in_canvas(pos, 250, COL8_FFFFFF, "A");
+        pos += FONT_WIDTH;
 
-        multi_task_sleep(task, TIMER_ONE_SECOND_TIME_SLICE);
+        if (pos == FONT_WIDTH * 5) {
+            multi_task_suspend(g_task_print_A);
+        } else {
+            multi_task_sleep(g_task_print_A, TIMER_ONE_SECOND_TIME_SLICE * 1);
+        }
     }
 }
 
-void print_B(task_t *task) {
-    static unsigned int print_B_pos = 0;
-    for (;;) {
-        show_string_in_canvas(print_B_pos, 250 + FONT_HEIGHT, COL8_FFFFFF, "B");
-        print_B_pos += 8;
+void multi_task_test_schedul_print_B(void) {
+    unsigned int pos = 0;
 
-        multi_task_sleep(task, TIMER_ONE_SECOND_TIME_SLICE);
+    for (;;) {
+        show_string_in_canvas(pos, 250 + FONT_HEIGHT, COL8_FFFFFF, "B");
+        pos += FONT_WIDTH;
+
+        multi_task_sleep(g_task_print_B, TIMER_ONE_SECOND_TIME_SLICE);
+
+        if (pos == FONT_WIDTH * 10) {
+            multi_task_resume(g_task_print_A);
+        }
     }
 }
 
 void multi_task_test_schedul(void) {
-    unsigned int addr_code32 = get_code32_addr();
-    task_t *task = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
+    g_task_print_A = multi_task_alloc((ptr_t)multi_task_test_schedul_print_A,
+                                      TIMER_ONE_SECOND_TIME_SLICE);
 
-    task->m_tss.m_eip = print_B - addr_code32;
-    task->m_tss.m_es = 0;
-    task->m_tss.m_cs = 1 * 8; // 6 * 8;
-    task->m_tss.m_ss = 4 * 8;
-    task->m_tss.m_ds = 3 * 8;
-    task->m_tss.m_fs = 0;
-    task->m_tss.m_gs = 2 * 8;
+    g_task_print_B = multi_task_alloc((ptr_t)multi_task_test_schedul_print_B,
+                                      TIMER_ONE_SECOND_TIME_SLICE);
+
+    multi_task_run(g_task_print_A);
+    multi_task_run(g_task_print_B);
+
+    // unsigned int addr_code32 = get_code32_addr();
+    // g_task_print_A = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
+    // g_task_print_A->m_tss.m_eip =
+    //     (ptr_t)(multi_task_test_schedul_print_A - addr_code32);
+    // g_task_print_A->m_tss.m_es = 0;
+    // g_task_print_A->m_tss.m_cs = 1 * 8; // 6 * 8;
+    // g_task_print_A->m_tss.m_ss = 4 * 8;
+    // g_task_print_A->m_tss.m_ds = 3 * 8;
+    // g_task_print_A->m_tss.m_fs = 0;
+    // g_task_print_A->m_tss.m_gs = 2 * 8;
+    // multi_task_run(g_task_print_A);
+
+    // g_task_print_B = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
+    // g_task_print_B->m_tss.m_eip =
+    //     (ptr_t)(multi_task_test_schedul_print_B - addr_code32);
+    // g_task_print_B->m_tss.m_es = 0;
+    // g_task_print_B->m_tss.m_cs = 1 * 8; // 6 * 8;
+    // g_task_print_B->m_tss.m_ss = 4 * 8;
+    // g_task_print_B->m_tss.m_ds = 3 * 8;
+    // g_task_print_B->m_tss.m_fs = 0;
+    // g_task_print_B->m_tss.m_gs = 2 * 8;
+    // multi_task_run(g_task_print_B);
 }
 #endif

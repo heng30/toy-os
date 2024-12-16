@@ -9,6 +9,46 @@ static volatile unsigned int g_switch_task_counts = 0; // 任务切换次数
 
 multi_task_ctl_t *g_multi_task_ctl = NULL;
 
+static void _wait_task_schedul(void) {
+    unsigned int counts = g_switch_task_counts;
+
+    // 等待任务切换完成, 在任务切换后g_switch_task_counts值会变。
+    // 再次切换回来后判断就会为false，从而跳出死循环
+    while (counts == g_switch_task_counts) {
+        io_delay();
+    }
+}
+
+// 获取下一个可运行的任务
+static unsigned char _get_next_availible_task(unsigned char current_index) {
+    for (unsigned int i = current_index + 1;
+         i < (unsigned int)g_multi_task_ctl->m_tasks_counts; i++) {
+        if (g_multi_task_ctl->m_tasks[i]->m_flags == TASK_STATUS_RUNNING) {
+            return (unsigned char)i;
+        }
+    }
+
+    for (unsigned char i = 0; i < current_index; i++) {
+        if (g_multi_task_ctl->m_tasks[i]->m_flags == TASK_STATUS_RUNNING) {
+            return i;
+        }
+    }
+
+    return current_index;
+}
+
+// 获取下一个可运行的任务
+static unsigned char _get_next_availible_tr(unsigned char current_tr) {
+    for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
+        task_t *task = g_multi_task_ctl->m_tasks[i];
+        if (task->m_tr != current_tr && task->m_flags == TASK_STATUS_RUNNING) {
+            return i;
+        }
+    }
+
+    return current_tr;
+}
+
 void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
                   unsigned int base, unsigned int ar) {
     if (limit > 0xfffff) {
@@ -42,7 +82,7 @@ void init_multi_task_ctl(void) {
                      (ptr_t)&g_multi_task_ctl->m_tasks0[i].m_tss, AR_TSS32);
     }
 
-    g_multi_task_ctl->m_tasks_counts = 1;
+    g_multi_task_ctl->m_tasks_counts = 0;
     g_multi_task_ctl->m_current_tr = TASK_GDT0;
     g_multi_task_ctl->m_next_tr = TASK_GDT0;
 
@@ -52,16 +92,21 @@ void init_multi_task_ctl(void) {
     g_multi_task_ctl->m_statistics.m_sleep_task_counts = 0;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts = 0;
 
-    task_t *task = multi_task_alloc(DEFAULT_RUNNING_TIME_SLICE);
+    // 此处传入NULL不会有问题，因为这个是主任务，也是正在运行的任务。
+    // 在进行第一次任务切换时，会更新eip的值。
+    task_t *task = multi_task_alloc((ptr_t)NULL, DEFAULT_RUNNING_TIME_SLICE);
     assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
     multi_task_run(task);
 
+    // 确保第一次任务切换时，当前的TSS32值保存到`task->m_tss`中
     load_tr(task->m_tr << 3);
 }
 
-task_t *multi_task_alloc(unsigned int running_time_slice) {
+task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice) {
     for (unsigned char i = 0; i < MAX_TASKS; i++) {
         if (g_multi_task_ctl->m_tasks0[i].m_flags == TASK_STATUS_UNUSED) {
+            unsigned int addr_code32 = get_code32_addr();
+
             task_t *task = &g_multi_task_ctl->m_tasks0[i];
             task->m_flags = TASK_STATUS_USED;
             task->m_running_time_slice = running_time_slice;
@@ -86,6 +131,14 @@ task_t *multi_task_alloc(unsigned int running_time_slice) {
             task->m_tss.m_gs = 0;
             task->m_tss.m_ldtr = 0;
             task->m_tss.m_iomap = 0x40000000;
+
+            task->m_tss.m_eip = task_main - addr_code32;
+            task->m_tss.m_es = 0;
+            task->m_tss.m_cs = 1 * 8; // 6 * 8;
+            task->m_tss.m_ss = 4 * 8;
+            task->m_tss.m_ds = 3 * 8;
+            task->m_tss.m_fs = 0;
+            task->m_tss.m_gs = 2 * 8;
 
             g_multi_task_ctl->m_statistics.m_used_task_counts++;
             return task;
@@ -131,12 +184,13 @@ void multi_task_free(task_t *task) {
 }
 
 void multi_task_run(task_t *task) {
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+
     assert(task->m_flags == TASK_STATUS_USED,
            "multi_task_run wrong task status. only `used task` can call this "
            "function");
 
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_tasks_counts] = task;
     g_multi_task_ctl->m_tasks_counts++;
@@ -145,11 +199,12 @@ void multi_task_run(task_t *task) {
 }
 
 void multi_task_resume(task_t *task) {
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+
     assert(task->m_flags == TASK_STATUS_SUSPEND,
            "multi_task_resume wrong task status. only suspend task can resume");
 
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
@@ -157,32 +212,39 @@ void multi_task_resume(task_t *task) {
 }
 
 void multi_task_suspend(task_t *task) {
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+
     assert(
         task->m_flags == TASK_STATUS_RUNNING,
         "multi_task_suspend wrong task status. only running task can suspend");
 
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_SUSPEND;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
     io_store_eflags(eflags); // 恢复接收中断信号
+
+    _wait_task_schedul();
 }
 
 void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+
     assert(task->m_flags == TASK_STATUS_RUNNING,
            "multi_task_sleep wrong task status. only running task can sleep");
 
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-    task->m_flags = TASK_STATUS_SUSPEND;
+    unsigned char tr = task->m_tr;
     task->m_flags = TASK_STATUS_SLEEP;
     task->m_sleep_time_slice = sleep_time_slice;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_sleep_task_counts++;
     io_store_eflags(eflags); // 恢复接收中断信号
+
+    _wait_task_schedul();
 }
 
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 void multi_task_yeild(unsigned char tr) {
     unsigned int counts = g_switch_task_counts;
 
@@ -195,32 +257,9 @@ void multi_task_yeild(unsigned char tr) {
     // 再次切换回来后判断就会为false，从而跳出死循环
     while (counts == g_switch_task_counts) {
         io_delay();
-
-#ifdef __MULTI_TASK_DEBUG__
-        static unsigned int _multi_task_yeild_debug_count = 0;
-        show_string_in_canvas(FONT_WIDTH * 20, FONT_HEIGHT, COL8_FFFFFF,
-                              int2hexstr(_multi_task_yeild_debug_count++));
+    }
+}
 #endif
-    }
-}
-
-// 获取下一个可运行的任务
-static unsigned char _get_next_availible_task(unsigned char current_index) {
-    for (unsigned int i = current_index + 1;
-         i < (unsigned int)g_multi_task_ctl->m_tasks_counts; i++) {
-        if (g_multi_task_ctl->m_tasks[i]->m_flags == TASK_STATUS_RUNNING) {
-            return (unsigned char)i;
-        }
-    }
-
-    for (unsigned char i = 0; i < current_index; i++) {
-        if (g_multi_task_ctl->m_tasks[i]->m_flags == TASK_STATUS_RUNNING) {
-            return i;
-        }
-    }
-
-    return current_index;
-}
 
 void multi_task_schedul(void) {
     for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
@@ -240,7 +279,9 @@ void multi_task_schedul(void) {
         // 找到当前正在运行的任务
         if (task->m_tr == g_multi_task_ctl->m_current_tr) {
             // 时间片用完，进行任务切换
-            if (task->m_remain_time_slice == 0) {
+            if (task->m_remain_time_slice == 0 ||
+                task->m_flags == TASK_STATUS_SLEEP ||
+                task->m_flags == TASK_STATUS_SUSPEND) {
                 unsigned char next_index = _get_next_availible_task(i);
 
                 // 没有其他可以运行的任务，继续当前的任务
@@ -280,9 +321,15 @@ void multi_task_statistics_display(void) {
     multi_task_statistics_t *stats = &g_multi_task_ctl->m_statistics;
 
     const char *headers[] = {
-        "total tasks counts: ",  "used tasks counts: ",
-        "unused tasks counts: ", "running tasks counts: ",
-        "sleep tasks counts: ",  "suspend tasks counts: ",
+        "total tasks counts: ",
+        "used tasks counts: ",
+        "unused tasks counts: ",
+        "running tasks counts: ",
+        "sleep tasks counts: ",
+        "suspend tasks counts: ",
+        "array tasks counts",
+        "current_tr",
+        "next_tr",
     };
 
     unsigned int datas[] = {
@@ -292,6 +339,9 @@ void multi_task_statistics_display(void) {
         stats->m_running_task_counts,
         stats->m_sleep_task_counts,
         stats->m_suspend_task_counts,
+        g_multi_task_ctl->m_tasks_counts,
+        g_multi_task_ctl->m_current_tr,
+        g_multi_task_ctl->m_next_tr,
     };
     for (unsigned int i = 0; i < sizeof(datas) / sizeof(datas[0]); i++) {
         unsigned int start_y = FONT_HEIGHT + i * FONT_HEIGHT;

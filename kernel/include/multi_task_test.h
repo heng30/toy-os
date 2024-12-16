@@ -14,4 +14,7 @@ void multi_task_test_in_main_timer_callback_auto(void);
 
 // 测试
 void multi_task_test_auto(void);
+#else
+// 测试任务调度，会交叉打印出ABAB...
+void multi_task_test_schedul(void);
 #endif

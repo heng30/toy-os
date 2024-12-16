@@ -7,7 +7,7 @@
 
 // 最大支持的任务数, 数量小于256
 // 需要根据kernel.asm的TSS32描述符和堆栈数量确定
-#define MAX_TASKS 2
+#define MAX_TASKS 3
 #define TASK_GDT0 7 // 开始的tr值, 也是主任务的tr
 
 // 任务堆栈大小，需要和kernel.asm中分配的堆栈大小一致
@@ -16,7 +16,7 @@
 #define DEFAULT_RUNNING_TIME_SLICE TIMER_ONE_SECOND_TIME_SLICE // 1秒
 
 #define TASK_STATUS_UNUSED 0  // 没有分配
-#define TASK_STATUS_USED 1    // 已经分配，当没有运行过
+#define TASK_STATUS_USED 1    // 已经分配，但没有运行过
 #define TASK_STATUS_RUNNING 2 // 正在运行
 #define TASK_STATUS_SLEEP 3   // 正在睡眠
 #define TASK_STATUS_SUSPEND 4 // 挂起
@@ -64,8 +64,9 @@ typedef struct {
 
 // 任务管理器
 typedef struct {
-    int m_tasks_counts; // 运行的任务数量, 包括TASK_STATUS_RUNNING,
-                        // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
+    // 运行的任务数量, 包括TASK_STATUS_RUNNING,
+    // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
+    unsigned int m_tasks_counts;
     unsigned char m_current_tr;           // 当前任务的tr
     unsigned char m_next_tr;              // 下一个要运行的任务tr
     multi_task_statistics_t m_statistics; // 任务统计
@@ -83,7 +84,7 @@ void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
 void init_multi_task_ctl();
 
 // 分配一个任务
-task_t *multi_task_alloc(unsigned int running_time_slice);
+task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice);
 
 // 释放一个任务
 void multi_task_free(task_t *task);
@@ -106,8 +107,10 @@ void multi_task_schedul(void);
 // 切换到tr指定的任务
 void multi_task_switch(unsigned char tr);
 
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 // 放弃cpu的使用权，不会重置时间片，切换到tr指定的任务
 void multi_task_yeild(unsigned char tr);
+#endif
 
 // 显示任务统计信息
 void multi_task_statistics_display(void);

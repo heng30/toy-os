@@ -17,6 +17,7 @@ LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409
 LABEL_DESC_7:       Descriptor        0,            0,                      0 ; 主任务的TSS32对象
 LABEL_DESC_8:       Descriptor        0,            0,                      0
 LABEL_DESC_9:       Descriptor        0,            0,                      0
+LABEL_DESC_10:      Descriptor        0,            0,                      0
 
 
 GDT_LEN     equ    $ - LABEL_GDT
@@ -196,6 +197,8 @@ LABEL_STACK:
 
     times 1024 db 0
     TOP_OF_STACK2 equ $ - LABEL_STACK
+
+    times 1024 db 0
 
 LEN_OF_STACK_SECTION equ $ - LABEL_STACK
 
