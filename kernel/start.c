@@ -12,6 +12,7 @@
 #include "win_sheet.h"
 
 #include "multi_task_test.h"
+#include "widgets/canvas.h"
 #include "widgets/input_box.h"
 
 void mouse_callback(void) {

@@ -224,38 +224,39 @@ void init_background_sheet(void) {
     win_sheet_show(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }
 
-void clear_sheet(unsigned char *vram, unsigned int size, unsigned char c) {
+// vram: 需要修改的缓冲区
+// size: 缓冲区大小
+// c: 颜色值
+void set_buffer(unsigned char *vram, unsigned int size, unsigned char c) {
     for (unsigned int i = 0; i < size; i++) {
         vram[i] = c;
     }
 }
 
-void init_canvas_sheet(int z) {
-    unsigned int xsize = g_boot_info.m_screen_x, ysize = g_boot_info.m_screen_y;
-    unsigned char *buf = (unsigned char *)memman_alloc_4k(xsize * ysize);
-    assert(buf != NULL, "show_string_in_canvas memory alloc error");
+// vram: 需要修改的二维数组缓冲区
+// xsize: 数组宽度
+// x: 起始位置
+// y: 起始位置
+// w: 宽度
+// h: 高度
+// c: 颜色值
+void set_buffer_space(unsigned char *vram, unsigned int xsize, unsigned int x,
+                      unsigned int y, unsigned int w, unsigned int h,
+                      unsigned char c) {
 
-    clear_sheet(buf, xsize * ysize, COLOR_INVISIBLE);
-
-    g_canvas_sht = win_sheet_alloc();
-    assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
-
-    g_canvas_sht->m_is_transparent_layer = true;
-    win_sheet_setbuf(g_canvas_sht, "canvas", buf, xsize, ysize,
-                     COLOR_INVISIBLE);
-    win_sheet_slide(g_canvas_sht, 0, 0);
-    win_sheet_show(g_canvas_sht, z);
-}
-
-void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
-                           const char *s) {
-    if (!g_canvas_sht)
-        return;
-
-    show_string(g_canvas_sht, x, y, COLOR_INVISIBLE, color, s);
+    for (unsigned int i = 0; i < h; i++) {
+        for (unsigned int j = 0; j < w; j++) {
+            unsigned int pos = xsize * (y + i) + x + j;
+            vram[pos] = c;
+        }
+    }
 }
 
 unsigned int string_in_pixels(const char *s) { return strlen(s) * FONT_WIDTH; }
 
-unsigned int max_screen_font_column(void) { return g_boot_info.m_screen_x / FONT_WIDTH; }
-unsigned int max_screen_font_rows(void) { return g_boot_info.m_screen_y / FONT_HEIGHT; }
+unsigned int max_screen_font_column(void) {
+    return g_boot_info.m_screen_x / FONT_WIDTH;
+}
+unsigned int max_screen_font_rows(void) {
+    return g_boot_info.m_screen_y / FONT_HEIGHT;
+}

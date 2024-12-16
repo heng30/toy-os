@@ -5,6 +5,8 @@
 #include "kutil.h"
 #include "memory.h"
 
+#include "widgets/canvas.h"
+
 static volatile unsigned int g_switch_task_counts = 0; // 任务切换次数
 
 multi_task_ctl_t *g_multi_task_ctl = NULL;

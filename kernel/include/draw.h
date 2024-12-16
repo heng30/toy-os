@@ -20,9 +20,6 @@ extern boot_info_t g_boot_info;
 // 背景图层
 extern win_sheet_t *g_background_sht;
 
-// 画布图层
-extern win_sheet_t *g_canvas_sht;
-
 // 初始化屏幕分辨率
 void init_boot_info(void);
 
@@ -64,15 +61,13 @@ void show_debug_string(unsigned int x, unsigned int y, unsigned char color,
 // 绘制J背景
 void init_background_sheet(void);
 
-// 创建绘制面板
-void init_canvas_sheet(int z);
+// 设置buffer所有值为c
+void set_buffer(unsigned char *vram, unsigned int size, unsigned char c);
 
-// 清空图层所有数据，使图层透明
-void clear_sheet(unsigned char *vram, unsigned int size, unsigned char c);
-
-// 绘制字符串到调试面板
-void show_string_in_canvas(unsigned int x, unsigned int y, unsigned char color,
-                           const char *s);
+// 设置buffer的特定区域
+void set_buffer_space(unsigned char *vram, unsigned int xsize, unsigned int x,
+                      unsigned int y, unsigned int w, unsigned int h,
+                      unsigned char c);
 
 // 计算一个字符串占用的像素
 unsigned int string_in_pixels(const char *s);

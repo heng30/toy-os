@@ -4,6 +4,8 @@
 #include "io.h"
 #include "multi_task.h"
 
+#include "widgets/canvas.h"
+
 #ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
 #include "fifo8.h"
 #include "input_cursor.h"
@@ -268,6 +270,11 @@ void multi_task_test_schedul_print_A(void) {
         } else {
             multi_task_sleep(g_task_print_A, TIMER_ONE_SECOND_TIME_SLICE * 1);
         }
+
+        if (pos >= g_boot_info.m_screen_x) {
+            clear_canvas_space(0, 250, g_canvas_sht->m_bxsize, FONT_HEIGHT);
+            pos = 0;
+        }
     }
 }
 
@@ -282,6 +289,12 @@ void multi_task_test_schedul_print_B(void) {
 
         if (pos == FONT_WIDTH * 10) {
             multi_task_resume(g_task_print_A);
+        }
+
+        if (pos >= g_boot_info.m_screen_x) {
+            clear_canvas_space(0, 250 + FONT_HEIGHT, g_canvas_sht->m_bxsize,
+                               FONT_HEIGHT);
+            pos = 0;
         }
     }
 }
