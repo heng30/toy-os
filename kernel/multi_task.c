@@ -99,6 +99,10 @@ task_t *multi_task_alloc(unsigned int running_time_slice) {
 void multi_task_free(task_t *task) {
     for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
         if (task == g_multi_task_ctl->m_tasks[i]) {
+
+            int eflags = io_load_eflags();
+            io_cli(); // 暂时停止接收中断信号
+
             // 更新统计信息
             g_multi_task_ctl->m_statistics.m_used_task_counts--;
             if (task->m_flags == TASK_STATUS_RUNNING) {
@@ -119,6 +123,8 @@ void multi_task_free(task_t *task) {
 
             g_multi_task_ctl->m_tasks_counts--;
 
+            io_store_eflags(eflags); // 恢复接收中断信号
+
             return;
         }
     }
@@ -129,19 +135,25 @@ void multi_task_run(task_t *task) {
            "multi_task_run wrong task status. only `used task` can call this "
            "function");
 
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_tasks_counts] = task;
     g_multi_task_ctl->m_tasks_counts++;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
+    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void multi_task_resume(task_t *task) {
     assert(task->m_flags == TASK_STATUS_SUSPEND,
            "multi_task_resume wrong task status. only suspend task can resume");
 
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
+    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void multi_task_suspend(task_t *task) {
@@ -149,19 +161,47 @@ void multi_task_suspend(task_t *task) {
         task->m_flags == TASK_STATUS_RUNNING,
         "multi_task_suspend wrong task status. only running task can suspend");
 
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
     task->m_flags = TASK_STATUS_SUSPEND;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
+    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
     assert(task->m_flags == TASK_STATUS_RUNNING,
            "multi_task_sleep wrong task status. only running task can sleep");
 
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+    task->m_flags = TASK_STATUS_SUSPEND;
     task->m_flags = TASK_STATUS_SLEEP;
     task->m_sleep_time_slice = sleep_time_slice;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_sleep_task_counts++;
+    io_store_eflags(eflags); // 恢复接收中断信号
+}
+
+void multi_task_yeild(unsigned char tr) {
+    unsigned int counts = g_switch_task_counts;
+
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+    g_multi_task_ctl->m_next_tr = tr;
+    io_store_eflags(eflags); // 恢复接收中断信号
+
+    // 等待任务切换完成, 在任务切换后g_switch_task_counts值会变。
+    // 再次切换回来后判断就会为false，从而跳出死循环
+    while (counts == g_switch_task_counts) {
+        io_delay();
+
+#ifdef __MULTI_TASK_DEBUG__
+        static unsigned int _multi_task_yeild_debug_count = 0;
+        show_string_in_canvas(FONT_WIDTH * 20, FONT_HEIGHT, COL8_FFFFFF,
+                              int2hexstr(_multi_task_yeild_debug_count++));
+#endif
+    }
 }
 
 // 获取下一个可运行的任务
@@ -233,23 +273,6 @@ void multi_task_switch(unsigned char tr) {
     if (g_multi_task_ctl->m_current_tr > 0) {
         g_switch_task_counts++;
         farjmp(0, g_multi_task_ctl->m_current_tr << 3);
-    }
-}
-
-void multi_task_yeild(unsigned char tr) {
-    unsigned int counts = g_switch_task_counts;
-    g_multi_task_ctl->m_next_tr = tr;
-
-    // 等待任务切换完成, 在任务切换后g_switch_task_counts值会变。
-    // 再次切换回来后判断就会为false，从而跳出死循环
-    while (counts == g_switch_task_counts) {
-        io_delay();
-
-#ifdef __MULTI_TASK_DEBUG__
-        static unsigned int _multi_task_yeild_debug_count = 0;
-        show_string_in_canvas(FONT_WIDTH * 20, FONT_HEIGHT, COL8_FFFFFF,
-                              int2hexstr(_multi_task_yeild_debug_count++));
-#endif
     }
 }
 
