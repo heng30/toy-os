@@ -1,7 +1,6 @@
 #pragma once
 
 #include "def.h"
-#include "fifo8.h"
 
 #define FIFO8_FLAGS_OVERFLOW 0x0001
 

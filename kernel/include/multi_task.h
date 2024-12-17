@@ -68,7 +68,11 @@ typedef struct {
     // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
     unsigned int m_tasks_counts;
     unsigned char m_current_tr;           // 当前任务的tr
+                                          //
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
     unsigned char m_next_tr;              // 下一个要运行的任务tr
+#endif
+
     multi_task_statistics_t m_statistics; // 任务统计
     task_t *m_tasks[MAX_TASKS]; // 任务列表，长度为running_task_counts
     task_t m_tasks0[MAX_TASKS]; // 预分配内存

@@ -86,7 +86,10 @@ void init_multi_task_ctl(void) {
 
     g_multi_task_ctl->m_tasks_counts = 0;
     g_multi_task_ctl->m_current_tr = TASK_GDT0;
+
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
     g_multi_task_ctl->m_next_tr = TASK_GDT0;
+#endif
 
     g_multi_task_ctl->m_statistics.m_total_task_counts = MAX_TASKS;
     g_multi_task_ctl->m_statistics.m_used_task_counts = 0;
@@ -221,6 +224,9 @@ void multi_task_suspend(task_t *task) {
         task->m_flags == TASK_STATUS_RUNNING,
         "multi_task_suspend wrong task status. only running task can suspend");
 
+    assert(task->m_tr = g_multi_task_ctl->m_current_tr,
+           "multi_task_suspend can only make the current task suspend");
+
     task->m_flags = TASK_STATUS_SUSPEND;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
@@ -235,6 +241,9 @@ void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
 
     assert(task->m_flags == TASK_STATUS_RUNNING,
            "multi_task_sleep wrong task status. only running task can sleep");
+
+    assert(task->m_tr = g_multi_task_ctl->m_current_tr,
+           "multi_task_sleep can only make the current task sleep");
 
     unsigned char tr = task->m_tr;
     task->m_flags = TASK_STATUS_SLEEP;
@@ -331,7 +340,10 @@ void multi_task_statistics_display(void) {
         "suspend tasks counts: ",
         "array tasks counts",
         "current_tr",
+
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
         "next_tr",
+#endif
     };
 
     unsigned int datas[] = {
@@ -343,7 +355,10 @@ void multi_task_statistics_display(void) {
         stats->m_suspend_task_counts,
         g_multi_task_ctl->m_tasks_counts,
         g_multi_task_ctl->m_current_tr,
+
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
         g_multi_task_ctl->m_next_tr,
+#endif
     };
     for (unsigned int i = 0; i < sizeof(datas) / sizeof(datas[0]); i++) {
         unsigned int start_y = FONT_HEIGHT + i * FONT_HEIGHT;

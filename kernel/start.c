@@ -8,12 +8,26 @@
 #include "memory.h"
 #include "mouse.h"
 #include "multi_task.h"
+#include "ring.h"
 #include "timer.h"
 #include "win_sheet.h"
 
 #include "multi_task_test.h"
 #include "widgets/canvas.h"
 #include "widgets/input_box.h"
+
+static void _test(void) {
+#ifdef __RING_TEST__
+    ring_test();
+#endif
+
+#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
+    // multi_task_test();
+    multi_task_test_auto();
+#else
+    multi_task_test_schedul();
+#endif
+}
 
 void mouse_callback(void) {
     unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
@@ -130,12 +144,7 @@ void start_kernel(void) {
     io_sti(); // 开中断
     enable_mouse();
 
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-    // multi_task_test();
-    multi_task_test_auto();
-#else
-    multi_task_test_schedul();
-#endif
+    _test();
 
     unsigned int counter = 0;
     for (;;) {
@@ -147,7 +156,6 @@ void start_kernel(void) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
             keyboard_callback(input_box);
-
             // if (win_sheet_is_visible(WIN_SHEET_OBJ(input_box))) {
             //     input_box_hide(input_box);
             // } else {
