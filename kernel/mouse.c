@@ -6,7 +6,11 @@
 #include "keyboard_mouse.h"
 #include "kutil.h"
 
+#include "widgets/canvas.h"
+
 win_sheet_t *g_mouse_sht = NULL;
+
+task_t *g_mouse_task = NULL;
 
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
@@ -131,16 +135,48 @@ void keep_mouse_sheet_on_top(void) {
     win_sheet_show(g_mouse_sht, MOUSE_WIN_SHEET_Z);
 }
 
+// 鼠标中断函数
 void int_handler_for_mouse(char *esp) {
     io_out8(PIC1_OCW2, 0x20);
     io_out8(PIC_OCW2, 0x20);
 
     unsigned char data = io_in8(PORT_KEYDAT);
     fifo8_put(&g_mouseinfo, data);
+    multi_task_priority_task_add(g_mouse_task);
 }
 
 bool is_mouse_left_btn_pressed(void) { return (g_mdec.m_btn & 0x01) != 0; }
-
 bool is_mouse_right_btn_pressed(void) { return (g_mdec.m_btn & 0x2) != 0; }
-
 bool is_mouse_middle_btn_pressed(void) { return (g_mdec.m_btn & 0x4) != 0; }
+
+static void _mouse_task_main(void) {
+    unsigned int counter = 0;
+
+    for (;;) {
+        // show_string_in_canvas(0, 300, COL8_FFFFFF, int2hexstr(counter++));
+
+        io_cli();
+        if (fifo8_is_empty(&g_mouseinfo)) {
+            io_sti(); // 开中断，保证循环不会被挂起
+        } else if (!fifo8_is_empty(&g_mouseinfo)) {
+            unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
+
+            io_sti();
+
+            if (mouse_decode(code) == 1) {
+                draw_mouse();
+
+                if (is_mouse_left_btn_pressed()) {
+                    // TODO: 捕获鼠标左键按下
+                    moving_sheet();
+                }
+            }
+        }
+    }
+}
+
+
+void init_mouse_task(void) {
+    g_mouse_task =
+        multi_task_alloc((ptr_t)_mouse_task_main, 1);
+}

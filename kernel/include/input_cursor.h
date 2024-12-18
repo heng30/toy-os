@@ -11,7 +11,9 @@
 typedef struct {
     unsigned char
         m_input_cursor[INPUT_CURSOR_HEIGHT * INPUT_CURSOR_WIDTH]; // 输入光标
-    unsigned char m_input_cursor_color; // 输入光标颜色
+    unsigned char m_input_cursor_color;      // 当前光标的颜色
+    unsigned char m_input_cursor_color_show; // 光标显示颜色
+    unsigned char m_input_cursor_color_hide; // 光标隐藏颜色
 } input_cursor_t;
 
 // 输入光标图层
@@ -22,6 +24,10 @@ extern timer_t *g_input_cursor_timer;
 
 // 初始化输入光标
 void init_input_cursor(void);
+
+// 设置光标显示和隐藏的颜色
+void input_cursor_set_color(unsigned char show_color,
+                            unsigned char hide_color);
 
 // 显示输入光标
 void input_cursor_show(int z);

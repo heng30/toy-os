@@ -4,6 +4,7 @@
 #include "draw.h"
 #include "fifo8.h"
 #include "keyboard_mouse.h"
+#include "multi_task.h"
 #include "timer.h"
 #include "win_sheet.h"
 
@@ -19,11 +20,11 @@
 
 typedef struct {
     unsigned char m_cursor[CURSOR_ICON_SIZE * CURSOR_ICON_SIZE]; // 鼠标图像
-    unsigned char m_buf[3]; // 保存鼠标移动解析后的输入数据
-    unsigned char m_phase;  // 解析鼠标数据的阶段
-    unsigned char m_btn;    // 鼠标按键
-    int m_rel_x, m_rel_y;   // 鼠标相对偏移
-    unsigned int m_abs_x, m_abs_y;   // 鼠标位置
+    unsigned char m_buf[3];        // 保存鼠标移动解析后的输入数据
+    unsigned char m_phase;         // 解析鼠标数据的阶段
+    unsigned char m_btn;           // 鼠标按键
+    int m_rel_x, m_rel_y;          // 鼠标相对偏移
+    unsigned int m_abs_x, m_abs_y; // 鼠标位置
 } mouse_dec_t;
 
 // 在中断函数中, 保存鼠标数据
@@ -34,6 +35,9 @@ extern mouse_dec_t g_mdec;
 
 // 鼠标图层
 extern win_sheet_t *g_mouse_sht;
+
+// 鼠标任务
+extern task_t *g_mouse_task;
 
 // 初始化鼠标
 void init_mouse(void);
@@ -67,3 +71,6 @@ bool is_mouse_right_btn_pressed(void);
 
 // 鼠标中键压下
 bool is_mouse_middle_btn_pressed(void);
+
+// 初始化鼠标任务
+void init_mouse_task(void);

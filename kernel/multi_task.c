@@ -74,6 +74,8 @@ void init_multi_task_ctl(void) {
 
     assert(g_multi_task_ctl != NULL, "init_multi_task_ctl alloc 4k error");
 
+    g_multi_task_ctl->m_priority_tasks = ring_alloc(MAX_TASKS);
+
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     for (unsigned char i = 0; i < MAX_TASKS; i++) {
         g_multi_task_ctl->m_tasks0[i].m_flags = TASK_STATUS_UNUSED;
@@ -101,6 +103,7 @@ void init_multi_task_ctl(void) {
     // 在进行第一次任务切换时，会更新eip的值。
     task_t *task = multi_task_alloc((ptr_t)NULL, DEFAULT_RUNNING_TIME_SLICE);
     assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
+    g_multi_task_ctl->m_current_task = task;
     multi_task_run(task);
 
     // 确保第一次任务切换时，当前的TSS32值保存到`task->m_tss`中
@@ -117,6 +120,7 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice) {
             task->m_running_time_slice = running_time_slice;
             task->m_remain_time_slice = running_time_slice;
             task->m_sleep_time_slice = 0;
+            task->m_is_priority_task = false;
 
             task->m_tss.m_eflags = 0x00000202;
             task->m_tss.m_eax = 0;
@@ -272,7 +276,68 @@ void multi_task_yeild(unsigned char tr) {
 }
 #endif
 
+// 减少睡眠任务的睡眠时间片
+static void _decrease_sleep_task_time_slice(void) {
+    for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
+        task_t *task = g_multi_task_ctl->m_tasks[i];
+
+        if (task->m_flags == TASK_STATUS_SLEEP) {
+            if (task->m_sleep_time_slice == 0) {
+                task->m_flags = TASK_STATUS_RUNNING; // 等待下一次调度
+                g_multi_task_ctl->m_statistics.m_running_task_counts++;
+                g_multi_task_ctl->m_statistics.m_sleep_task_counts--;
+            } else {
+                task->m_sleep_time_slice--;
+            }
+        }
+    }
+}
+
 void multi_task_schedul(void) {
+    static task_t *task_interupt_by_priority_task = NULL;
+
+    task_t *priority_task =
+        (task_t *)ring_get(g_multi_task_ctl->m_priority_tasks);
+
+    // 找到优先任务
+    if (priority_task) {
+        _decrease_sleep_task_time_slice();
+
+        // 设置被中断任务，以便下次恢复
+        if (!task_interupt_by_priority_task) {
+            task_interupt_by_priority_task = g_multi_task_ctl->m_current_task;
+        }
+
+        priority_task->m_is_priority_task = false;
+        multi_task_switch(priority_task->m_tr, priority_task);
+
+        return;
+    }
+
+    // 恢复被中断的任务
+    if (task_interupt_by_priority_task) {
+        _decrease_sleep_task_time_slice();
+
+        if (task_interupt_by_priority_task->m_flags == TASK_STATUS_RUNNING) {
+            task_t *tk = task_interupt_by_priority_task;
+            unsigned char tr = tk->m_tr;
+            task_interupt_by_priority_task = NULL;
+            multi_task_switch(tr, tk);
+        } else { // 被中断的任务不能执行
+            task_interupt_by_priority_task = NULL;
+            assert(g_multi_task_ctl->m_tasks_counts > 0,
+                   "multi_task_schedul no task");
+
+            // 获取一个可以运行的任务
+            unsigned char next_index = _get_next_availible_task(0);
+            task_t *tk = g_multi_task_ctl->m_tasks[0];
+            multi_task_switch(tk->m_tr, tk);
+        }
+
+        return;
+    }
+
+    // 运行普通任务
     for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
         task_t *task = g_multi_task_ctl->m_tasks[i];
 
@@ -307,7 +372,7 @@ void multi_task_schedul(void) {
                             next_task->m_running_time_slice;
                     }
 
-                    multi_task_switch(next_task->m_tr);
+                    multi_task_switch(next_task->m_tr, next_task);
                 }
             } else {
                 task->m_remain_time_slice--;
@@ -316,29 +381,51 @@ void multi_task_schedul(void) {
     }
 }
 
-void multi_task_switch(unsigned char tr) {
+void multi_task_switch(unsigned char tr, task_t *task) {
     if (g_multi_task_ctl->m_current_tr == tr)
         return;
 
     g_multi_task_ctl->m_current_tr = tr;
+    g_multi_task_ctl->m_current_task = task;
 
-    if (g_multi_task_ctl->m_current_tr > 0) {
-        g_switch_task_counts++;
-        farjmp(0, g_multi_task_ctl->m_current_tr << 3);
+    g_switch_task_counts++;
+    farjmp(0, g_multi_task_ctl->m_current_tr << 3);
+}
+
+bool multi_task_priority_task_add(task_t *task) {
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
+
+    // 已经在优先队列中则不必重复添加
+    if (task->m_is_priority_task)
+        goto ok;
+
+    if (ring_put(g_multi_task_ctl->m_priority_tasks, task)) {
+        task->m_flags = TASK_STATUS_RUNNING;
+        task->m_is_priority_task = true;
+        goto ok;
     }
+
+    io_store_eflags(eflags); // 恢复接收中断信号
+    return false;
+
+ok:
+    io_store_eflags(eflags); // 恢复接收中断信号
+    return true;
 }
 
 void multi_task_statistics_display(void) {
     multi_task_statistics_t *stats = &g_multi_task_ctl->m_statistics;
 
     const char *headers[] = {
-        "total tasks counts: ",
-        "used tasks counts: ",
-        "unused tasks counts: ",
-        "running tasks counts: ",
-        "sleep tasks counts: ",
-        "suspend tasks counts: ",
-        "array tasks counts",
+        "total tasks counts:",
+        "used tasks counts:",
+        "unused tasks counts:",
+        "running tasks counts:",
+        "sleep tasks counts:",
+        "suspend tasks counts:",
+        "array tasks counts:",
+        "priority task counts:",
         "current_tr",
 
 #ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
@@ -354,6 +441,7 @@ void multi_task_statistics_display(void) {
         stats->m_sleep_task_counts,
         stats->m_suspend_task_counts,
         g_multi_task_ctl->m_tasks_counts,
+        ring_len(g_multi_task_ctl->m_priority_tasks),
         g_multi_task_ctl->m_current_tr,
 
 #ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__

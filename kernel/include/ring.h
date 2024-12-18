@@ -34,5 +34,8 @@ bool ring_put(ring_t *r, void *data);
 // 获取可用数据数量
 bool ring_is_empty(ring_t *r);
 
+// 获取缓冲区当前成员数量
+unsigned int ring_len(ring_t *r);
+
 // 测试
 void ring_test(void);

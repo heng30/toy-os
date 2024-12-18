@@ -18,6 +18,8 @@ LABEL_DESC_7:       Descriptor        0,            0,                      0 ; 
 LABEL_DESC_8:       Descriptor        0,            0,                      0
 LABEL_DESC_9:       Descriptor        0,            0,                      0
 LABEL_DESC_10:      Descriptor        0,            0,                      0
+LABEL_DESC_11:      Descriptor        0,            0,                      0
+LABEL_DESC_12:      Descriptor        0,            0,                      0
 
 
 GDT_LEN     equ    $ - LABEL_GDT
@@ -195,10 +197,7 @@ LABEL_STACK:
     times 1024 db 0 ; 分配1024字节的堆栈
     TOP_OF_STACK1 equ $ - LABEL_STACK
 
-    times 1024 db 0
-    TOP_OF_STACK2 equ $ - LABEL_STACK
-
-    times 1024 db 0
+    times 1024 * 5 db 0
 
 LEN_OF_STACK_SECTION equ $ - LABEL_STACK
 

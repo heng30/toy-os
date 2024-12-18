@@ -60,6 +60,8 @@ void *ring_get(ring_t *r) {
 
 bool ring_is_empty(ring_t *r) { return r->m_size == r->m_free; }
 
+unsigned int ring_len(ring_t *r) { return r->m_size - r->m_free; }
+
 void ring_test(void) {
     ring_t *r = ring_alloc(10);
     for (int i = 0; i < 5; i++) {

@@ -29,20 +29,20 @@ static void _test(void) {
 #endif
 }
 
-void mouse_callback(void) {
-    unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
+// void mouse_callback(void) {
+//     unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
 
-    io_sti();
+//     io_sti();
 
-    if (mouse_decode(code) == 1) {
-        draw_mouse();
+//     if (mouse_decode(code) == 1) {
+//         draw_mouse();
 
-        if (is_mouse_left_btn_pressed()) {
-            // TODO: 捕获鼠标左键按下
-            moving_sheet();
-        }
-    }
-}
+//         if (is_mouse_left_btn_pressed()) {
+//             // TODO: 捕获鼠标左键按下
+//             moving_sheet();
+//         }
+//     }
+// }
 
 void keyboard_callback(input_box_t *input_box) {
     unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
@@ -144,6 +144,8 @@ void start_kernel(void) {
     io_sti(); // 开中断
     enable_mouse();
 
+    init_mouse_task();
+
     _test();
 
     unsigned int counter = 0;
@@ -151,8 +153,8 @@ void start_kernel(void) {
         show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter++));
 
         io_cli();
-        if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_mouseinfo) &&
-            fifo8_is_empty(&g_timerctl.m_fifo)) {
+        if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_timerctl.m_fifo)) {
+            // && fifo8_is_empty(&g_mouseinfo)
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
             keyboard_callback(input_box);
@@ -161,8 +163,8 @@ void start_kernel(void) {
             // } else {
             //     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 2);
             // }
-        } else if (!fifo8_is_empty(&g_mouseinfo)) {
-            mouse_callback();
+            // } else if (!fifo8_is_empty(&g_mouseinfo)) {
+            //     mouse_callback();
         } else if (!fifo8_is_empty(&g_timerctl.m_fifo)) {
             timer_callback();
         }

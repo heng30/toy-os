@@ -8,6 +8,8 @@ timer_t *g_input_cursor_timer = NULL;
 
 input_cursor_t g_input_cursor = {
     .m_input_cursor_color = COLOR_WHITE,
+    .m_input_cursor_color_show = COLOR_WHITE,
+    .m_input_cursor_color_hide = COLOR_BLACK,
 };
 
 static void _init_input_cursor_timer(void) {
@@ -40,6 +42,12 @@ void init_input_cursor(void) {
 
 void input_cursor_show(int z) { win_sheet_show(g_input_cursor_sht, z); }
 
+void input_cursor_set_color(unsigned char show_color,
+                            unsigned char hide_color) {
+    g_input_cursor.m_input_cursor_color_show = show_color;
+    g_input_cursor.m_input_cursor_color_hide = hide_color;
+}
+
 void input_cursor_hide(void) {
     win_sheet_show(g_input_cursor_sht, HIDE_WIN_SHEET_Z);
 }
@@ -54,8 +62,10 @@ bool input_cursor_is_visible(void) {
 
 void input_cursor_blink(void) {
     g_input_cursor.m_input_cursor_color =
-        g_input_cursor.m_input_cursor_color == COLOR_WHITE ? COLOR_BLACK
-                                                           : COLOR_WHITE;
+        g_input_cursor.m_input_cursor_color ==
+                g_input_cursor.m_input_cursor_color_show
+            ? g_input_cursor.m_input_cursor_color_hide
+            : g_input_cursor.m_input_cursor_color_show;
 
     // 重新绘制光标颜色
     boxfill8(g_input_cursor.m_input_cursor, INPUT_CURSOR_WIDTH,
