@@ -123,9 +123,11 @@ void start_kernel(void) {
 
     init_background_sheet();
     init_mouse_sheet();
+    init_input_cursor();
     init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
-    init_input_cursor();
+    init_mouse_task();
+
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
     input_box_t *input_box = input_box_new(300, 200, 168, 68, "Input-Box");
@@ -143,8 +145,6 @@ void start_kernel(void) {
 
     io_sti(); // 开中断
     enable_mouse();
-
-    init_mouse_task();
 
     _test();
 

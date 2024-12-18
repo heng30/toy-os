@@ -320,18 +320,17 @@ void multi_task_schedul(void) {
 
         if (task_interupt_by_priority_task->m_flags == TASK_STATUS_RUNNING) {
             task_t *tk = task_interupt_by_priority_task;
-            unsigned char tr = tk->m_tr;
             task_interupt_by_priority_task = NULL;
-            multi_task_switch(tr, tk);
+            multi_task_switch(tk->m_tr, tk);
         } else { // 被中断的任务不能执行
             task_interupt_by_priority_task = NULL;
-            assert(g_multi_task_ctl->m_tasks_counts > 0,
-                   "multi_task_schedul no task");
 
             // 获取一个可以运行的任务
-            unsigned char next_index = _get_next_availible_task(0);
-            task_t *tk = g_multi_task_ctl->m_tasks[0];
-            multi_task_switch(tk->m_tr, tk);
+            if (g_multi_task_ctl->m_tasks_counts > 0) {
+                unsigned char next_index = _get_next_availible_task(0);
+                task_t *tk = g_multi_task_ctl->m_tasks[next_index];
+                multi_task_switch(tk->m_tr, tk);
+            }
         }
 
         return;
