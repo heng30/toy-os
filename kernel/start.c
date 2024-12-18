@@ -53,32 +53,6 @@ void keyboard_callback(input_box_t *input_box) {
     }
 }
 
-void timer_callback() {
-    static unsigned int timer_callback_timer_counter = 0;
-    unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
-    io_sti();
-
-    switch (data) {
-    case INPUT_CURSOR_TIMER_DATA:
-        input_cursor_blink();
-        break;
-
-    case MULTI_TASK_DISPLAY_STATISTICS_DATA:
-        multi_task_statistics_display();
-        break;
-
-    case 111:
-        show_string_in_canvas(FONT_WIDTH * 16, 0, COL8_FFFFFF,
-                              "infinite timer counter:");
-        show_string_in_canvas(FONT_WIDTH * 40, 0, COL8_FFFFFF,
-                              int2hexstr(timer_callback_timer_counter++));
-        break;
-
-    default:
-        break;
-    }
-}
-
 void start_kernel(void) {
     init_pit();
     init_boot_info();
@@ -97,6 +71,7 @@ void start_kernel(void) {
     init_canvas_sheet(CANVAS_WIN_SHEET_Z);
 
     init_mouse_task();
+    init_timer_task();
 
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
@@ -105,9 +80,6 @@ void start_kernel(void) {
     win_sheet_set_moving(input_box->m_sheet);
 
     input_box_draw_text(input_box, "hello");
-
-    timer_t *timer1 = timer_alloc();
-    set_timer(timer1, TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS, 111);
 
     timer_t *multi_task_display_statistics_timer = timer_alloc();
     set_timer(multi_task_display_statistics_timer, TIMER_ONE_SECOND_TIME_SLICE,
@@ -123,7 +95,7 @@ void start_kernel(void) {
         show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter++));
 
         io_cli();
-        if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_timerctl.m_fifo)) {
+        if (fifo8_is_empty(&g_keyinfo)) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
             keyboard_callback(input_box);
@@ -134,8 +106,6 @@ void start_kernel(void) {
             // }
             // } else if (!fifo8_is_empty(&g_mouseinfo)) {
             //     mouse_callback();
-        } else if (!fifo8_is_empty(&g_timerctl.m_fifo)) {
-            timer_callback();
         }
     }
 }

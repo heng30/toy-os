@@ -16,6 +16,7 @@
 #define MULTI_TASK_TEST_B_MAIN_TIMER_DATA 254 // 测试任务b的定时器
 #define MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA 253 // 测试自动切换任务b的定时器
 #define MULTI_TASK_DISPLAY_STATISTICS_DATA 252 // 定时显示任务统计信息
+#define INFINITE_TIMER_COUNTER_DATA 251
 
 typedef struct {
     unsigned char m_data; // 用户数据
@@ -56,3 +57,6 @@ void timer_free(timer_t *timer);
 
 // 定时中断处理函数
 void int_handler_for_timer(char *esp);
+
+// 初始化定时任务
+void init_timer_task(void);

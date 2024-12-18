@@ -158,7 +158,7 @@ static void _mouse_task_main(void) {
         io_cli();
         if (fifo8_is_empty(&g_mouseinfo)) {
             io_sti(); // 开中断，保证循环不会被挂起
-        } else if (!fifo8_is_empty(&g_mouseinfo)) {
+        } else {
             unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
 
             io_sti();
@@ -175,8 +175,6 @@ static void _mouse_task_main(void) {
     }
 }
 
-
 void init_mouse_task(void) {
-    g_mouse_task =
-        multi_task_alloc((ptr_t)_mouse_task_main, 1);
+    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 1);
 }

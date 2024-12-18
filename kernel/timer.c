@@ -1,10 +1,15 @@
 #include "timer.h"
+#include "colo8.h"
 #include "def.h"
+#include "draw.h"
 #include "fifo8.h"
+#include "input_cursor.h"
 #include "io.h"
 #include "kutil.h"
 #include "memory.h"
 #include "multi_task.h"
+
+#include "widgets/canvas.h"
 
 #define PIC0_OCW2 0x20
 #define PIC1_OCW2 0xA0
@@ -17,6 +22,8 @@
 #define RUNNING 2
 
 #define TIMER_FIFO_QUEUE 40960
+
+task_t *g_timer_task = NULL;
 
 timerctl_t g_timerctl = {
     .m_count = 0,
@@ -107,6 +114,56 @@ void int_handler_for_timer(char *esp) {
         }
     }
 
+    // 添加定时任务到优先任务队列
+    if (!fifo8_is_empty(&g_timerctl.m_fifo)) {
+        multi_task_priority_task_add(g_timer_task);
+    }
+
     // 每次中断都进行任务调度，更新任务时间片和检查睡眠任务
     multi_task_schedul();
+}
+
+static void _timer_callback(void) {
+    static unsigned int timer_callback_timer_counter = 0;
+    unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
+    io_sti();
+
+    switch (data) {
+    case INPUT_CURSOR_TIMER_DATA:
+        input_cursor_blink();
+        break;
+
+    case MULTI_TASK_DISPLAY_STATISTICS_DATA:
+        multi_task_statistics_display();
+        break;
+
+    case INFINITE_TIMER_COUNTER_DATA:
+        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 11 - 50,
+                              g_boot_info.m_screen_y - FONT_HEIGHT - 5,
+                              COLOR_BLACK,
+                              int2hexstr(timer_callback_timer_counter++));
+        break;
+
+    default:
+        break;
+    }
+}
+
+static void _timer_task_main(void) {
+    for (;;) {
+        io_cli();
+        if (fifo8_is_empty(&g_timerctl.m_fifo)) {
+            io_sti(); // 开中断，保证循环不会被挂起
+        } else {
+            _timer_callback();
+        }
+    }
+}
+
+void init_timer_task(void) {
+    timer_t *infinite_timer = timer_alloc();
+    set_timer(infinite_timer, TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS,
+              INFINITE_TIMER_COUNTER_DATA);
+
+    g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 1);
 }

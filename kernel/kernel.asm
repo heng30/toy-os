@@ -2,6 +2,9 @@
 
 org   0x8000
 
+TASK_COUNTS equ 6
+TASK_STACK_SIZE equ 1024
+
 jmp   LABEL_BEGIN
 
 [SECTION .gdt]
@@ -14,13 +17,11 @@ LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_D
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 ; 进程切换相关
 LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
-LABEL_DESC_7:       Descriptor        0,            0,                      0 ; 主任务的TSS32对象
-LABEL_DESC_8:       Descriptor        0,            0,                      0
-LABEL_DESC_9:       Descriptor        0,            0,                      0
-LABEL_DESC_10:      Descriptor        0,            0,                      0
-LABEL_DESC_11:      Descriptor        0,            0,                      0
-LABEL_DESC_12:      Descriptor        0,            0,                      0
 
+; 创建6个TSS32结构，用户保存任务相关寄存器
+%rep TASK_COUNTS
+                    Descriptor        0,            0,                      0 ; 任务的TSS32对象
+%endrep
 
 GDT_LEN     equ    $ - LABEL_GDT
 GDT_PTR     dw     GDT_LEN - 1
@@ -158,7 +159,7 @@ LABEL_SEG_CODE32:
     ; 初始化堆栈
     mov   ax, SELECTOR_STACK
     mov   ss, ax
-    mov   esp, TOP_OF_STACK1
+    mov   esp, TOP_OF_STACK_MAIN
 
     mov   ax, SELECTOR_VRAM
     mov   ds, ax
@@ -194,11 +195,9 @@ BOOT_INFO: times 3 dd 0
 ALIGN 32
 [BITS 32]
 LABEL_STACK:
-    times 1024 db 0 ; 分配1024字节的堆栈
-    TOP_OF_STACK1 equ $ - LABEL_STACK
+    times TASK_COUNTS * TASK_STACK_SIZE db 0 ; 分配1024字节作为1个任务的堆栈，一共分配6个
 
-    times 1024 * 5 db 0
-
+TOP_OF_STACK_MAIN equ TASK_STACK_SIZE ; 分配第1个1024字节作为主任务的堆栈
 LEN_OF_STACK_SECTION equ $ - LABEL_STACK
 
 LABEL_SYSTEM_FONT:
