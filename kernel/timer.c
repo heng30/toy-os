@@ -107,10 +107,6 @@ void int_handler_for_timer(char *esp) {
         }
     }
 
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-    multi_task_switch(g_multi_task_ctl->m_next_tr, NULL);
-#else
     // 每次中断都进行任务调度，更新任务时间片和检查睡眠任务
     multi_task_schedul();
-#endif
 }

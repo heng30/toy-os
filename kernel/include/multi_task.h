@@ -72,12 +72,7 @@ typedef struct {
     // 运行的任务数量, 包括TASK_STATUS_RUNNING,
     // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
     unsigned int m_tasks_counts;
-    unsigned char m_current_tr; // 当前任务的tr
     task_t *m_current_task;     // 当前任务
-
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-    unsigned char m_next_tr; // 下一个要运行的任务tr
-#endif
 
     // 优先任务
     // 优先任务只会运行1个时间片就会被切换,
@@ -128,15 +123,10 @@ void multi_task_schedul(void);
 
 // 切换到tr指定的任务
 // 该函数只能在中断函数中调用
-void multi_task_switch(unsigned char tr, task_t *task);
+void multi_task_switch(task_t *task);
 
 // 将任务添加到优先任务队列中
 bool multi_task_priority_task_add(task_t *task);
-
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-// 放弃cpu的使用权，不会重置时间片，切换到tr指定的任务
-void multi_task_yeild(unsigned char tr);
-#endif
 
 // 显示任务统计信息
 void multi_task_statistics_display(void);

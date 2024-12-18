@@ -4,8 +4,9 @@
 #include "fifo8.h"
 
 #define MAX_TIMER 256 // 最大指出的定时器数量
-#define TIMER_MAX_RUN_COUNTS                                                   \
-    0xffffffff // 最大定时器连续触发此时，可以看作是不断触发的定时器
+
+// 最大定时器连续触发此时，可以看作是不断触发的定时器
+#define TIMER_MAX_RUN_COUNTS 0xffffffff
 
 #define TIMER_ONE_SECOND_TIME_SLICE 100  // 1秒的时间片数量
 #define TIMER_INPUT_CURSOR_TIME_SLICE 50 // 500ms的时间片数量

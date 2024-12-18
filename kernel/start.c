@@ -21,28 +21,8 @@ static void _test(void) {
     ring_test();
 #endif
 
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-    // multi_task_test();
-    multi_task_test_auto();
-#else
     multi_task_test_schedul();
-#endif
 }
-
-// void mouse_callback(void) {
-//     unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
-
-//     io_sti();
-
-//     if (mouse_decode(code) == 1) {
-//         draw_mouse();
-
-//         if (is_mouse_left_btn_pressed()) {
-//             // TODO: 捕获鼠标左键按下
-//             moving_sheet();
-//         }
-//     }
-// }
 
 void keyboard_callback(input_box_t *input_box) {
     unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
@@ -82,16 +62,6 @@ void timer_callback() {
     case INPUT_CURSOR_TIMER_DATA:
         input_cursor_blink();
         break;
-
-#ifdef __MULTI_TASK_TEST_WITHOUT_SCHEDUL__
-    case MULTI_TASK_TEST_B_MAIN_TIMER_DATA:
-        multi_task_test_in_main_timer_callback();
-        break;
-
-    case MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA:
-        multi_task_test_in_main_timer_callback_auto();
-        break;
-#endif
 
     case MULTI_TASK_DISPLAY_STATISTICS_DATA:
         multi_task_statistics_display();
@@ -154,7 +124,6 @@ void start_kernel(void) {
 
         io_cli();
         if (fifo8_is_empty(&g_keyinfo) && fifo8_is_empty(&g_timerctl.m_fifo)) {
-            // && fifo8_is_empty(&g_mouseinfo)
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
             keyboard_callback(input_box);

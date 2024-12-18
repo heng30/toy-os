@@ -87,6 +87,8 @@ void init_multi_task_ctl(void) {
     }
 
     g_multi_task_ctl->m_tasks_counts = 0;
+    g_multi_task_ctl->m_current_tr = TASK_GDT0;
+
     g_multi_task_ctl->m_statistics.m_total_task_counts = MAX_TASKS;
     g_multi_task_ctl->m_statistics.m_used_task_counts = 0;
     g_multi_task_ctl->m_statistics.m_running_task_counts = 0;
@@ -222,7 +224,7 @@ void multi_task_suspend(task_t *task) {
         task->m_flags == TASK_STATUS_RUNNING,
         "multi_task_suspend wrong task status. only running task can suspend");
 
-    assert(task == g_multi_task_ctl->m_current_task,
+    assert(task->m_tr = g_multi_task_ctl->m_current_tr,
            "multi_task_suspend can only make the current task suspend");
 
     task->m_flags = TASK_STATUS_SUSPEND;
@@ -240,7 +242,7 @@ void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
     assert(task->m_flags == TASK_STATUS_RUNNING,
            "multi_task_sleep wrong task status. only running task can sleep");
 
-    assert(task == g_multi_task_ctl->m_current_task,
+    assert(task->m_tr = g_multi_task_ctl->m_current_tr,
            "multi_task_sleep can only make the current task sleep");
 
     unsigned char tr = task->m_tr;
@@ -286,7 +288,7 @@ void multi_task_schedul(void) {
         }
 
         priority_task->m_is_priority_task = false;
-        multi_task_switch(priority_task);
+        multi_task_switch(priority_task->m_tr, priority_task);
 
         return;
     }
@@ -298,7 +300,7 @@ void multi_task_schedul(void) {
         if (task_interupt_by_priority_task->m_flags == TASK_STATUS_RUNNING) {
             task_t *tk = task_interupt_by_priority_task;
             task_interupt_by_priority_task = NULL;
-            multi_task_switch(tk);
+            multi_task_switch(tk->m_tr, tk);
         } else { // 被中断的任务不能执行
             task_interupt_by_priority_task = NULL;
 
@@ -306,7 +308,7 @@ void multi_task_schedul(void) {
             if (g_multi_task_ctl->m_tasks_counts > 0) {
                 unsigned char next_index = _get_next_availible_task(0);
                 task_t *tk = g_multi_task_ctl->m_tasks[next_index];
-                multi_task_switch(tk);
+                multi_task_switch(tk->m_tr, tk);
             }
         }
 
@@ -329,7 +331,7 @@ void multi_task_schedul(void) {
         }
 
         // 找到当前正在运行的任务
-        if (task == g_multi_task_ctl->m_current_task) {
+        if (task->m_tr == g_multi_task_ctl->m_current_tr) {
             // 时间片用完，进行任务切换
             if (task->m_remain_time_slice == 0 ||
                 task->m_flags == TASK_STATUS_SLEEP ||
@@ -348,7 +350,7 @@ void multi_task_schedul(void) {
                             next_task->m_running_time_slice;
                     }
 
-                    multi_task_switch(next_task);
+                    multi_task_switch(next_task->m_tr, next_task);
                 }
             } else {
                 task->m_remain_time_slice--;
@@ -361,10 +363,11 @@ void multi_task_switch(task_t *task) {
     if (g_multi_task_ctl->m_current_task == task)
         return;
 
+    g_multi_task_ctl->m_current_tr = tr;
     g_multi_task_ctl->m_current_task = task;
 
     g_switch_task_counts++;
-    farjmp(0, g_multi_task_ctl->m_current_task->m_tr << 3);
+    farjmp(0, g_multi_task_ctl->m_current_tr << 3);
 }
 
 bool multi_task_priority_task_add(task_t *task) {
@@ -393,10 +396,14 @@ void multi_task_statistics_display(void) {
     multi_task_statistics_t *stats = &g_multi_task_ctl->m_statistics;
 
     const char *headers[] = {
-        "total tasks counts:",  "used tasks counts:",
-        "unused tasks counts:", "running tasks counts:",
-        "sleep tasks counts:",  "suspend tasks counts:",
-        "array tasks counts:",  "priority task counts:",
+        "total tasks counts:",
+        "used tasks counts:",
+        "unused tasks counts:",
+        "running tasks counts:",
+        "sleep tasks counts:",
+        "suspend tasks counts:",
+        "array tasks counts:",
+        "priority task counts:",
         "current_tr",
     };
 
@@ -409,7 +416,7 @@ void multi_task_statistics_display(void) {
         stats->m_suspend_task_counts,
         g_multi_task_ctl->m_tasks_counts,
         ring_len(g_multi_task_ctl->m_priority_tasks),
-        g_multi_task_ctl->m_current_task->m_tr,
+        g_multi_task_ctl->m_current_tr,
     };
     for (unsigned int i = 0; i < sizeof(datas) / sizeof(datas[0]); i++) {
         unsigned int start_y = FONT_HEIGHT + i * FONT_HEIGHT;
