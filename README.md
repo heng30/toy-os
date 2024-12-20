@@ -2,7 +2,7 @@
 
 这是一个根据[Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)课程的学习项目。
 
-### 实现功能
+### 实现的功能
 - 运行在保护模式下
 - 处理鼠标和键盘输入
 - 简单的定时器
