@@ -33,7 +33,7 @@ jobs:
       - run: echo "start build..."
         shell: bash
       - run: |
-          make build-kernel
+          make
       - run: echo "end build..."
 
       - name: Get the release version from the tag
@@ -44,8 +44,8 @@ jobs:
       - name: Export package
         shell: bash
         if: startsWith(github.ref, 'refs/tags/')
-        run: echo "ASSET=kernel/build/kernel.tar.gz" >> $GITHUB_ENV
-        # run: echo "ASSET=build/disk.img" >> $GITHUB_ENV
+        # run: echo "ASSET=kernel/build/kernel.tar.gz" >> $GITHUB_ENV
+        run: echo "ASSET=build/disk.img" >> $GITHUB_ENV
       - run: echo "end packing..."
 
       - name: Upload the package
