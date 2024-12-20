@@ -33,7 +33,7 @@ jobs:
       - run: echo "start build..."
         shell: bash
       - run: |
-          make
+          make build-kernel
       - run: echo "end build..."
 
       - name: Get the release version from the tag
