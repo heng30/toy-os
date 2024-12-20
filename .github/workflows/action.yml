@@ -17,7 +17,7 @@ jobs:
       - run: echo "The ${{ github.workspace }} is now ready to test your code on the runner."
       - run: ls ${{ github.workspace }}
       - run: sudo apt update
-      - run: sudo apt install git gcc nasm make
+      - run: sudo apt install git gcc nasm
 
       - run: echo "install objconv"
         shell: bash
@@ -29,7 +29,11 @@ jobs:
           objconv -h
 
       - run: echo "start build..."
-      - run: make
+        shell: bash
+      - run: |
+          objconv -h
+          make
+
       - run: echo "end build..."
 
       - name: Get the release version from the tag
