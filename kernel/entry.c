@@ -80,6 +80,8 @@ void start_kernel(void) {
     win_sheet_set_moving(input_box->m_sheet);
     input_box_draw_text(input_box, "hello");
 
+    show_memman_info();
+
     timer_t *multi_task_display_statistics_timer = timer_alloc();
     set_timer(multi_task_display_statistics_timer, TIMER_ONE_SECOND_TIME_SLICE,
               TIMER_MAX_RUN_COUNTS, MULTI_TASK_DISPLAY_STATISTICS_DATA);

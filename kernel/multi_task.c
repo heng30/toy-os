@@ -411,11 +411,13 @@ void multi_task_statistics_display(void) {
         ring_len(g_multi_task_ctl->m_priority_tasks),
         g_multi_task_ctl->m_current_task->m_tr,
     };
-    for (unsigned int i = 0; i < sizeof(datas) / sizeof(datas[0]); i++) {
+
+    for (unsigned int i = 0, start_x = 0; i < sizeof(datas) / sizeof(datas[0]);
+         i++) {
         unsigned int start_y = FONT_HEIGHT + i * FONT_HEIGHT;
 
-        show_string_in_canvas(0, start_y, COL8_FFFFFF, headers[i]);
-        show_string_in_canvas(FONT_WIDTH * 30, start_y, COL8_FFFFFF,
+        show_string_in_canvas(start_x, start_y, COL8_FFFFFF, headers[i]);
+        show_string_in_canvas(start_x + FONT_WIDTH * 25, start_y, COL8_FFFFFF,
                               int2hexstr(datas[i]));
     }
 }

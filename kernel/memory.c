@@ -5,6 +5,8 @@
 #include "io.h"
 #include "kutil.h"
 
+#include "widgets/canvas.h"
+
 typedef struct {
     unsigned int m_addr, m_size;
 } freeinfo_t;
@@ -168,9 +170,7 @@ void show_memory_block_info(addr_range_desc_t *desc, unsigned int page,
                             unsigned char color) {
     unsigned char *vram = g_boot_info.m_vga_ram;
     unsigned int xsize = g_boot_info.m_screen_x;
-    unsigned int x = 0, y = 0, gap = 13 * 8;
-
-    boxfill8(vram, xsize, COL8_008484, 0, 0, xsize, 100);
+    unsigned int x = g_boot_info.m_screen_x / 2, y = FONT_HEIGHT, gap = 13 * 8;
 
     const char *title[] = {
         "page: ",       "base_addr_L: ", "base_addr_H: ",
@@ -186,10 +186,11 @@ void show_memory_block_info(addr_range_desc_t *desc, unsigned int page,
         desc->m_type,
     };
 
-    for (unsigned int i = 0, y = 0; i < sizeof(title) / sizeof(title[0]);
+    for (unsigned int i = 0; i < sizeof(title) / sizeof(title[0]);
          i++, y += 16) {
-        show_debug_string(x, y, color, title[i]);
-        show_debug_string(gap, y, color, int2hexstr((unsigned int)ele[i]));
+        show_string_in_canvas(x, y, color, title[i]);
+        show_string_in_canvas(x + gap, y, color,
+                              int2hexstr((unsigned int)ele[i]));
     }
 }
 
@@ -202,9 +203,7 @@ void show_all_memory_block_info(void) {
     show_memory_block_info(mem_desc + memory_block_info_counts,
                            memory_block_info_counts, COL8_FFFFFF);
 
-    memory_block_info_counts = (memory_block_info_counts + 1);
-
-    if (memory_block_info_counts >= mem_count) {
+    if (++memory_block_info_counts >= mem_count) {
         memory_block_info_counts = 0;
     }
 }
@@ -215,9 +214,9 @@ void show_memman_info(void) {
     unsigned int total = memman_total() / (1024 * 1024);
     const char *p = int2hexstr(total);
 
-    show_debug_string(0, 0, COL8_FFFFFF, "Total memory is:");
-    show_debug_string(17 * 8, 0, COL8_FFFFFF, p);
-    show_debug_string(28 * 8, 0, COL8_FFFFFF, "MB");
+    show_string_in_canvas(FONT_WIDTH * 12, 0, COL8_FFFFFF, "total memory is:");
+    show_string_in_canvas(FONT_WIDTH * 30, 0, COL8_FFFFFF, p);
+    show_string_in_canvas(FONT_WIDTH * 40, 0, COL8_FFFFFF, "MB");
 }
 
 void memman_test(void) {
