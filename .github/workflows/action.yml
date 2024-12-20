@@ -31,7 +31,6 @@ jobs:
         shell: bash
       - run: |
           make
-          cat kernel/build/ckernel.asm
       - run: echo "end build..."
 
       - name: Get the release version from the tag

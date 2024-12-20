@@ -53,6 +53,7 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
+	cat $@
 
 boot-img:
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
