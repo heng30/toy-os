@@ -25,7 +25,10 @@ jobs:
           git clone https://github.com/gitGNU/objconv.git
           sudo cp objconv/bin/objconv_ubuntu_* /usr/bin/objconv
           sudo chmod +x /usr/bin/objconv
-          objconv -h
+
+      - run: objconv -v
+      - run: gcc --version
+      - run: objconv --version
 
       - run: echo "start build..."
         shell: bash

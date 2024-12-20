@@ -20,7 +20,7 @@ C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
 NASM_FLAG = -w-zeroing
-REVERT_ASM_TOOL_FLAG = -v0 -mno-red-zone
+REVERT_ASM_TOOL_FLAG = -v0
 
 EXCLUDE_SRC_DIR := grep -v build | grep -v backup
 
@@ -53,7 +53,6 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
-	cat $@
 
 boot-img:
 	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
