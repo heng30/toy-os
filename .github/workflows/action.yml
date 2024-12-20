@@ -28,6 +28,7 @@ jobs:
           export PATH=$PATH:`pwd`
           echo $PATH
           whereis objconv
+          objconv -h
 
       - run: echo "start build..."
       - run: make
