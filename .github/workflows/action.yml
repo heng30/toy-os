@@ -28,7 +28,10 @@ jobs:
           objconv -h
 
       - run: echo "start build..."
-      - run: make
+        shell: bash
+      - run: |
+          objconv -h
+          make
       - run: echo "end build..."
 
       - name: Get the release version from the tag
