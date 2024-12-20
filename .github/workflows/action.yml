@@ -23,10 +23,8 @@ jobs:
         shell: bash
       - run: |
           git clone https://github.com/gitGNU/objconv.git
-          cp objconv/bin/objconv_ubuntu_* ./objconv
-          chmod +x ./objconv
-          export PATH=$PATH:`pwd`
-          echo $PATH
+          cp objconv/bin/objconv_ubuntu_* $HOME/.local/bin/objconv
+          chmod +x $HOME/.local/bin/objconv
           whereis objconv
           objconv -h
 
