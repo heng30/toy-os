@@ -1,8 +1,11 @@
+![0.png](./screenshot/1.png)
+
 这是一个根据[Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)课程的学习项目。
 
 ### 如何使用该项目？
 - 编译启动镜像：`make`
 - 启动`virtualbox`，创建一个虚拟机，虚拟机以软盘启动。软盘加载`build/disk.img`作为启动镜像.
+
 ![1.png](./screenshot/1.png)
 ![1.png](./screenshot/2.png)
 
