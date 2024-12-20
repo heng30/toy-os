@@ -24,7 +24,7 @@ jobs:
       - run: |
           cd /tmp
           git clone https://github.com/gitGNU/objconv.git
-          sudo cp -f src/objconv /usr/bin/objconv
+          sudo cp -f objconv/src/objconv /usr/bin/objconv
           sudo chmod +x /usr/bin/objconv
 
       - run: objconv -v
