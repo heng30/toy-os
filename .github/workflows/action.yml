@@ -22,8 +22,9 @@ jobs:
       - run: echo "install objconv"
         shell: bash
       - run: |
+          cd /tmp
           git clone https://github.com/gitGNU/objconv.git
-          sudo cp objconv/bin/objconv_ubuntu_* /usr/bin/objconv
+          sudo cp -f src/objconv /usr/bin/objconv
           sudo chmod +x /usr/bin/objconv
 
       - run: objconv -v
