@@ -17,7 +17,7 @@ jobs:
       - run: echo "The ${{ github.workspace }} is now ready to test your code on the runner."
       - run: ls ${{ github.workspace }}
       - run: sudo apt update
-      - run: sudo apt install git gcc nasm
+      - run: sudo apt install git gcc nasm make
 
       - run: echo "install objconv"
         shell: bash
@@ -26,8 +26,6 @@ jobs:
           cp objconv/bin/objconv_ubuntu_* objconv/bin/objconv
           chmod +x objconv/bin/objconv
           export PATH=$PATH:`pwd`/objconv/bin
-          echo $PATH
-          whereis objconv
           objconv -h
 
       - run: echo "start build..."

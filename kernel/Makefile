@@ -49,7 +49,6 @@ $(BUILD_DIR)/$(TARGET_OBJ): $(OBJ)
 
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
-	echo "$@"
 	$(REVERT_ASM_TOOL) $(REVERT_ASM_TOOL_FLAG) -fnasm $< $@
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
