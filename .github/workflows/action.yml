@@ -24,8 +24,8 @@ jobs:
       - run: |
           git clone https://github.com/gitGNU/objconv.git
           cp objconv/bin/objconv_ubuntu_* ./objconv
-          export $PATH=$PATH:`pwd`
-
+          chmod +x ./objconv
+          export PATH=$PATH:`pwd`
 
       - run: echo "start build..."
       - run: make
