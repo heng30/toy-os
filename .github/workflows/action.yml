@@ -26,6 +26,8 @@ jobs:
           cp objconv/bin/objconv_ubuntu_* ./objconv
           chmod +x ./objconv
           export PATH=$PATH:`pwd`
+          echo $PATH
+          whereis objconv
 
       - run: echo "start build..."
       - run: make
