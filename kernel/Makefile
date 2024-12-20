@@ -19,7 +19,7 @@ RELEASE_FLAGS =
 C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -fno-stack-protector -fno-pic -m32 -fno-asynchronous-unwind-tables -s -c -O0  -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin -Wconversion -Wextra -Wsign-compare -Wfloat-equal -Warray-bounds -fno-delete-null-pointer-checks
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
-NASM_FLAG = -w-zeroing
+NASM_FLAG = -w-zeroing -Ox
 REVERT_ASM_TOOL_FLAG = -v0
 
 EXCLUDE_SRC_DIR := grep -v build | grep -v backup

@@ -75,13 +75,6 @@ void start_kernel(void) {
 
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
-    input_box_t *input_box = input_box_new(300, 200, 168, 68, "Input-Box");
-    input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
-    win_sheet_set_moving(input_box->m_sheet);
-    input_box_draw_text(input_box, "hello");
-
-    show_memman_info();
-
     timer_t *multi_task_display_statistics_timer = timer_alloc();
     set_timer(multi_task_display_statistics_timer, TIMER_ONE_SECOND_TIME_SLICE,
               TIMER_MAX_RUN_COUNTS, MULTI_TASK_DISPLAY_STATISTICS_DATA);
@@ -89,7 +82,14 @@ void start_kernel(void) {
     io_sti(); // 开中断
     enable_mouse();
 
+    show_memman_info();
     _test();
+
+    input_box_t *input_box = input_box_new(300, 200, 168, 68, "Input-Box");
+    input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
+    win_sheet_set_moving(input_box->m_sheet);
+    input_box_draw_text(input_box, "hello");
+
 
     unsigned int counter = 0;
     for (;;) {
