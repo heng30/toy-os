@@ -48,10 +48,10 @@ $(BUILD_DIR)/$(TARGET_OBJ): $(OBJ)
 	$(LD) $(LD_FLAGS) -r $^ -o $@
 
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
-$(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
+$(BUILD_DIR)/%.revert.asm: %.o | $(BUILD_DIR)
 	$(REVERT_ASM_TOOL) $(REVERT_ASM_TOOL_FLAG) -fnasm $< $@
 
-$(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
+$(BUILD_DIR)/%.asm: %.revert.asm | $(BUILD_DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
 boot-img:
