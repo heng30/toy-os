@@ -20,9 +20,12 @@ jobs:
       - run: sudo apt install git gcc nasm
 
       - run: echo "install objconv"
+        shell: bash
       - run: |
           git clone https://github.com/gitGNU/objconv.git
-          mv objconv/bin/objconv_ubuntu_* /usr/bin/objconv
+          cp objconv/bin/objconv_ubuntu_* ./objconv
+          export $PATH=$PATH:`pwd`
+
 
       - run: echo "start build..."
       - run: make
