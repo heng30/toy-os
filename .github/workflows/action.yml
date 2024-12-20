@@ -28,7 +28,7 @@ jobs:
 
       - run: objconv -v
       - run: gcc --version
-      - run: objconv --version
+      - run: nasm --version
 
       - run: echo "start build..."
         shell: bash
