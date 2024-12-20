@@ -170,15 +170,10 @@ LABEL_SEG_CODE32:
     sti ; 开中断
 
 C_CODE_ENTRY:
-    %include "entry.asm"
-
-    jmp  $ ; 循环
-
-HANDLER_CODE:
-    %include "handler.asm"
-
-IO_CODE:
+    call start_kernel
     %include "io.asm"
+    %include "handler.asm"
+    %include "build/ckernel.asm"
 
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 

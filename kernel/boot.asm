@@ -1,7 +1,7 @@
 org 0x7c00
 
 LoadAddr EQU  08000h ; 将内核写入到系统的内存位置
-BufferAddr EQU 7E0h  ; 保存一个扇区数据的地址。 该值会被赋值给段寄存器，真实的地址为 7e00h = 7e00 << 4
+BufferAddr EQU 7E0h  ; 保存一个扇区数据的地址。 该值会被赋值给段寄存器，真实的地址为 7e00h = 7e0h << 4
 
 BaseOfStack     equ 07c00h
 
@@ -100,7 +100,7 @@ copyend:
     cmp          CL, 18     ; 判断是否复制完18个扇区，即一个柱面
     jb           readFloppy ; 重新读取一个扇区
 
-    inc          CH         ; 柱面号加一
+    inc          CH         ; 柱面号加1
     mov          CL, 0      ; 扇区号归零
     dec          byte [load_count]  ; 更新需要读取的柱面数
     jmp          readFloppy ; 重新读取一个柱面

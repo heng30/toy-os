@@ -20,7 +20,7 @@ C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m32 -fno-asynchronous
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
 NASM_FLAG = -w-zeroing
-REVERT_ASM_TOOL_FLAG = -v0
+REVERT_ASM_TOOL_FLAG = -v0 -mno-red-zone
 
 EXCLUDE_SRC_DIR := grep -v build | grep -v backup
 
