@@ -60,7 +60,11 @@ boot-img:
 kernel-img:
 	nasm $(NASM_FLAG) -o  $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
 
-build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm boot-img kernel-img
+pack-build-files:
+	tar -zcvf build/kernel.tar.gz build/*
+
+build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm pack-build-files
+	# boot-img kernel-img
 
 clean:
 	- rm -rf $(BUILD_DIR)
