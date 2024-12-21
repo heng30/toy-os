@@ -13,7 +13,7 @@
 void input_box_moving(void *p) {
     input_box_t *box = (input_box_t *)p;
 
-    if (!win_sheet_is_moving(box->m_sheet))
+    if (!win_sheet_is_moving_sheet(box->m_sheet))
         return;
 
     unsigned int vx = box->m_sheet->m_vx0, vy = box->m_sheet->m_vy0;

@@ -387,7 +387,7 @@ void win_sheet_free(win_sheet_t *sheet) {
         win_sheet_set_focus(NULL);
 
     if (g_sheet_ctl->m_moving_sheet == sheet)
-        win_sheet_set_moving(NULL);
+        win_sheet_set_moving_sheet(NULL);
 }
 
 bool win_sheet_is_valid_z(int z) { return z <= TOP_WIN_SHEET_Z; }
@@ -411,7 +411,7 @@ void win_sheet_hide(win_sheet_t *p) {
         win_sheet_set_focus(NULL);
 
     if (g_sheet_ctl->m_moving_sheet == p)
-        win_sheet_set_moving(NULL);
+        win_sheet_set_moving_sheet(NULL);
 }
 
 void win_sheet_set_focus(win_sheet_t *p) { g_sheet_ctl->m_focus_sheet = p; }
@@ -420,9 +420,11 @@ bool win_sheet_is_focus(win_sheet_t *p) {
     return g_sheet_ctl->m_focus_sheet == p;
 }
 
-void win_sheet_set_moving(win_sheet_t *p) { g_sheet_ctl->m_moving_sheet = p; }
+void win_sheet_set_moving_sheet(win_sheet_t *p) {
+    g_sheet_ctl->m_moving_sheet = p;
+}
 
-bool win_sheet_is_moving(win_sheet_t *p) {
+bool win_sheet_is_moving_sheet(win_sheet_t *p) {
     return g_sheet_ctl->m_moving_sheet == p;
 }
 

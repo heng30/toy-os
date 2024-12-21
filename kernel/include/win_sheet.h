@@ -82,10 +82,10 @@ void win_sheet_set_focus(win_sheet_t *p);
 bool win_sheet_is_focus(win_sheet_t *p);
 
 // 设置图层是否移动
-void win_sheet_set_moving(win_sheet_t *p);
+void win_sheet_set_moving_sheet(win_sheet_t *p);
 
 // 判断图层释放可移动
-bool win_sheet_is_moving(win_sheet_t *p);
+bool win_sheet_is_moving_sheet(win_sheet_t *p);
 
 // 已经设置了可移动图层
 win_sheet_t *win_sheet_get_moving_sheet(void);
