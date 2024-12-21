@@ -152,7 +152,7 @@ bool is_mouse_left_btn_pressed(void) { return (g_mdec.m_btn & 0x01) != 0; }
 bool is_mouse_right_btn_pressed(void) { return (g_mdec.m_btn & 0x2) != 0; }
 bool is_mouse_middle_btn_pressed(void) { return (g_mdec.m_btn & 0x4) != 0; }
 
-static void _moving_sheet(void) {
+static void _moving_window(void) {
     window_t *win = window_ctl_get_moving_window();
     if (!win && !win->m_instance)
         return;
@@ -174,6 +174,8 @@ static void _moving_sheet(void) {
 }
 
 static void _mouse_task_main(void) {
+    static bool mouse_left_btn_pressed = false;
+
     for (;;) {
         io_cli();
         if (fifo8_is_empty(&g_mouseinfo)) {
@@ -187,8 +189,52 @@ static void _mouse_task_main(void) {
                 draw_mouse();
 
                 if (is_mouse_left_btn_pressed()) {
-                    // TODO: 捕获鼠标左键按下
-                    _moving_sheet();
+                    mouse_left_btn_pressed = true;
+
+                    window_t *win = window_ctl_get_mouse_click_window();
+                    unsigned char flag = g_window_ctl.m_mouse_click_flag;
+
+                    // show_string_in_canvas(0, 400, COLOR_WHITE,
+                    //                       int2hexstr((ptr_t)win));
+                    // show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
+                    //                       int2hexstr(flag));
+
+                    if (win) {
+                        if (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN) {
+                            // TODO
+                            // window_ctl_remove(win);
+                            // if (win->m_id == WINDOW_ID_INPUT_BOX) {
+                            //     input_box_free(win->m_instance);
+                            // } else if (win->m_id == WINDOW_ID_CONSOLE) {
+                            //     console_free(win->m_instance);
+                            // }
+                        } else if (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE) {
+                            window_ctl_set_moving_window(win);
+                            _moving_window();
+                        }
+                    }
+                } else {
+                    if (mouse_left_btn_pressed) {
+                        window_t *win = window_ctl_get_mouse_click_window();
+                        unsigned char flag = g_window_ctl.m_mouse_click_flag;
+
+                        // show_string_in_canvas(0, 400, COLOR_WHITE,
+                        //                       int2hexstr((ptr_t)win));
+                        // show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
+                        //                       int2hexstr(flag));
+
+                        if (win && (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE ||
+                                    flag == WINDOW_CTL_MOUSE_CLICK_FLAG_BODY)) {
+                            if (win->m_id == WINDOW_ID_INPUT_BOX) {
+                                input_box_focus(win->m_instance);
+                            } else if (win->m_id == WINDOW_ID_CONSOLE) {
+                                console_focus(win->m_instance);
+                            }
+                        }
+
+                        mouse_left_btn_pressed = false;
+                        window_ctl_set_moving_window(NULL);
+                    }
                 }
             }
         }

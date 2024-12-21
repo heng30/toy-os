@@ -9,18 +9,7 @@
 #define SHEET_UNUSE 0
 #define SHEET_USE 1
 
-// 窗口绘制层管理器
-typedef struct {
-    // 图层管理像素表，表中记录每个图层管理的像素。
-    // 在刷新图层时，只刷新自己管理的像素
-    unsigned char *m_map;
-
-    int m_top; // 图层数量, 总是指向最高图层的下标
-    win_sheet_t *m_sheets[MAX_SHEETS];
-    win_sheet_t m_sheets0[MAX_SHEETS];
-} win_sheet_ctl_t;
-
-static win_sheet_ctl_t *g_sheet_ctl = NULL;
+win_sheet_ctl_t *g_sheet_ctl = NULL;
 
 void init_win_sheet_ctl(void) {
     g_sheet_ctl = (win_sheet_ctl_t *)memman_alloc_4k(sizeof(win_sheet_ctl_t));

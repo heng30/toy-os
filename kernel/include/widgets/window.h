@@ -8,6 +8,12 @@
 #define WINDOW_ID_INPUT_BOX 1
 #define WINDOW_ID_CONSOLE 2
 
+// 鼠标点击的位置
+#define WINDOW_CTL_MOUSE_CLICK_FLAG_NONE 0
+#define WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE 1
+#define WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN 2
+#define WINDOW_CTL_MOUSE_CLICK_FLAG_BODY 3
+
 typedef struct {
     win_sheet_t *m_sheet; // 图层J
     const char *m_title;  // 窗口标题
@@ -18,7 +24,8 @@ typedef struct {
 typedef struct {
     window_t *m_focus_window;  // 当前获取焦点窗口
     window_t *m_moving_window; // 需要移动的窗口
-    unsigned int m_top;        // 指向下一个可以添加的下标
+    unsigned char m_mouse_click_flag;   // 鼠标按下时在图层的什么位置
+    unsigned int m_top; // 指向下一个可以添加的下标
     window_t *m_windows[MAX_SHEETS];
 } window_ctl_t;
 
@@ -58,3 +65,6 @@ bool window_ctl_is_moving_window(window_t *p);
 
 // 获取当前移动图层
 window_t *window_ctl_get_moving_window(void);
+
+// 获取鼠标下的窗口
+window_t *window_ctl_get_mouse_click_window(void);
