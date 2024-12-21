@@ -36,6 +36,8 @@ Foo a = { .a = 0, .b = 0 };
 Foo b = a; // 此处会出问题，可能导致内核在刚启动就异常退出，而不是代码运行到此处
 ```
 
+- 不要使用`switch`语句，因为内核在运行到`switch`语句后会异常退出
+
 ### 参考
 - [Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)
 - [课程代码github](https://github.com/wycl16514)

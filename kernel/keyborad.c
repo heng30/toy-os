@@ -51,10 +51,38 @@ char get_pressed_char(unsigned char code) {
                   ? keydown_code2char_table[code]
                   : 0;
 
-    if (ch > 0 && (is_capslock_checked() || is_shift_key_pressed())) {
-        ch = to_uppercast(ch);
-    }
+    if (ch == 0)
+        return ch;
 
+    if (is_capslock_checked() && is_shift_key_pressed() && ch >= 'a' &&
+        ch <= 'z') {
+        // do nothing
+    } else if ((is_capslock_checked() || is_shift_key_pressed()) && ch >= 'a' &&
+               ch <= 'z') {
+        ch = to_uppercast(ch);
+    } else if (is_shift_key_pressed()) {
+        if (ch >= '0' && ch <= '9') {
+            static char shift_and_numer[10] = {
+                ')', '!', '@', '#', '$', '%', '^', '&', '*', '(',
+            };
+
+            ch = shift_and_numer[ch - '0'];
+        } else if (!(ch >= 'a' && ch <= 'z')) {
+            static char other_special_char[2][11] = {
+                {'`', '-', '=', '[', ']', ',', '.', '/', ';', '\'', '\\'},
+                {'~', '_', '+', '{', '}', '<', '>', '?', ':', '"', '|'},
+            };
+
+            for (unsigned int i = 0; i < sizeof(other_special_char[0]) /
+                                             sizeof(other_special_char[0][0]);
+                 i++) {
+                if (other_special_char[0][i] == ch) {
+                    ch = other_special_char[1][i];
+                    break;
+                }
+            }
+        }
+    }
     return ch;
 }
 

@@ -37,7 +37,7 @@ void keyboard_callback(input_box_t *input_box) {
 
     // 回车键
     if (is_enter_down(code)) {
-        show_all_memory_block_info();
+        // show_all_memory_block_info();
     } else if (is_backspace_down(code)) {
         input_box_pop(input_box);
     } else {
@@ -86,7 +86,7 @@ void start_kernel(void) {
     show_memman_info();
     _test();
 
-    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input-Box");
+    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
     win_sheet_set_moving_sheet(input_box->m_sheet);
     input_box_draw_text(input_box, "hello");
