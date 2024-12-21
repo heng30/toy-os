@@ -16,7 +16,8 @@ window_ctl_t g_window_ctl = {
 };
 
 window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
-                     unsigned int height, unsigned char id, const char *title) {
+                     unsigned int height, unsigned char id, const char *title,
+                     void *instance) {
     window_t *win = (window_t *)memman_alloc_4k(sizeof(window_t));
     assert(win != NULL, "window_new alloc error");
 
@@ -34,7 +35,7 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
     win->m_id = id;
     win->m_title = title;
     win->m_sheet = sht;
-    win->m_instance = NULL;
+    win->m_instance = instance;
 
     return win;
 }

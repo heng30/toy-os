@@ -36,4 +36,4 @@ void input_box_push(input_box_t *p, char c);
 void input_box_pop(input_box_t *p);
 
 // 移动窗口回调函数
-void input_box_moving(void *p);
+void input_box_moving(input_box_t *p);

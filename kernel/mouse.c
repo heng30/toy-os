@@ -7,6 +7,9 @@
 #include "kutil.h"
 
 #include "widgets/canvas.h"
+#include "widgets/console.h"
+#include "widgets/input_box.h"
+#include "widgets/window.h"
 
 win_sheet_t *g_mouse_sht = NULL;
 
@@ -119,8 +122,8 @@ void init_mouse_sheet(void) {
     g_mouse_sht = win_sheet_alloc();
     assert(g_mouse_sht != NULL, "init_mouse_sheet alloc sheet error");
 
-    win_sheet_setbuf(g_mouse_sht, WIN_SHEET_ID_MOUSE, g_mdec.m_cursor, CURSOR_ICON_SIZE,
-                     CURSOR_ICON_SIZE, COLOR_INVISIBLE);
+    win_sheet_setbuf(g_mouse_sht, WIN_SHEET_ID_MOUSE, g_mdec.m_cursor,
+                     CURSOR_ICON_SIZE, CURSOR_ICON_SIZE, COLOR_INVISIBLE);
 
     win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
     win_sheet_show(g_mouse_sht, MOUSE_WIN_SHEET_Z);
@@ -149,6 +152,27 @@ bool is_mouse_left_btn_pressed(void) { return (g_mdec.m_btn & 0x01) != 0; }
 bool is_mouse_right_btn_pressed(void) { return (g_mdec.m_btn & 0x2) != 0; }
 bool is_mouse_middle_btn_pressed(void) { return (g_mdec.m_btn & 0x4) != 0; }
 
+static void _moving_sheet(void) {
+    window_t *win = window_ctl_get_moving_window();
+    if (!win && !win->m_instance)
+        return;
+
+    switch (win->m_id) {
+    case WINDOW_ID_INPUT_BOX: {
+        input_box_t *p = (input_box_t *)(win->m_instance);
+        input_box_moving(p);
+        break;
+    }
+    case WINDOW_ID_CONSOLE: {
+        console_t *p = (console_t *)(win->m_instance);
+        console_moving(p);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 static void _mouse_task_main(void) {
     for (;;) {
         io_cli();
@@ -164,7 +188,7 @@ static void _mouse_task_main(void) {
 
                 if (is_mouse_left_btn_pressed()) {
                     // TODO: 捕获鼠标左键按下
-                    moving_sheet();
+                    _moving_sheet();
                 }
             }
         }

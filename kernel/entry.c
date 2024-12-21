@@ -88,11 +88,14 @@ void start_kernel(void) {
 
     input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
-    win_sheet_set_moving_sheet(input_box->m_win->m_sheet);
+    window_ctl_set_moving_window(input_box->m_win);
+    window_ctl_add(input_box->m_win);
     input_box_draw_text(input_box, "hello");
 
     console_t *console = console_new(300, 50, 240, 200, "Console");
     console_show(console, BOTTOM_WIN_SHEET_Z + 4);
+    window_ctl_set_moving_window(console->m_win);
+    window_ctl_add(console->m_win);
 
     unsigned int counter = 0;
     for (;;) {

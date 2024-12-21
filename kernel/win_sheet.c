@@ -99,12 +99,6 @@ win_sheet_t *win_sheet_alloc(void) {
             sht->m_index = -1;
             sht->m_z = HIDE_WIN_SHEET_Z;
             sht->m_is_transparent_layer = false;
-
-            sheet_userdata_t userdata = {
-                .m_type = SHEET_USERDATA_TYPE_NONE,
-                .m_data = NULL,
-            };
-            sht->m_userdata = userdata;
             return sht;
         }
     }

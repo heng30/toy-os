@@ -10,12 +10,10 @@
 #include "widgets/common_widget.h"
 #include "widgets/console.h"
 
-#if 0
+#define INPUT_CURSOR_Y_OFFSET (TITLE_BAR_HEIGHT + FONT_HEIGHT / 2)
+
 void console_moving(void *p) {
     window_t *win = ((console_t *)p)->m_win;
-
-    if (!win_sheet_is_moving_sheet(win->m_sheet))
-        return;
 
     unsigned int vx = win->m_sheet->m_vx0, vy = win->m_sheet->m_vy0;
     int dx = g_mdec.m_rel_x, dy = g_mdec.m_rel_y;
@@ -28,7 +26,7 @@ void console_moving(void *p) {
                                  (int)win->m_sheet->m_bysize);
 
     win_sheet_slide(win->m_sheet, vx, vy);
-    console_focus((console_t *)p);
+    input_cursor_move(vx + FONT_WIDTH, vy + INPUT_CURSOR_Y_OFFSET);
 }
 
 void console_focus(console_t *p) {
@@ -43,7 +41,7 @@ void console_focus(console_t *p) {
     char *dst = NULL;
     unsigned int vx = win->m_sheet->m_vx0, vy = win->m_sheet->m_vy0;
 
-    win_sheet_set_focus(win->m_sheet);
+    window_ctl_set_focus_window(win);
     win_sheet_show(g_input_cursor_sht, win->m_sheet->m_z);
 
     if (text_len > 0) {
@@ -54,7 +52,7 @@ void console_focus(console_t *p) {
     }
 
     input_cursor_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
-                      vy + TITLE_BAR_HEIGHT + FONT_HEIGHT);
+                      vy + INPUT_CURSOR_Y_OFFSET);
 
     if (text_len > 0) {
         make_textbox8(win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT,
@@ -88,47 +86,37 @@ void console_pop(console_t *p) {
     strpop(p->m_text);
     console_focus(p);
 }
-#endif
 
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
                        unsigned int height, const char *title) {
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
-    p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title);
+    p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
     p->m_text[0] = '\0';
 
-    // sheet_userdata_type_moving_t *userdata = sheet_userdata_type_moving_alloc();
-    // sheet_userdata_type_moving_set(userdata, console_moving, p,
-    //                                "console_moving");
-
-    // sheet_userdata_set(&p->m_win->m_sheet->m_userdata,
-    //                    SHEET_USERDATA_TYPE_MOVING, userdata);
-
-    // make_textbox8(p->m_win->m_sheet, FONT_WIDTH,
-    //               TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
-    //               p->m_win->m_sheet->m_bxsize - FONT_WIDTH * 2,
-    //               p->m_win->m_sheet->m_bysize - TITLE_BAR_HEIGHT - FONT_HEIGHT,
-    //               COLOR_BLACK);
+    make_textbox8(p->m_win->m_sheet, FONT_WIDTH,
+                  TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
+                  p->m_win->m_sheet->m_bxsize - FONT_WIDTH * 2,
+                  p->m_win->m_sheet->m_bysize - TITLE_BAR_HEIGHT - FONT_HEIGHT,
+                  COLOR_BLACK);
 
     return p;
 }
 
-// void console_free(const console_t *p) {
-//     window_free(p->m_win);
-//     sheet_userdata_type_moving_free(p->m_win->m_sheet->m_userdata.m_data);
-//     memman_free_4k(p, sizeof(console_t));
-// }
+void console_free(const console_t *p) {
+    window_free(p->m_win);
+    memman_free_4k(p, sizeof(console_t));
+}
 
-// void console_show(console_t *p, int z) {
-//     window_show(p->m_win, z);
-//     console_focus(p);
-// }
+void console_show(console_t *p, int z) {
+    window_show(p->m_win, z);
+    console_focus(p);
+}
 
-// void console_hide(console_t *p) {
-//     if (win_sheet_is_focus(p->m_win->m_sheet)) {
-//         win_sheet_hide(g_input_cursor_sht);
-//     }
-//     window_hide(p->m_win);
-// }
-
+void console_hide(console_t *p) {
+    if (window_ctl_is_focus_window(p->m_win)) {
+        win_sheet_hide(g_input_cursor_sht);
+    }
+    window_hide(p->m_win);
+}

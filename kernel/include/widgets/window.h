@@ -26,7 +26,8 @@ extern window_ctl_t g_window_ctl;
 
 // 创建一个窗口
 window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
-                     unsigned int height, unsigned char id, const char *title);
+                     unsigned int height, unsigned char id, const char *title,
+                     void *instance);
 
 // 释放一个窗口
 void window_free(window_t *p);

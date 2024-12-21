@@ -1,7 +1,6 @@
 #pragma once
 
 #include "def.h"
-#include "sheet_userdata.h"
 
 // 不要修改这个值， 因为受到`map`类型为`unsigned char`限制
 #define MAX_SHEETS 256
@@ -35,8 +34,6 @@ typedef struct {
     int m_z;                     // 图层Z轴高度
     bool m_is_transparent_layer; // 是否为透明图层
     int m_flags;                 // 0: 可用, 1: 占用
-
-    sheet_userdata_t m_userdata; // 用户数据
 } win_sheet_t;
 
 // 初始化窗口图层管理器
