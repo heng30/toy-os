@@ -150,11 +150,7 @@ bool is_mouse_right_btn_pressed(void) { return (g_mdec.m_btn & 0x2) != 0; }
 bool is_mouse_middle_btn_pressed(void) { return (g_mdec.m_btn & 0x4) != 0; }
 
 static void _mouse_task_main(void) {
-    unsigned int counter = 0;
-
     for (;;) {
-        // show_string_in_canvas(0, 300, COL8_FFFFFF, int2hexstr(counter++));
-
         io_cli();
         if (fifo8_is_empty(&g_mouseinfo)) {
             io_sti(); // 开中断，保证循环不会被挂起

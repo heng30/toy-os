@@ -20,7 +20,7 @@ unsigned char closebtn_icon[CLOSEBTN_ICON_HEIGHT][CLOSEBTN_ICON_WIDTH] = {
 };
 
 // clang-format on
-const char *closebtn_icon_buf(unsigned char close_icon_color,
+const unsigned char *closebtn_icon_buf(unsigned char close_icon_color,
                               unsigned char tl_border_color,
                               unsigned char rb_border_color,
                               unsigned char background_color) {

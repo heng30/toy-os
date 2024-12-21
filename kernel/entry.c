@@ -15,6 +15,7 @@
 #include "multi_task_test.h"
 #include "widgets/canvas.h"
 #include "widgets/input_box.h"
+#include "widgets/console.h"
 
 static void _test(void) {
 #ifdef __RING_TEST__
@@ -85,11 +86,13 @@ void start_kernel(void) {
     show_memman_info();
     _test();
 
-    input_box_t *input_box = input_box_new(300, 200, 168, 68, "Input-Box");
+    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input-Box");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
     win_sheet_set_moving(input_box->m_sheet);
     input_box_draw_text(input_box, "hello");
 
+    console_t *console = console_new(300, 50, 200, 200, "Console");
+    console_show(console, BOTTOM_WIN_SHEET_Z + 4);
 
     unsigned int counter = 0;
     for (;;) {
