@@ -6,9 +6,6 @@
 #include "memory.h"
 #include "mouse.h"
 
-// 不要修改这个值， 因为受到`map`类型为`unsigned char`限制
-#define MAX_SHEETS 256
-
 #define SHEET_UNUSE 0
 #define SHEET_USE 1
 
@@ -19,8 +16,6 @@ typedef struct {
     unsigned char *m_map;
 
     int m_top; // 图层数量, 总是指向最高图层的下标
-    win_sheet_t *m_focus_sheet;  // 当前获取焦点图层
-    win_sheet_t *m_moving_sheet; // 需要移动的图层
     win_sheet_t *m_sheets[MAX_SHEETS];
     win_sheet_t m_sheets0[MAX_SHEETS];
 } win_sheet_ctl_t;
@@ -34,9 +29,6 @@ void init_win_sheet_ctl(void) {
     g_sheet_ctl->m_map = (unsigned char *)memman_alloc_4k(
         g_boot_info.m_screen_x * g_boot_info.m_screen_y);
     assert(g_sheet_ctl->m_map != NULL, "init_win_sheet_ctl alloc map error");
-
-    g_sheet_ctl->m_focus_sheet = NULL;
-    g_sheet_ctl->m_moving_sheet = NULL;
     g_sheet_ctl->m_top = -1;
 
     for (int i = 0; i < MAX_SHEETS; i++) {
@@ -100,7 +92,7 @@ win_sheet_t *win_sheet_alloc(void) {
     for (int i = 0; i < MAX_SHEETS; i++) {
         if (g_sheet_ctl->m_sheets0[i].m_flags == SHEET_UNUSE) {
             win_sheet_t *sht = &g_sheet_ctl->m_sheets0[i];
-            sht->m_name = NULL;
+            sht->m_id = WIN_SHEET_ID_NONE;
             sht->m_vx0 = 0;
             sht->m_vy0 = 0;
             sht->m_flags = SHEET_USE;
@@ -120,10 +112,10 @@ win_sheet_t *win_sheet_alloc(void) {
     return NULL;
 }
 
-void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
+void win_sheet_setbuf(win_sheet_t *sht, unsigned char id, unsigned char *buf,
                       unsigned int bxsize, unsigned int bysize,
                       unsigned char col_inv) {
-    sht->m_name = name;
+    sht->m_id = id;
     sht->m_buf = buf;
     sht->m_bxsize = bxsize;
     sht->m_bysize = bysize;
@@ -382,12 +374,6 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
 void win_sheet_free(win_sheet_t *sheet) {
     _win_sheet_updown(sheet, HIDE_WIN_SHEET_Z);
     sheet->m_flags = SHEET_UNUSE;
-
-    if (g_sheet_ctl->m_focus_sheet == sheet)
-        win_sheet_set_focus(NULL);
-
-    if (g_sheet_ctl->m_moving_sheet == sheet)
-        win_sheet_set_moving_sheet(NULL);
 }
 
 bool win_sheet_is_valid_z(int z) { return z <= TOP_WIN_SHEET_Z; }
@@ -396,38 +382,11 @@ bool win_sheet_is_visible(win_sheet_t *p) {
     return p->m_z >= BOTTOM_WIN_SHEET_Z;
 }
 
-const char *win_sheet_get_name(win_sheet_t *p) { return p->m_name; }
-
-void win_sheet_set_name(win_sheet_t *p, const char *name) { p->m_name = name; }
-
 void win_sheet_show(win_sheet_t *p, int sheet_z) {
     _win_sheet_updown(p, sheet_z);
 }
 
 void win_sheet_hide(win_sheet_t *p) {
     _win_sheet_updown(p, HIDE_WIN_SHEET_Z);
-
-    if (g_sheet_ctl->m_focus_sheet == p)
-        win_sheet_set_focus(NULL);
-
-    if (g_sheet_ctl->m_moving_sheet == p)
-        win_sheet_set_moving_sheet(NULL);
 }
 
-void win_sheet_set_focus(win_sheet_t *p) { g_sheet_ctl->m_focus_sheet = p; }
-
-bool win_sheet_is_focus(win_sheet_t *p) {
-    return g_sheet_ctl->m_focus_sheet == p;
-}
-
-void win_sheet_set_moving_sheet(win_sheet_t *p) {
-    g_sheet_ctl->m_moving_sheet = p;
-}
-
-bool win_sheet_is_moving_sheet(win_sheet_t *p) {
-    return g_sheet_ctl->m_moving_sheet == p;
-}
-
-win_sheet_t *win_sheet_get_moving_sheet(void) {
-    return g_sheet_ctl->m_moving_sheet;
-}

@@ -3,18 +3,27 @@
 #include "def.h"
 #include "sheet_userdata.h"
 
+// 不要修改这个值， 因为受到`map`类型为`unsigned char`限制
+#define MAX_SHEETS 256
+
 #define HIDE_WIN_SHEET_Z -1
 #define BOTTOM_WIN_SHEET_Z 0
 #define TOP_WIN_SHEET_Z 99
 
-#define CANVAS_WIN_SHEET_Z (TOP_WIN_SHEET_Z - 1)
+#define CANVAS_WIN_SHEET_Z (BOTTOM_WIN_SHEET_Z + 1)
 #define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
 
-#define WIN_SHEET_OBJ(obj) ((win_sheet_t *)(*(unsigned int *)(obj)))
+// 图层id,用于标识不同图层的用途
+#define WIN_SHEET_ID_NONE 0
+#define WIN_SHEET_ID_BACKGROUND 1
+#define WIN_SHEET_ID_MOUSE 2
+#define WIN_SHEET_ID_INPUT_COURSE 3
+#define WIN_SHEET_ID_CANVAS 4
+#define WIN_SHEET_ID_WINDOW 5
 
 // 窗口绘制层
 typedef struct {
-    const char *m_name;      // 图层名称
+    unsigned char m_id;      // 图层id
     unsigned char *m_buf;    // 绘制图像
     unsigned int m_bxsize;   // 绘制图像宽度
     unsigned int m_bysize;   // 绘制图像高度
@@ -40,7 +49,7 @@ win_sheet_t *win_sheet_alloc(void);
 void win_sheet_free(win_sheet_t *sheet);
 
 // 设置一个图层信息
-void win_sheet_setbuf(win_sheet_t *sht, const char *name, unsigned char *buf,
+void win_sheet_setbuf(win_sheet_t *sht, unsigned char id, unsigned char *buf,
                       unsigned int bxsize, unsigned int bysize,
                       unsigned char col_inv);
 
@@ -63,29 +72,9 @@ bool win_sheet_is_valid_z(int z);
 // 图层是否可见
 bool win_sheet_is_visible(win_sheet_t *p);
 
-// 获取图层名称
-const char *win_sheet_get_name(win_sheet_t *p);
-
-// 设置图层名称
-void win_sheet_set_name(win_sheet_t *p, const char *name);
-
 // 显示图层
 void win_sheet_show(win_sheet_t *p, int sheet_z);
 
 // 隐藏图层
 void win_sheet_hide(win_sheet_t *p);
 
-// 图层获取焦点
-void win_sheet_set_focus(win_sheet_t *p);
-
-// 判断图层是否是焦点图层
-bool win_sheet_is_focus(win_sheet_t *p);
-
-// 设置图层是否移动
-void win_sheet_set_moving_sheet(win_sheet_t *p);
-
-// 判断图层释放可移动
-bool win_sheet_is_moving_sheet(win_sheet_t *p);
-
-// 已经设置了可移动图层
-win_sheet_t *win_sheet_get_moving_sheet(void);

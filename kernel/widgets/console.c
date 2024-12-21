@@ -10,6 +10,7 @@
 #include "widgets/common_widget.h"
 #include "widgets/console.h"
 
+#if 0
 void console_moving(void *p) {
     window_t *win = ((console_t *)p)->m_win;
 
@@ -87,45 +88,47 @@ void console_pop(console_t *p) {
     strpop(p->m_text);
     console_focus(p);
 }
+#endif
 
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
                        unsigned int height, const char *title) {
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
-    p->m_win = window_new(x, y, width, height, title);
+    p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title);
     p->m_text[0] = '\0';
 
-    sheet_userdata_type_moving_t *userdata = sheet_userdata_type_moving_alloc();
-    sheet_userdata_type_moving_set(userdata, console_moving, p,
-                                   "console_moving");
+    // sheet_userdata_type_moving_t *userdata = sheet_userdata_type_moving_alloc();
+    // sheet_userdata_type_moving_set(userdata, console_moving, p,
+    //                                "console_moving");
 
-    sheet_userdata_set(&p->m_win->m_sheet->m_userdata,
-                       SHEET_USERDATA_TYPE_MOVING, userdata);
+    // sheet_userdata_set(&p->m_win->m_sheet->m_userdata,
+    //                    SHEET_USERDATA_TYPE_MOVING, userdata);
 
-    make_textbox8(p->m_win->m_sheet, FONT_WIDTH,
-                  TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
-                  p->m_win->m_sheet->m_bxsize - FONT_WIDTH * 2,
-                  p->m_win->m_sheet->m_bysize - TITLE_BAR_HEIGHT - FONT_HEIGHT,
-                  COLOR_BLACK);
+    // make_textbox8(p->m_win->m_sheet, FONT_WIDTH,
+    //               TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
+    //               p->m_win->m_sheet->m_bxsize - FONT_WIDTH * 2,
+    //               p->m_win->m_sheet->m_bysize - TITLE_BAR_HEIGHT - FONT_HEIGHT,
+    //               COLOR_BLACK);
 
     return p;
 }
 
-void console_free(const console_t *p) {
-    window_free(p->m_win);
-    sheet_userdata_type_moving_free(p->m_win->m_sheet->m_userdata.m_data);
-    memman_free_4k(p, sizeof(console_t));
-}
+// void console_free(const console_t *p) {
+//     window_free(p->m_win);
+//     sheet_userdata_type_moving_free(p->m_win->m_sheet->m_userdata.m_data);
+//     memman_free_4k(p, sizeof(console_t));
+// }
 
-void console_show(console_t *p, int z) {
-    window_show(p->m_win, z);
-    console_focus(p);
-}
+// void console_show(console_t *p, int z) {
+//     window_show(p->m_win, z);
+//     console_focus(p);
+// }
 
-void console_hide(console_t *p) {
-    if (win_sheet_is_focus(p->m_win->m_sheet)) {
-        win_sheet_hide(g_input_cursor_sht);
-    }
-    window_hide(p->m_win);
-}
+// void console_hide(console_t *p) {
+//     if (win_sheet_is_focus(p->m_win->m_sheet)) {
+//         win_sheet_hide(g_input_cursor_sht);
+//     }
+//     window_hide(p->m_win);
+// }
+

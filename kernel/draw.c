@@ -218,7 +218,7 @@ void init_background_sheet(void) {
     assert(buf != NULL, "init_background_sht alloc 4k error");
 
     _set_background_vram(buf, xsize, ysize);
-    win_sheet_setbuf(g_background_sht, "background", buf, xsize, ysize,
+    win_sheet_setbuf(g_background_sht, WIN_SHEET_ID_BACKGROUND, buf, xsize, ysize,
                      COLOR_INVISIBLE);
     win_sheet_slide(g_background_sht, 0, 0);
     win_sheet_show(g_background_sht, BOTTOM_WIN_SHEET_Z);

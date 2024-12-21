@@ -16,7 +16,7 @@ void init_canvas_sheet(int z) {
     assert(g_canvas_sht != NULL, "show_string_in_canvas sheet alloc error");
 
     g_canvas_sht->m_is_transparent_layer = true;
-    win_sheet_setbuf(g_canvas_sht, "canvas", buf, xsize, ysize,
+    win_sheet_setbuf(g_canvas_sht, WIN_SHEET_ID_CANVAS, buf, xsize, ysize,
                      COLOR_INVISIBLE);
     win_sheet_slide(g_canvas_sht, 0, 0);
     win_sheet_show(g_canvas_sht, z);

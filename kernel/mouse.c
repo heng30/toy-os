@@ -119,7 +119,7 @@ void init_mouse_sheet(void) {
     g_mouse_sht = win_sheet_alloc();
     assert(g_mouse_sht != NULL, "init_mouse_sheet alloc sheet error");
 
-    win_sheet_setbuf(g_mouse_sht, "mouse", g_mdec.m_cursor, CURSOR_ICON_SIZE,
+    win_sheet_setbuf(g_mouse_sht, WIN_SHEET_ID_MOUSE, g_mdec.m_cursor, CURSOR_ICON_SIZE,
                      CURSOR_ICON_SIZE, COLOR_INVISIBLE);
 
     win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);

@@ -95,7 +95,7 @@ input_box_t *input_box_new(unsigned int x, unsigned int y, unsigned int width,
     input_box_t *p = (input_box_t *)memman_alloc_4k(sizeof(input_box_t));
     assert(p != NULL, "input_box_new alloc 4k error");
 
-    p->m_win = window_new(x, y, width, height, title);
+    p->m_win = window_new(x, y, width, height, WINDOW_ID_INPUT_BOX, title);
     p->m_text[0] = '\0';
 
     // 设置移动回调函数

@@ -28,7 +28,7 @@ static void _init_input_cursor_sheet(void) {
              g_input_cursor.m_input_cursor_color, 0, 0, INPUT_CURSOR_WIDTH - 1,
              INPUT_CURSOR_HEIGHT - 1);
 
-    win_sheet_setbuf(g_input_cursor_sht, "input-cursor",
+    win_sheet_setbuf(g_input_cursor_sht, WIN_SHEET_ID_INPUT_COURSE,
                      g_input_cursor.m_input_cursor, INPUT_CURSOR_WIDTH,
                      INPUT_CURSOR_HEIGHT, COLOR_INVISIBLE);
 
