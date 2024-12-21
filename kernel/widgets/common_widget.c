@@ -3,7 +3,7 @@
 #include "draw.h"
 
 #include "widgets/common_widget.h"
-#include "widgets/message_box.h"
+#include "widgets/window.h"
 
 void make_textbox8(win_sheet_t *sht, unsigned int x0, unsigned int y0,
                    unsigned int sx, unsigned int sy, unsigned char c) {

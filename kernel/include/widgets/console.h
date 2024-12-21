@@ -1,12 +1,12 @@
 #pragma once
 
 #include "def.h"
-#include "message_box.h"
+#include "window.h"
 
 #define CONSOLE_TEXT_MAX_LEN 4096
 
 typedef struct {
-    win_sheet_t *m_sheet; // 对话框架, 必须是第一个成员
+    window_t *m_win;
     char m_text[CONSOLE_TEXT_MAX_LEN + 1]; // 输入的字符串
 } console_t;
 

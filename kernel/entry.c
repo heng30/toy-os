@@ -14,8 +14,8 @@
 
 #include "multi_task_test.h"
 #include "widgets/canvas.h"
-#include "widgets/input_box.h"
 #include "widgets/console.h"
+#include "widgets/input_box.h"
 
 static void _test(void) {
 #ifdef __RING_TEST__
@@ -88,7 +88,7 @@ void start_kernel(void) {
 
     input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
     input_box_show(input_box, BOTTOM_WIN_SHEET_Z + 3);
-    win_sheet_set_moving_sheet(input_box->m_sheet);
+    win_sheet_set_moving_sheet(input_box->m_win->m_sheet);
     input_box_draw_text(input_box, "hello");
 
     console_t *console = console_new(300, 50, 240, 200, "Console");
