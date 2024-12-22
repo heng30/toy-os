@@ -2,6 +2,7 @@
 #include "colo8.h"
 #include "draw.h"
 #include "fifo8.h"
+#include "input_cursor.h"
 #include "io.h"
 #include "keyboard_mouse.h"
 #include "kutil.h"
@@ -179,6 +180,7 @@ static void _focus_window(window_t *win) {
         return;
 
     window_ctl_up_window_to_top(win);
+    win_sheet_hide(g_input_cursor_sht);
 
     switch (win->m_id) {
     case WINDOW_ID_INPUT_BOX: {
@@ -206,24 +208,9 @@ static void _handle_left_btn_event(void) {
             }
         }
 
-#if 0
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
-                              int2hexstr((ptr_t)_handle_left_btn_event_win));
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 3, COLOR_WHITE,
-                              int2hexstr(g_window_ctl.m_mouse_click_flag));
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 2, COLOR_WHITE,
-                              int2hexstr(g_window_ctl.m_top));
-#endif
-
         if (_handle_left_btn_event_win) {
             if (window_ctl_is_click_closebtn()) {
                 // TODO
-                // window_ctl_remove(win);
-                // if (win->m_id == WINDOW_ID_INPUT_BOX) {
-                //     input_box_free(win->m_instance);
-                // } else if (win->m_id == WINDOW_ID_CONSOLE) {
-                //     console_free(win->m_instance);
-                // }
             } else if (window_ctl_is_click_title()) {
                 window_ctl_set_moving_window(_handle_left_btn_event_win);
                 _moving_window();
