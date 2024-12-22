@@ -54,6 +54,10 @@ void keyboard_callback(input_box_t *input_box) {
     }
 }
 
+typedef void (*foo_t)(void);
+
+void bar(void) { show_string_in_canvas(0, 400, COL8_FFFFFF, "hello"); }
+
 void start_kernel(void) {
     init_pit();
     init_boot_info();
@@ -91,6 +95,10 @@ void start_kernel(void) {
 
     console_t *console = console_new(300, 50, 240, 200, "Console");
     window_ctl_add(console->m_win);
+
+    foo_t b = bar;
+
+    b();
 
     unsigned int counter = 0;
     for (;;) {
