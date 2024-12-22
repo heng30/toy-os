@@ -182,10 +182,9 @@ bool window_ctl_is_click_window(void) {
     return g_window_ctl.m_mouse_click_flag & WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW;
 }
 
-// TODO
 void window_ctl_up_window_to_top(window_t *p) {
     if (g_window_ctl.m_top == 0 ||
-        p == g_window_ctl.m_windows[g_window_ctl.m_top])
+        p == g_window_ctl.m_windows[g_window_ctl.m_top - 1])
         return;
 
     int start_z = p->m_sheet->m_z;
@@ -194,7 +193,7 @@ void window_ctl_up_window_to_top(window_t *p) {
            "window_ctl_up_window_to_top invaild start_z");
 
     // 窗口和图层向下移动一个位置
-    for (unsigned int i = (unsigned int)start_z - WINDOW_WIN_SHEET_MIN_Z + 1;
+    for (unsigned int i = (unsigned int)start_z - WINDOW_WIN_SHEET_MIN_Z;
          i < g_window_ctl.m_top - 1; i++) {
         g_window_ctl.m_windows[i] = g_window_ctl.m_windows[i + 1];
         win_sheet_t *sht = g_window_ctl.m_windows[i]->m_sheet;

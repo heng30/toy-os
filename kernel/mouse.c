@@ -178,15 +178,15 @@ static void _focus_window(window_t *win) {
     if (!win->m_instance)
         return;
 
-    // window_ctl_up_window_to_top(win);
+    window_ctl_up_window_to_top(win);
 
     switch (win->m_id) {
     case WINDOW_ID_INPUT_BOX: {
-        input_box_focus(win->m_instance);
+        // input_box_focus(win->m_instance);
         break;
     }
     case WINDOW_ID_CONSOLE: {
-        console_focus(win->m_instance);
+        // console_focus(win->m_instance);
         break;
     }
     default:
@@ -206,11 +206,21 @@ static void _handle_left_btn_event(void) {
             }
         }
 
-#if 0
-        show_string_in_canvas(0, 400, COLOR_WHITE,
+#if 1
+
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 7, COLOR_WHITE,
+                              int2hexstr((ptr_t)g_mouse_sht->m_z));
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 6, COLOR_WHITE,
+                              int2hexstr((ptr_t)g_window_ctl.m_windows[0]));
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 5, COLOR_WHITE,
+                              int2hexstr((ptr_t)g_window_ctl.m_windows[1]));
+
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
                               int2hexstr((ptr_t)_handle_left_btn_event_win));
-        show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 3, COLOR_WHITE,
                               int2hexstr(g_window_ctl.m_mouse_click_flag));
+        show_string_in_canvas(0, 400 - FONT_HEIGHT * 2, COLOR_WHITE,
+                              int2hexstr(g_window_ctl.m_top));
 #endif
 
         if (_handle_left_btn_event_win) {

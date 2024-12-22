@@ -55,7 +55,7 @@ static void _win_sheet_refreshmap(unsigned int vx0, unsigned int vy0,
 
             for (unsigned int bx = bx0; bx < bx1; bx++) {
                 unsigned int vx = sht->m_vx0 + bx; // 转换为全局坐标系
-                                                   //
+
                 unsigned int max_pos = sht->m_bxsize * sht->m_bysize;
                 unsigned int pos = by * sht->m_bxsize + bx;
 
@@ -261,8 +261,6 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
         z = TOP_WIN_SHEET_Z;
     } else if (z < BOTTOM_WIN_SHEET_Z) {
         z = HIDE_WIN_SHEET_Z;
-    } else {
-        z = z;
     }
 
     if (z == HIDE_WIN_SHEET_Z) {
@@ -271,7 +269,7 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
         new_index = _calc_index(z);
     }
 
-    if ((old_index < 0 && new_index < 0) || (old_index == new_index))
+    if (old_index < 0 && new_index < 0)
         return;
 
     sht->m_index = new_index;
@@ -347,6 +345,13 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
             ctl->m_top++;
         }
 
+        show_string_in_canvas(
+            0, 400 + FONT_HEIGHT, COLOR_WHITE,
+            int2hexstr((ptr_t)g_sheet_ctl->m_sheets[g_sheet_ctl->m_top]));
+
+        show_string_in_canvas(0, 400 + FONT_HEIGHT * 2, COLOR_WHITE,
+                              int2hexstr((ptr_t)g_mouse_sht));
+
         // 重新计算[new_index, top]图层到map的映射
         _win_sheet_refreshmap(sht->m_vx0, sht->m_vy0,
                               sht->m_vx0 + sht->m_bxsize,
@@ -373,7 +378,4 @@ void win_sheet_show(win_sheet_t *p, int sheet_z) {
     _win_sheet_updown(p, sheet_z);
 }
 
-void win_sheet_hide(win_sheet_t *p) {
-    _win_sheet_updown(p, HIDE_WIN_SHEET_Z);
-}
-
+void win_sheet_hide(win_sheet_t *p) { _win_sheet_updown(p, HIDE_WIN_SHEET_Z); }
