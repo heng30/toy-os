@@ -7,9 +7,10 @@
 
 #define HIDE_WIN_SHEET_Z -1
 #define BOTTOM_WIN_SHEET_Z 0
+#define CANVAS_WIN_SHEET_Z 1
+#define WINDOW_WIN_SHEET_MIN_Z 10 // 窗口图层最小值
+#define WINDOW_WIN_SHEET_MAX_Z 90  // 窗口图层最大值
 #define TOP_WIN_SHEET_Z 99
-
-#define CANVAS_WIN_SHEET_Z (BOTTOM_WIN_SHEET_Z + 1)
 #define MOUSE_WIN_SHEET_Z TOP_WIN_SHEET_Z
 
 // 图层id,用于标识不同图层的用途

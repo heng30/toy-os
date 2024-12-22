@@ -12,3 +12,6 @@ void make_textbox8(win_sheet_t *sht, unsigned int x0, unsigned int y0,
 // 绘制窗口标题栏
 void draw_title_bar(win_sheet_t *sht, const char *title,
                     unsigned char background_color);
+
+// 绘制窗口背景
+void draw_window_background(win_sheet_t *sht);

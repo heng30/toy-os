@@ -59,8 +59,8 @@ void input_box_focus(input_box_t *p) {
     input_cursor_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
                       vy + TITLE_BAR_HEIGHT + FONT_HEIGHT / 2);
 
+    // 绘制输入框
     if (text_len > 0) {
-        // 重新绘制背景
         make_textbox8(
             win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
             win->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT, COLOR_WHITE);

@@ -7,6 +7,7 @@
 #include "kutil.h"
 
 #include "widgets/canvas.h"
+#include "widgets/common_widget.h"
 #include "widgets/console.h"
 #include "widgets/input_box.h"
 #include "widgets/window.h"
@@ -18,7 +19,7 @@ task_t *g_mouse_task = NULL;
 // 鼠标图标
 extern char cursor_icon[CURSOR_ICON_SIZE][CURSOR_ICON_SIZE];
 
-static unsigned char g_mousebuf[128];
+static unsigned char g_mousebuf[512];
 fifo8_t g_mouseinfo = {
     .m_buf = g_mousebuf,
     .m_size = sizeof(g_mousebuf),
@@ -129,7 +130,7 @@ void init_mouse_sheet(void) {
     win_sheet_show(g_mouse_sht, MOUSE_WIN_SHEET_Z);
 }
 
-void draw_mouse(void) {
+static void _draw_mouse(void) {
     compute_mouse_position();
     win_sheet_slide(g_mouse_sht, g_mdec.m_abs_x, g_mdec.m_abs_y);
 }
@@ -173,70 +174,83 @@ static void _moving_window(void) {
     }
 }
 
+static void _focus_window(window_t *win) {
+    if (!win->m_instance)
+        return;
+
+    // window_ctl_up_window_to_top(win);
+
+    switch (win->m_id) {
+    case WINDOW_ID_INPUT_BOX: {
+        input_box_focus(win->m_instance);
+        break;
+    }
+    case WINDOW_ID_CONSOLE: {
+        console_focus(win->m_instance);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void _handle_left_btn_event(void) {
+    static window_t *_handle_left_btn_event_win = NULL;
+    if (is_mouse_left_btn_pressed()) {
+        if (!_handle_left_btn_event_win) {
+            _handle_left_btn_event_win = window_ctl_get_mouse_click_window();
+
+            if (!window_ctl_is_click_closebtn() &&
+                window_ctl_is_click_window()) {
+                _focus_window(_handle_left_btn_event_win);
+            }
+        }
+
+#if 0
+        show_string_in_canvas(0, 400, COLOR_WHITE,
+                              int2hexstr((ptr_t)_handle_left_btn_event_win));
+        show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
+                              int2hexstr(g_window_ctl.m_mouse_click_flag));
+#endif
+
+        if (_handle_left_btn_event_win) {
+            if (window_ctl_is_click_closebtn()) {
+                // TODO
+                // window_ctl_remove(win);
+                // if (win->m_id == WINDOW_ID_INPUT_BOX) {
+                //     input_box_free(win->m_instance);
+                // } else if (win->m_id == WINDOW_ID_CONSOLE) {
+                //     console_free(win->m_instance);
+                // }
+            } else if (window_ctl_is_click_title()) {
+                window_ctl_set_moving_window(_handle_left_btn_event_win);
+                _moving_window();
+            }
+        }
+    } else {
+        if (_handle_left_btn_event_win) {
+            window_ctl_set_moving_window(NULL);
+            _handle_left_btn_event_win = NULL;
+        }
+    }
+}
+
 static void _mouse_task_main(void) {
-    static bool mouse_left_btn_pressed = false;
 
     for (;;) {
         io_cli();
         if (fifo8_is_empty(&g_mouseinfo)) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else {
-            unsigned char code = (unsigned char)fifo8_get(&g_mouseinfo);
+            int code = fifo8_get(&g_mouseinfo);
+            if (code < 0)
+                continue;
 
-            io_sti();
+            if (mouse_decode((unsigned char)code) != 1)
+                continue;
 
-            if (mouse_decode(code) == 1) {
-                draw_mouse();
-
-                if (is_mouse_left_btn_pressed()) {
-                    mouse_left_btn_pressed = true;
-
-                    window_t *win = window_ctl_get_mouse_click_window();
-                    unsigned char flag = g_window_ctl.m_mouse_click_flag;
-
-                    // show_string_in_canvas(0, 400, COLOR_WHITE,
-                    //                       int2hexstr((ptr_t)win));
-                    // show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
-                    //                       int2hexstr(flag));
-
-                    if (win) {
-                        if (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN) {
-                            // TODO
-                            // window_ctl_remove(win);
-                            // if (win->m_id == WINDOW_ID_INPUT_BOX) {
-                            //     input_box_free(win->m_instance);
-                            // } else if (win->m_id == WINDOW_ID_CONSOLE) {
-                            //     console_free(win->m_instance);
-                            // }
-                        } else if (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE) {
-                            window_ctl_set_moving_window(win);
-                            _moving_window();
-                        }
-                    }
-                } else {
-                    if (mouse_left_btn_pressed) {
-                        window_t *win = window_ctl_get_mouse_click_window();
-                        unsigned char flag = g_window_ctl.m_mouse_click_flag;
-
-                        // show_string_in_canvas(0, 400, COLOR_WHITE,
-                        //                       int2hexstr((ptr_t)win));
-                        // show_string_in_canvas(0, 400 - FONT_HEIGHT, COLOR_WHITE,
-                        //                       int2hexstr(flag));
-
-                        if (win && (flag == WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE ||
-                                    flag == WINDOW_CTL_MOUSE_CLICK_FLAG_BODY)) {
-                            if (win->m_id == WINDOW_ID_INPUT_BOX) {
-                                input_box_focus(win->m_instance);
-                            } else if (win->m_id == WINDOW_ID_CONSOLE) {
-                                console_focus(win->m_instance);
-                            }
-                        }
-
-                        mouse_left_btn_pressed = false;
-                        window_ctl_set_moving_window(NULL);
-                    }
-                }
-            }
+            _draw_mouse();
+            _handle_left_btn_event();
         }
     }
 }

@@ -12,7 +12,7 @@
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_NONE 0
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE 1
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN 2
-#define WINDOW_CTL_MOUSE_CLICK_FLAG_BODY 3
+#define WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW 4
 
 typedef struct {
     win_sheet_t *m_sheet; // 图层J
@@ -68,3 +68,15 @@ window_t *window_ctl_get_moving_window(void);
 
 // 获取鼠标下的窗口
 window_t *window_ctl_get_mouse_click_window(void);
+
+// 鼠标是否点击了关闭按钮
+bool window_ctl_is_click_closebtn(void);
+
+// 鼠标是否点击了标题栏
+bool window_ctl_is_click_title(void) ;
+
+// 鼠标是否点击了窗口
+bool window_ctl_is_click_window(void);
+
+// 将窗口移到最高层
+void window_ctl_up_window_to_top(window_t *p);

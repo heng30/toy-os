@@ -65,6 +65,9 @@ void console_focus(console_t *p) {
 
     if (dst != NULL)
         memman_free_4k(dst, text_len + 1);
+
+    // win_sheet_refresh(win->m_sheet, 0, 0, win->m_sheet->m_bxsize,
+    //                   win->m_sheet->m_bysize);
 }
 
 void console_draw_text(console_t *p, const char *text) {

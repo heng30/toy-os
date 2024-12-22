@@ -185,6 +185,8 @@ void win_sheet_refreshsub(unsigned int vx0, unsigned int vy0, unsigned int vx1,
 }
 
 // 刷新当前图层，不会刷新其他图层; 不会刷新map
+// (bx0, by0) 到 (bx1, by1)的区间
+// 坐标是相对于图层本身坐标系的
 void win_sheet_refresh(win_sheet_t *sht, unsigned int bx0, unsigned int by0,
                        unsigned int bx1, unsigned int by1) {
     if (sht->m_index >= 0) {
@@ -201,6 +203,8 @@ void win_sheet_refresh(win_sheet_t *sht, unsigned int bx0, unsigned int by0,
 }
 
 // 强制刷新图层和map表
+// (bx0, by0) 到 (bx1, by1)的区间
+// 坐标是相对于图层本身坐标系的
 void win_sheet_refresh_force(win_sheet_t *sht, unsigned int bx0,
                              unsigned int by0, unsigned int bx1,
                              unsigned int by1) {

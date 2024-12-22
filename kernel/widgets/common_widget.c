@@ -39,7 +39,19 @@ static void _draw_title_bar_closebtn(win_sheet_t *sht) {
     }
 }
 
-static void _draw_title_bar_background(win_sheet_t *sht, unsigned char background_color) {
+static void _draw_title_bar_title(win_sheet_t *sht, const char *title, unsigned char background_color) {
+    unsigned int bxsize = sht->m_bxsize, bysize = sht->m_bysize;
+    boxfill8(sht->m_buf, bxsize, background_color, 3, 3, bxsize - 4,
+             TITLE_BAR_HEIGHT);
+    show_string(sht, 8, 4, background_color, COL8_FFFFFF, title);
+}
+
+void draw_title_bar(win_sheet_t *sht, const char *title, unsigned char background_color) {
+    _draw_title_bar_title(sht, title, background_color);
+    _draw_title_bar_closebtn(sht);
+}
+
+void draw_window_background(win_sheet_t *sht) {
     unsigned int bxsize = sht->m_bxsize, bysize = sht->m_bysize;
 
     boxfill8(sht->m_buf, bxsize, COL8_C6C6C6, 0, 0, bxsize - 1, 0);
@@ -51,20 +63,10 @@ static void _draw_title_bar_background(win_sheet_t *sht, unsigned char backgroun
     boxfill8(sht->m_buf, bxsize, COL8_000000, bxsize - 1, 0, bxsize - 1,
              bysize - 1);
     boxfill8(sht->m_buf, bxsize, COL8_C6C6C6, 2, 2, bxsize - 3, bysize - 3);
-    boxfill8(sht->m_buf, bxsize, background_color, 3, 3, bxsize - 4,
-             TITLE_BAR_HEIGHT);
+    // boxfill8(sht->m_buf, bxsize, background_color, 3, 3, bxsize - 4,
+    //          TITLE_BAR_HEIGHT);
     boxfill8(sht->m_buf, bxsize, COL8_848484, 1, bysize - 2, bxsize - 2,
              bysize - 2);
     boxfill8(sht->m_buf, bxsize, COL8_000000, 0, bysize - 1, bxsize - 1,
              bysize - 1);
-}
-
-static void _draw_title_bar_title(win_sheet_t *sht, const char *title, unsigned char background_color) {
-    show_string(sht, 8, 4, background_color, COL8_FFFFFF, title);
-}
-
-void draw_title_bar(win_sheet_t *sht, const char *title, unsigned char background_color) {
-    _draw_title_bar_background(sht, background_color);
-    _draw_title_bar_closebtn(sht);
-    _draw_title_bar_title(sht, title, background_color);
 }

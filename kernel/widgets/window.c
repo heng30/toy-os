@@ -7,12 +7,13 @@
 #include "mouse.h"
 
 #include "widgets/common_widget.h"
+#include "widgets/console.h"
+#include "widgets/input_box.h"
 #include "widgets/window.h"
 
 window_ctl_t g_window_ctl = {
     .m_focus_window = NULL,
     .m_moving_window = NULL,
-    .m_mouse_click_flag = WINDOW_CTL_MOUSE_CLICK_FLAG_NONE,
     .m_top = 0,
     .m_windows = {NULL},
 };
@@ -31,6 +32,7 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
 
     win_sheet_setbuf(sht, WIN_SHEET_ID_WINDOW, buf, width, height,
                      COLOR_INVISIBLE);
+    draw_window_background(sht);
     draw_title_bar(sht, title, COLOR_TITLE_BAR_FOCUS);
     win_sheet_slide(sht, x, y);
 
@@ -61,8 +63,21 @@ void window_ctl_add(window_t *p) {
 
     assert(g_window_ctl.m_top < MAX_SHEETS, "window_ctl_add too many windows");
 
+    // 调整窗口图层的高度，保证每个图层高度只有一个图层
+    int z = WINDOW_WIN_SHEET_MIN_Z + (int)g_window_ctl.m_top;
+    assert(z <= WINDOW_WIN_SHEET_MAX_Z,
+           "window_ctl_add overflow the WINDOW_WIN_SHEET_MAX_Z");
+
     g_window_ctl.m_windows[g_window_ctl.m_top] = p;
     g_window_ctl.m_top++;
+
+    if (p->m_instance) {
+        if (p->m_id == WINDOW_ID_INPUT_BOX) {
+            input_box_show(p->m_instance, z);
+        } else if (p->m_id == WINDOW_ID_CONSOLE) {
+            console_show(p->m_instance, z);
+        }
+    }
 }
 
 void window_ctl_remove(window_t *p) {
@@ -80,7 +95,20 @@ void window_ctl_remove(window_t *p) {
 }
 
 void window_ctl_set_focus_window(window_t *p) {
+    window_t *old = g_window_ctl.m_focus_window;
+    if (old == p)
+        return;
+
+    if (old) {
+        draw_title_bar(old->m_sheet, old->m_title, COLOR_TITLE_BAR_UNFOCUS);
+        win_sheet_refresh(old->m_sheet, 0, 0, old->m_sheet->m_bxsize,
+                          TITLE_BAR_HEIGHT + 1);
+    }
+
     g_window_ctl.m_focus_window = p;
+    draw_title_bar(p->m_sheet, p->m_title, COLOR_TITLE_BAR_FOCUS);
+    win_sheet_refresh(p->m_sheet, 0, 0, p->m_sheet->m_bxsize,
+                      TITLE_BAR_HEIGHT + 1);
 }
 
 bool window_ctl_is_focus_window(window_t *p) {
@@ -101,9 +129,9 @@ window_t *window_ctl_get_moving_window(void) {
 
 window_t *window_ctl_get_mouse_click_window(void) {
     unsigned int mouse_x = g_mdec.m_abs_x, mouse_y = g_mdec.m_abs_y;
+    g_window_ctl.m_mouse_click_flag = WINDOW_CTL_MOUSE_CLICK_FLAG_NONE;
 
-    // 最高图层应该是鼠标图层，这里就不进行比较了
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+    for (int i = (int)g_window_ctl.m_top - 1; i >= 0; i--) {
         win_sheet_t *sht = g_window_ctl.m_windows[i]->m_sheet;
         unsigned int x0 = sht->m_vx0, y0 = sht->m_vy0;
         unsigned int x1 = x0 + sht->m_bxsize, y1 = y0 + sht->m_bysize;
@@ -113,13 +141,15 @@ window_t *window_ctl_get_mouse_click_window(void) {
             continue;
         }
 
+        g_window_ctl.m_mouse_click_flag |= WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW;
+
         // 关闭按钮
         unsigned int closebtn_x0 = x1 - 21, closebtn_y0 = y0;
         unsigned int closebtn_x1 = x1 - 21 + CLOSEBTN_ICON_WIDTH,
                      closebtn_y1 = y0 + TITLE_BAR_HEIGHT;
         if (mouse_x > closebtn_x0 && mouse_x < closebtn_x1 &&
             mouse_y > closebtn_y0 && mouse_y < closebtn_y1) {
-            g_window_ctl.m_mouse_click_flag =
+            g_window_ctl.m_mouse_click_flag |=
                 WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN;
             return g_window_ctl.m_windows[i];
         }
@@ -128,15 +158,50 @@ window_t *window_ctl_get_mouse_click_window(void) {
         unsigned int title_y1 = y0 + TITLE_BAR_HEIGHT;
         if (mouse_x > x0 && mouse_x < x1 && mouse_y > y0 &&
             mouse_y < title_y1) {
-            g_window_ctl.m_mouse_click_flag = WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE;
+            g_window_ctl.m_mouse_click_flag |=
+                WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE;
             return g_window_ctl.m_windows[i];
         }
 
-        // 鼠标在body
-        g_window_ctl.m_mouse_click_flag = WINDOW_CTL_MOUSE_CLICK_FLAG_BODY;
         return g_window_ctl.m_windows[i];
     }
 
-    g_window_ctl.m_mouse_click_flag = WINDOW_CTL_MOUSE_CLICK_FLAG_NONE;
     return NULL;
+}
+
+bool window_ctl_is_click_closebtn(void) {
+    return g_window_ctl.m_mouse_click_flag &
+           WINDOW_CTL_MOUSE_CLICK_FLAG_CLOSEBTN;
+}
+
+bool window_ctl_is_click_title(void) {
+    return g_window_ctl.m_mouse_click_flag & WINDOW_CTL_MOUSE_CLICK_FLAG_TITLE;
+}
+
+bool window_ctl_is_click_window(void) {
+    return g_window_ctl.m_mouse_click_flag & WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW;
+}
+
+// TODO
+void window_ctl_up_window_to_top(window_t *p) {
+    if (g_window_ctl.m_top == 0 ||
+        p == g_window_ctl.m_windows[g_window_ctl.m_top])
+        return;
+
+    int start_z = p->m_sheet->m_z;
+    assert(start_z >= WINDOW_WIN_SHEET_MIN_Z &&
+               start_z <= WINDOW_WIN_SHEET_MAX_Z,
+           "window_ctl_up_window_to_top invaild start_z");
+
+    // 窗口和图层向下移动一个位置
+    for (unsigned int i = (unsigned int)start_z - WINDOW_WIN_SHEET_MIN_Z + 1;
+         i < g_window_ctl.m_top - 1; i++) {
+        g_window_ctl.m_windows[i] = g_window_ctl.m_windows[i + 1];
+        win_sheet_t *sht = g_window_ctl.m_windows[i]->m_sheet;
+        win_sheet_show(sht, sht->m_z - 1);
+    }
+
+    g_window_ctl.m_windows[g_window_ctl.m_top - 1] = p;
+    win_sheet_show(p->m_sheet,
+                   (int)(WINDOW_WIN_SHEET_MIN_Z + g_window_ctl.m_top - 1));
 }

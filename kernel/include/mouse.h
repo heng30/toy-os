@@ -57,9 +57,6 @@ int mouse_decode(unsigned char data);
 // 初始化鼠标图层
 void init_mouse_sheet(void);
 
-// 绘制背景
-void draw_mouse(void);
-
 // 保证鼠标在最高图层
 void keep_mouse_sheet_on_top(void);
 
