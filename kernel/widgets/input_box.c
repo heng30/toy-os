@@ -73,7 +73,7 @@ void input_box_focus(input_box_t *p) {
     if (dst != NULL)
         memman_free_4k(dst, text_len + 1);
 
-    // win_sheet_refresh(win->m_sheet, 0, 0, win->m_sheet->m_bxsize, win->m_sheet->m_bysize);
+    win_sheet_slide(win->m_sheet, vx, vy);
 }
 
 void input_box_draw_text(input_box_t *p, const char *text) {

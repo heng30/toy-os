@@ -200,19 +200,13 @@ static void _handle_left_btn_event(void) {
         if (!_handle_left_btn_event_win) {
             _handle_left_btn_event_win = window_ctl_get_mouse_click_window();
 
-            show_string_in_canvas(100, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
-                                  "1111");
-
             if (!window_ctl_is_click_closebtn() &&
                 window_ctl_is_click_window()) {
                 _focus_window(_handle_left_btn_event_win);
-                _moving_window();
-                show_string_in_canvas(100, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
-                                      "2222");
             }
         }
 
-#if 1
+#if 0
         show_string_in_canvas(0, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
                               int2hexstr((ptr_t)_handle_left_btn_event_win));
         show_string_in_canvas(0, 400 - FONT_HEIGHT * 3, COLOR_WHITE,
