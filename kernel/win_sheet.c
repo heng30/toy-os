@@ -326,14 +326,18 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
     } else if (old_index < new_index) { // 图层向上移动
         // 可见图层间移动
         if (old_index >= 0) {
-            // 将[old_index+1, new_index]之间的图层向下移一位到[old_index,
-            // new_index-1]
-            for (int h = old_index; h < new_index; h++) {
-                ctl->m_sheets[h] = ctl->m_sheets[h + 1];
-                ctl->m_sheets[h]->m_index = h;
-            }
+            // 保留new_index原本的图层
+            if (new_index > 0) {
+                // 将[old_index+1, new_index-1]之间的图层向下移一位到[old_index,
+                // new_index-2]
+                for (int h = old_index; h < new_index - 1; h++) {
+                    ctl->m_sheets[h] = ctl->m_sheets[h + 1];
+                    ctl->m_sheets[h]->m_index = h;
+                }
 
-            ctl->m_sheets[new_index] = sht;
+                sht->m_index = new_index - 1;
+                ctl->m_sheets[new_index] = sht;
+            }
         } else { // 隐藏图层移动到可见图层
             // 将[new_index, top]之间的图层向上移一位到[new_index+1, top+1]
             for (int h = ctl->m_top; h >= new_index; h--) {
@@ -346,11 +350,14 @@ static void _win_sheet_updown(win_sheet_t *sht, int z) {
         }
 
         show_string_in_canvas(
-            0, 400 + FONT_HEIGHT, COLOR_WHITE,
-            int2hexstr((ptr_t)g_sheet_ctl->m_sheets[g_sheet_ctl->m_top]));
+            0, 400, COLOR_WHITE,
+            int2hexstr((ptr_t)g_sheet_ctl->m_sheets[3]->m_id));
+
+        show_string_in_canvas(0, 400 + FONT_HEIGHT, COLOR_WHITE,
+                              int2hexstr((ptr_t)old_index));
 
         show_string_in_canvas(0, 400 + FONT_HEIGHT * 2, COLOR_WHITE,
-                              int2hexstr((ptr_t)g_mouse_sht));
+                              int2hexstr(new_index));
 
         // 重新计算[new_index, top]图层到map的映射
         _win_sheet_refreshmap(sht->m_vx0, sht->m_vy0,
