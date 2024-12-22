@@ -182,11 +182,11 @@ static void _focus_window(window_t *win) {
 
     switch (win->m_id) {
     case WINDOW_ID_INPUT_BOX: {
-        // input_box_focus(win->m_instance);
+        input_box_focus(win->m_instance);
         break;
     }
     case WINDOW_ID_CONSOLE: {
-        // console_focus(win->m_instance);
+        console_focus(win->m_instance);
         break;
     }
     default:
@@ -200,21 +200,19 @@ static void _handle_left_btn_event(void) {
         if (!_handle_left_btn_event_win) {
             _handle_left_btn_event_win = window_ctl_get_mouse_click_window();
 
+            show_string_in_canvas(100, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
+                                  "1111");
+
             if (!window_ctl_is_click_closebtn() &&
                 window_ctl_is_click_window()) {
                 _focus_window(_handle_left_btn_event_win);
+                _moving_window();
+                show_string_in_canvas(100, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
+                                      "2222");
             }
         }
 
 #if 1
-
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 7, COLOR_WHITE,
-                              int2hexstr((ptr_t)g_mouse_sht->m_z));
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 6, COLOR_WHITE,
-                              int2hexstr((ptr_t)g_window_ctl.m_windows[0]));
-        show_string_in_canvas(0, 400 - FONT_HEIGHT * 5, COLOR_WHITE,
-                              int2hexstr((ptr_t)g_window_ctl.m_windows[1]));
-
         show_string_in_canvas(0, 400 - FONT_HEIGHT * 4, COLOR_WHITE,
                               int2hexstr((ptr_t)_handle_left_btn_event_win));
         show_string_in_canvas(0, 400 - FONT_HEIGHT * 3, COLOR_WHITE,
