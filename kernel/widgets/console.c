@@ -65,8 +65,6 @@ void console_focus(console_t *p) {
 
     if (dst != NULL)
         memman_free_4k(dst, text_len + 1);
-
-    win_sheet_slide(win->m_sheet, vx, vy);
 }
 
 void console_draw_text(console_t *p, const char *text) {

@@ -225,7 +225,6 @@ static void _handle_left_btn_event(void) {
 }
 
 static void _mouse_task_main(void) {
-
     for (;;) {
         io_cli();
         if (fifo8_is_empty(&g_mouseinfo)) {

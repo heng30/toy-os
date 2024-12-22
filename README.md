@@ -38,6 +38,17 @@ Foo b = a; // 此处会出问题，可能导致内核在刚启动就异常退出
 
 - 不要使用`switch`语句，`switch`不带`default`可能出问题，而且导致内核在运行到`switch`语句后会异常退出
 
+- 不要把变量的指针作为获取函数内部状态的参数，反汇编的代码出问题
+```
+void foo(int *flag) {
+    *flag = 1;
+}
+
+int flag = 0;
+foo(&flag);
+assert(flag == 1); // 此处会出错，flag的值依然为0
+```
+
 ### 参考
 - [Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)
 - [课程代码github](https://github.com/wycl16514)
