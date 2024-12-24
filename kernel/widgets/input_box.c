@@ -140,16 +140,21 @@ static void _input_box_task_main(void) {
             continue;
 
         io_cli();
-        int code = fifo8_get(&g_keyinfo);
+        int c = fifo8_get(&g_keyinfo);
         io_sti();
 
-        if (code < 0)
+        if (c < 0)
             continue;
 
-        if (is_backspace_down((unsigned char)code)) {
+        unsigned char code = (unsigned char)c;
+
+        show_keyboard_input(code);
+
+        set_modkey_status(code);
+        if (is_backspace_down(code)) {
             input_box_pop(input_box);
         } else {
-            char ch = get_pressed_char((unsigned char)code);
+            char ch = get_pressed_char(code);
             input_box_push(input_box, ch);
         }
     }

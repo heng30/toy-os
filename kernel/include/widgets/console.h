@@ -1,6 +1,7 @@
 #pragma once
 
 #include "def.h"
+#include "multi_task.h"
 #include "window.h"
 
 #define CONSOLE_TEXT_MAX_LEN 4096
@@ -11,8 +12,8 @@ typedef struct {
 } console_t;
 
 // 分配对象
-console_t *console_new(unsigned int x, unsigned int y, unsigned int width, unsigned int height,
-                           const char *title);
+console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
+                       unsigned int height, const char *title);
 
 // 释放对象
 void console_free(const console_t *p);
@@ -37,3 +38,6 @@ void console_pop(console_t *box);
 
 // 移动窗口回调函数
 void console_moving(void *p);
+
+// 终端任务
+task_t *init_console_task(void);

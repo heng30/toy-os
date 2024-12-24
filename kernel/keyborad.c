@@ -6,6 +6,8 @@
 #include "keyboard_mouse.h"
 #include "kutil.h"
 
+#include "widgets/canvas.h"
+
 #define KEY_UNPRESSED 0 // 按键没有被按下
 #define KEY_PRESSED 1   // 按键正在按下
 #define KEY_CHECKED 2   // 给capslock等有状态按键使用
@@ -137,5 +139,19 @@ void set_modkey_status(unsigned char code) {
         g_modkey_status[3] = KEY_PRESSED;
     } else if (is_alt_key_up(code)) {
         g_modkey_status[3] = KEY_UNPRESSED;
+    }
+}
+
+void show_keyboard_input(unsigned char code) {
+    static char show_keyboard_input_ch[2] = {0};
+
+    show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 7, 0,
+                          COL8_FFFFFF, char2hexstr(code));
+
+    char ch = get_pressed_char(code);
+    if (ch != 0) {
+        show_keyboard_input_ch[0] = keydown_code2char_table[code];
+        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 2, 0,
+                              COL8_FFFFFF, show_keyboard_input_ch);
     }
 }

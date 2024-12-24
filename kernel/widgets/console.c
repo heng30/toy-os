@@ -2,6 +2,8 @@
 #include "def.h"
 #include "draw.h"
 #include "input_cursor.h"
+#include "io.h"
+#include "keyboard.h"
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
@@ -119,4 +121,40 @@ void console_hide(console_t *p) {
         win_sheet_hide(g_input_cursor_sht);
     }
     window_hide(p->m_win);
+}
+
+static void _console_task_main(void) {
+    console_t *console = console_new(300, 50, 240, 200, "Console");
+    window_ctl_add(console->m_win);
+
+    for (;;) {
+        if (fifo8_is_empty(&g_keyinfo) ||
+            console->m_win != g_window_ctl.m_focus_window)
+            continue;
+
+        io_cli();
+        int c = fifo8_get(&g_keyinfo);
+        io_sti();
+
+        if (c < 0)
+            continue;
+
+        unsigned char code = (unsigned char)c;
+
+        show_keyboard_input(code);
+
+        set_modkey_status(code);
+        if (is_backspace_down(code)) {
+            console_pop(console);
+        } else {
+            char ch = get_pressed_char(code);
+            console_push(console, ch);
+        }
+    }
+}
+
+task_t *init_console_task(void) {
+    task_t *t = multi_task_alloc((ptr_t)_console_task_main, 1);
+    multi_task_run(t);
+    return t;
 }

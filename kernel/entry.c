@@ -25,35 +25,6 @@ static void _test(void) {
     multi_task_test_schedul();
 }
 
-void keyboard_callback(void) {
-    // unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
-
-    // io_sti();
-
-    // set_modkey_status(code);
-
-    // show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10, 0,
-    //                       COL8_FFFFFF, char2hexstr(code));
-
-    // // 回车键
-    // if (is_enter_down(code)) {
-    //     // show_all_memory_block_info();
-    // } else if (is_backspace_down(code)) {
-    //     // input_box_pop(input_box);
-    // } else {
-    //     char ch = get_pressed_char(code);
-    //     if (ch != 0) {
-    //         char *buf = memman_alloc(2);
-    //         buf[0] = keydown_code2char_table[code], buf[1] = 0;
-    //         show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10,
-    //                               FONT_HEIGHT, COL8_FFFFFF, buf);
-    //         memman_free(buf, 2);
-
-    //         // input_box_push(input_box, ch);
-    //     }
-    // }
-}
-
 void start_kernel(void) {
     init_pit();
     init_boot_info();
@@ -87,22 +58,11 @@ void start_kernel(void) {
     _test();
 
     task_t *input_box_task = init_input_box_task();
-
-    // input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
-    // window_ctl_add(input_box->m_win);
-
-    console_t *console = console_new(300, 50, 240, 200, "Console");
-    window_ctl_add(console->m_win);
+    task_t *console_taskA = init_console_task();
 
     unsigned int counter = 0;
     for (;;) {
+        io_sti();
         show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter++));
-
-        io_cli();
-        if (fifo8_is_empty(&g_keyinfo)) {
-            io_sti(); // 开中断，保证循环不会被挂起
-        } else if (!fifo8_is_empty(&g_keyinfo)) {
-            keyboard_callback();
-        }
     }
 }

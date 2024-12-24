@@ -56,3 +56,6 @@ bool is_alt_key_pressed();
 
 // 设置特殊按键的状态
 void set_modkey_status(unsigned char code);
+
+// 在屏幕上显示输入的字符
+void show_keyboard_input(unsigned char code);
