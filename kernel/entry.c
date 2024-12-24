@@ -26,32 +26,32 @@ static void _test(void) {
 }
 
 void keyboard_callback(void) {
-    unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
+    // unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
 
-    io_sti();
+    // io_sti();
 
-    set_modkey_status(code);
+    // set_modkey_status(code);
 
-    show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10, 0,
-                          COL8_FFFFFF, char2hexstr(code));
+    // show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10, 0,
+    //                       COL8_FFFFFF, char2hexstr(code));
 
-    // 回车键
-    if (is_enter_down(code)) {
-        // show_all_memory_block_info();
-    } else if (is_backspace_down(code)) {
-        // input_box_pop(input_box);
-    } else {
-        char ch = get_pressed_char(code);
-        if (ch != 0) {
-            char *buf = memman_alloc(2);
-            buf[0] = keydown_code2char_table[code], buf[1] = 0;
-            show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10,
-                                  FONT_HEIGHT, COL8_FFFFFF, buf);
-            memman_free(buf, 2);
+    // // 回车键
+    // if (is_enter_down(code)) {
+    //     // show_all_memory_block_info();
+    // } else if (is_backspace_down(code)) {
+    //     // input_box_pop(input_box);
+    // } else {
+    //     char ch = get_pressed_char(code);
+    //     if (ch != 0) {
+    //         char *buf = memman_alloc(2);
+    //         buf[0] = keydown_code2char_table[code], buf[1] = 0;
+    //         show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 10,
+    //                               FONT_HEIGHT, COL8_FFFFFF, buf);
+    //         memman_free(buf, 2);
 
-            // input_box_push(input_box, ch);
-        }
-    }
+    //         // input_box_push(input_box, ch);
+    //     }
+    // }
 }
 
 void start_kernel(void) {
