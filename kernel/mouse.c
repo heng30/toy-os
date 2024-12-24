@@ -226,20 +226,23 @@ static void _handle_left_btn_event(void) {
 
 static void _mouse_task_main(void) {
     for (;;) {
+        io_sti(); // 开中断，保证循环不会被挂起
+
+        if (fifo8_is_empty(&g_mouseinfo))
+            continue;
+
         io_cli();
-        if (fifo8_is_empty(&g_mouseinfo)) {
-            io_sti(); // 开中断，保证循环不会被挂起
-        } else {
-            int code = fifo8_get(&g_mouseinfo);
-            if (code < 0)
-                continue;
+        int code = fifo8_get(&g_mouseinfo);
+        io_sti();
 
-            if (mouse_decode((unsigned char)code) != 1)
-                continue;
+        if (code < 0)
+            continue;
 
-            _draw_mouse();
-            _handle_left_btn_event();
-        }
+        if (mouse_decode((unsigned char)code) != 1)
+            continue;
+
+        _draw_mouse();
+        _handle_left_btn_event();
     }
 }
 

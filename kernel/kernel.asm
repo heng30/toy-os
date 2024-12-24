@@ -1,20 +1,27 @@
 %include "pm.inc"
 
-org   0x8000
+org   0x8000 ; 内核代码开始执行的地址，也是编译时代码相对偏移地址
 
-TASK_COUNTS equ 6
+TASK_COUNTS equ 10
 TASK_STACK_SIZE equ 1024
 
 jmp   LABEL_BEGIN
 
+; 全局描述符表，用于标明不同内存段的功能和权限
 [SECTION .gdt]
  ;                                  段基址          段界限                  属性
 LABEL_GDT:          Descriptor        0,            0,                      0
 LABEL_DESC_CODE32:  Descriptor        0,            0fffffh,                DA_C | DA_32 | DA_LIMIT_4K
+
+; 一般在实模式中使用
+; 屏幕大小28x80共4kb，偶地址字节存放字符代码，奇地址字节存放显示属性。
+; 一共8kb显存，可以缓冲两帧画面第一帧由于显示到屏幕
 LABEL_DESC_VIDEO:   Descriptor        0B8000h,      0fffffh,                DA_DRW
+
 LABEL_DESC_VRAM:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_DRWA | DA_32
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
+
 ; 进程切换相关
 LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
 
@@ -56,6 +63,7 @@ IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1
          dd  0
 
+; 实模式代码
 [SECTION  .s16]
 [BITS  16]
 LABEL_BEGIN:
@@ -153,17 +161,18 @@ LABEL_MEM_CHK_OK:
 
     %include "init_8259A.asm"
 
+; 实模式数据
 ; 保存内存块描述
 ; 这个代码必须放在代码前
 ; 因为在实模式下会保存内存信息到`MEM_CHK_BUF`中
 ; 如果代码长度很大就会超过实模式能访问的最大距离, 导致无法启动镜像
-[SECTION .data]
-ALIGN 32
-[BITS 32]
+[SECTION .s16.data]
+[BITS 16]
 MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
 BOOT_INFO: times 3 dd 0
 
+; 保护模式代码
 [SECTION .s32]
 [BITS  32]
 LABEL_SEG_CODE32:
@@ -188,7 +197,8 @@ C_CODE_ENTRY:
 
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 
-[SECTION .gs]
+; 保护模式数据
+[SECTION .s32.gs]
 ALIGN 32
 [BITS 32]
 LABEL_STACK:

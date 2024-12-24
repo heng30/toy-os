@@ -2,6 +2,7 @@
 
 #include "def.h"
 #include "window.h"
+#include "multi_task.h"
 
 #define INPUT_BOX_TEXT_MAX_LEN 512
 
@@ -37,3 +38,6 @@ void input_box_pop(input_box_t *p);
 
 // 移动窗口回调函数
 void input_box_moving(input_box_t *p);
+
+// 创建一个输入框任务
+task_t *init_input_box_task(void);

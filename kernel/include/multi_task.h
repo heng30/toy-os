@@ -8,7 +8,7 @@
 
 // 最大支持的任务数, 数量小于256
 // 需要根据kernel.asm的TSS32描述符和堆栈数量确定
-#define MAX_TASKS 6
+#define MAX_TASKS 10
 #define TASK_GDT0 7 // 开始的tr值, 也是主任务的tr
 
 // 任务堆栈大小，需要和kernel.asm中分配的堆栈大小一致

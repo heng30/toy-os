@@ -25,6 +25,8 @@
 - nasm: `NASM version 2.16.03 compiled on Apr 17 2024`
 
 ### 注意事项
+- 无法使用函数指针，会运行错误
+
 - 整个结构体赋值会出问题，导致整个程序异常退出。应该是objconv反汇编出问题。
 ```
 struct Foo {

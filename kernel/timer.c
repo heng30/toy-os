@@ -125,6 +125,8 @@ void int_handler_for_timer(char *esp) {
 
 static void _timer_callback(void) {
     static unsigned int timer_callback_timer_counter = 0;
+
+    io_cli();
     unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
     io_sti();
 
@@ -151,12 +153,11 @@ static void _timer_callback(void) {
 
 static void _timer_task_main(void) {
     for (;;) {
-        io_cli();
-        if (fifo8_is_empty(&g_timerctl.m_fifo)) {
-            io_sti(); // 开中断，保证循环不会被挂起
-        } else {
-            _timer_callback();
-        }
+        io_sti(); // 开中断，保证循环不会被挂起
+        if (fifo8_is_empty(&g_timerctl.m_fifo))
+            continue;
+
+        _timer_callback();
     }
 }
 

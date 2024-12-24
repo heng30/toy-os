@@ -25,7 +25,7 @@ static void _test(void) {
     multi_task_test_schedul();
 }
 
-void keyboard_callback(input_box_t *input_box) {
+void keyboard_callback(void) {
     unsigned char code = (unsigned char)fifo8_get(&g_keyinfo);
 
     io_sti();
@@ -39,7 +39,7 @@ void keyboard_callback(input_box_t *input_box) {
     if (is_enter_down(code)) {
         // show_all_memory_block_info();
     } else if (is_backspace_down(code)) {
-        input_box_pop(input_box);
+        // input_box_pop(input_box);
     } else {
         char ch = get_pressed_char(code);
         if (ch != 0) {
@@ -49,14 +49,10 @@ void keyboard_callback(input_box_t *input_box) {
                                   FONT_HEIGHT, COL8_FFFFFF, buf);
             memman_free(buf, 2);
 
-            input_box_push(input_box, ch);
+            // input_box_push(input_box, ch);
         }
     }
 }
-
-typedef void (*foo_t)(void);
-
-void bar(void) { show_string_in_canvas(0, 400, COL8_FFFFFF, "hello"); }
 
 void start_kernel(void) {
     init_pit();
@@ -90,15 +86,13 @@ void start_kernel(void) {
     show_memman_info();
     _test();
 
-    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
-    window_ctl_add(input_box->m_win);
+    task_t *input_box_task = init_input_box_task();
+
+    // input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
+    // window_ctl_add(input_box->m_win);
 
     console_t *console = console_new(300, 50, 240, 200, "Console");
     window_ctl_add(console->m_win);
-
-    foo_t b = bar;
-
-    b();
 
     unsigned int counter = 0;
     for (;;) {
@@ -108,7 +102,7 @@ void start_kernel(void) {
         if (fifo8_is_empty(&g_keyinfo)) {
             io_sti(); // 开中断，保证循环不会被挂起
         } else if (!fifo8_is_empty(&g_keyinfo)) {
-            keyboard_callback(input_box);
+            keyboard_callback();
         }
     }
 }

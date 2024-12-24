@@ -2,6 +2,8 @@
 #include "def.h"
 #include "draw.h"
 #include "input_cursor.h"
+#include "io.h"
+#include "keyboard.h"
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
@@ -126,4 +128,35 @@ void input_box_hide(input_box_t *p) {
     }
 
     window_hide(p->m_win);
+}
+
+static void _input_box_task_main(void) {
+    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
+    window_ctl_add(input_box->m_win);
+
+    for (;;) {
+        if (fifo8_is_empty(&g_keyinfo) ||
+            input_box->m_win != g_window_ctl.m_focus_window)
+            continue;
+
+        io_cli();
+        int code = fifo8_get(&g_keyinfo);
+        io_sti();
+
+        if (code < 0)
+            continue;
+
+        if (is_backspace_down((unsigned char)code)) {
+            input_box_pop(input_box);
+        } else {
+            char ch = get_pressed_char((unsigned char)code);
+            input_box_push(input_box, ch);
+        }
+    }
+}
+
+task_t *init_input_box_task(void) {
+    task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 1);
+    multi_task_run(t);
+    return t;
 }
