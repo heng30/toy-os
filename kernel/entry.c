@@ -58,7 +58,7 @@ void start_kernel(void) {
     _test();
 
     task_t *input_box_task = init_input_box_task();
-    task_t *console_taskA = init_console_task();
+    task_t *console_task = init_console_task();
 
     unsigned int counter = 0;
     for (;;) {

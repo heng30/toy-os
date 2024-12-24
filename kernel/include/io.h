@@ -52,6 +52,9 @@ unsigned int get_addr_gdt(void);
 // 获取代码段地址
 unsigned int get_code32_addr(void);
 
+// 获取堆栈开始地址
+unsigned int get_stack_start_addr(void);
+
 // 告诉cpu第n (value = n << 3)个段描述符中存储一个TSS32对象,
 // 当有进程切换时会见当前的TSS32对象存到第n个段描述符中
 void load_tr(unsigned int value);

@@ -161,7 +161,7 @@ static void _input_box_task_main(void) {
 }
 
 task_t *init_input_box_task(void) {
-    task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 1);
+    task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 0, NULL, 1);
     multi_task_run(t);
     return t;
 }

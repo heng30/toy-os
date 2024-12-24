@@ -166,5 +166,5 @@ void init_timer_task(void) {
     set_timer(infinite_timer, TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS,
               INFINITE_TIMER_COUNTER_DATA);
 
-    g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 1);
+    g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 0, NULL, 1);
 }

@@ -95,7 +95,8 @@ void init_multi_task_ctl(void) {
 
     // 此处传入NULL不会有问题，因为这个是主任务，也是正在运行的任务。
     // 在进行第一次任务切换时，会更新eip的值。
-    task_t *task = multi_task_alloc((ptr_t)NULL, DEFAULT_RUNNING_TIME_SLICE);
+    task_t *task =
+        multi_task_alloc((ptr_t)NULL, 0, NULL, DEFAULT_RUNNING_TIME_SLICE);
     assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
     g_multi_task_ctl->m_current_task = task;
     multi_task_run(task);
@@ -104,10 +105,12 @@ void init_multi_task_ctl(void) {
     load_tr(task->m_tr << 3);
 }
 
-task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice) {
+task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
+                         unsigned int running_time_slice) {
     for (unsigned char i = 0; i < MAX_TASKS; i++) {
         if (g_multi_task_ctl->m_tasks0[i].m_flags == TASK_STATUS_UNUSED) {
             unsigned int addr_code32 = get_code32_addr();
+            unsigned int addr_stack_stack = get_stack_start_addr();
 
             task_t *task = &g_multi_task_ctl->m_tasks0[i];
             task->m_flags = TASK_STATUS_USED;
@@ -125,6 +128,24 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice) {
 
             // 任务堆栈指针位置，需要和kernel.asm中的堆栈对应
             task->m_tss.m_esp = (unsigned int)TASK_STACK_SIZE * (i + 1);
+
+            // 函数调用堆栈结构: 函数参数从右到左依次入栈，调用者下一条执行代码地址入栈
+            // 参数从右到左入栈
+            if (argc > 0 && argv) {
+                for (unsigned int i = argc; i != 0; i--) {
+                    task->m_tss.m_esp -= sizeof(unsigned int);
+                    *(unsigned int *)(addr_stack_stack + task->m_tss.m_esp) =
+                        (unsigned int)argv[i - 1];
+                }
+            }
+
+            // 第一个参数入栈
+            task->m_tss.m_esp -= sizeof(unsigned int);
+            *(unsigned int *)(addr_stack_stack + task->m_tss.m_esp) =
+                (unsigned int)task;
+
+            // 调用者下一条执行代码地址。任务是不会返回的，所以不需要关心。这里直接跳过
+            task->m_tss.m_esp -= sizeof(unsigned int);
 
             task->m_tss.m_esi = 0;
             task->m_tss.m_edi = 0;

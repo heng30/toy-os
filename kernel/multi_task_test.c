@@ -51,11 +51,11 @@ void multi_task_test_schedul_print_B(void) {
 }
 
 void multi_task_test_schedul(void) {
-    g_task_print_A = multi_task_alloc((ptr_t)multi_task_test_schedul_print_A,
-                                      TIMER_ONE_SECOND_TIME_SLICE);
+    g_task_print_A = multi_task_alloc((ptr_t)multi_task_test_schedul_print_A, 0,
+                                      NULL, TIMER_ONE_SECOND_TIME_SLICE);
 
-    g_task_print_B = multi_task_alloc((ptr_t)multi_task_test_schedul_print_B,
-                                      TIMER_ONE_SECOND_TIME_SLICE);
+    g_task_print_B = multi_task_alloc((ptr_t)multi_task_test_schedul_print_B, 0,
+                                      NULL, TIMER_ONE_SECOND_TIME_SLICE);
 
     multi_task_run(g_task_print_A);
     multi_task_run(g_task_print_B);

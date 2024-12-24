@@ -247,5 +247,5 @@ static void _mouse_task_main(void) {
 }
 
 void init_mouse_task(void) {
-    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 1);
+    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 0, NULL, 1);
 }

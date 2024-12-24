@@ -15,6 +15,7 @@
 #define TASK_STACK_SIZE 1024
 
 #define DEFAULT_RUNNING_TIME_SLICE 1 // TIMER_ONE_SECOND_TIME_SLICE // 1秒
+#define ONE_RUNNING_TIME_SLICE 1
 
 #define TASK_STATUS_UNUSED 0  // 没有分配
 #define TASK_STATUS_USED 1    // 已经分配，但没有运行过
@@ -60,11 +61,11 @@ typedef struct {
 } task_t;
 
 typedef struct {
-    unsigned int m_total_task_counts;    // 所有可分配任务数
-    unsigned int m_used_task_counts;     // 已经使用的任务数
-    unsigned int m_running_task_counts;  // 正在运行的任务数量
-    unsigned int m_sleep_task_counts;    // 睡眠任务数量
-    unsigned int m_suspend_task_counts;  // 挂起任务数量
+    unsigned int m_total_task_counts;   // 所有可分配任务数
+    unsigned int m_used_task_counts;    // 已经使用的任务数
+    unsigned int m_running_task_counts; // 正在运行的任务数量
+    unsigned int m_sleep_task_counts;   // 睡眠任务数量
+    unsigned int m_suspend_task_counts; // 挂起任务数量
 } multi_task_statistics_t;
 
 // 任务管理器
@@ -72,7 +73,7 @@ typedef struct {
     // 运行的任务数量, 包括TASK_STATUS_RUNNING,
     // TASK_STATUS_SLEEP, TASK_STATUS_SUSPEND
     unsigned int m_tasks_counts;
-    task_t *m_current_task;     // 当前任务
+    task_t *m_current_task; // 当前任务
 
     // 优先任务
     // 优先任务只会运行1个时间片就会被切换,
@@ -101,7 +102,12 @@ void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
 void init_multi_task_ctl();
 
 // 分配一个任务
-task_t *multi_task_alloc(ptr_t task_main, unsigned int running_time_slice);
+// task_main: 任务函数
+// argc: task_main函数参数个数，不包括第一个task_t*类型的参数
+// argv: task_main函数参数列表，不包括第一个task_t*类型的参数
+// running_time_slice: 一次连续运行的时间片
+task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
+                         unsigned int running_time_slice);
 
 // 释放一个任务
 void multi_task_free(task_t *task);
