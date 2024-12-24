@@ -12,6 +12,8 @@
 #include "widgets/common_widget.h"
 #include "widgets/console.h"
 
+#define CONSOLE_WIDTH 240
+#define CONSOLE_HEIGHT 200
 #define INPUT_CURSOR_Y_OFFSET (TITLE_BAR_HEIGHT + FONT_HEIGHT / 2)
 
 void console_moving(void *p) {
@@ -124,7 +126,8 @@ void console_hide(console_t *p) {
 }
 
 static void _console_task_main(void) {
-    console_t *console = console_new(300, 50, 240, 200, "Console");
+    console_t *console =
+        console_new(300, 50, CONSOLE_WIDTH, CONSOLE_HEIGHT, "Console");
     window_ctl_add(console->m_win);
 
     for (;;) {
