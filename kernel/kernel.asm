@@ -32,7 +32,7 @@ LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409
 
 GDT_LEN     equ    $ - LABEL_GDT
 GDT_PTR     dw     GDT_LEN - 1
-            dd     0
+            dd     0            ; 这里会保存LABEL_GDT的地址
 
 SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
 SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
@@ -136,7 +136,7 @@ LABEL_MEM_CHK_OK:
     add   eax,  LABEL_GDT
     mov   dword  [GDT_PTR + 2], eax
 
-    lgdt  [GDT_PTR]
+    lgdt  [GDT_PTR] ; 加载中断描述表
 
     cli   ;关中断
 
@@ -152,10 +152,32 @@ LABEL_MEM_CHK_OK:
     or    al,  00000010b
     out   92h, al
 
+    ; 1. 开启保护模式
+    ; CR0的位0是启用保护（Protection Enable）标志。
+    ; 当设置该位时即开启了保护模式；当复位时即进入实地址模式。
+    ; 这个标志仅开启段级保护，而并没有启用分页机制。
+    ; 2. 若要启用分页机制，那么PE和PG标志都要置位CR0的位31是分页（Paging）标志。
+    ; 当设置该位时即开启了分页机制；当复位时则禁止分页机制，此时所有线性地址等同于物理地址。
+    ; 在开启这个标志之前必须已经或者同时开启PE标志。即若要启用分页机制，那么PE和PG标志都要置位。
+    ; 所以这里并没有启用分页机制
+    ;   a. 如果PE=0、PG=0，处理器工作在实地址模式下；
+    ;   b. 如果PG=0、PE=1，处理器工作在没有开启分页机制的保护模式下；
+    ;   c. 如果PG=1、PE=0，此时由于不在保护模式下不能启用分页机制，
+    ;      因此处理器会产生一个一般保护异常，即这种标志组合无效；
+    ;   d. 如果PG=1、PE=1，则处理器工作在开启了分页机制的保护模式下。
+    ; 3. CR2和CR3用于分页机制。CR3含有存放页目录表页面的物理地址，因此CR3也被称为PDBR。
+    ; 因为页目录表页面是页对齐的，所以该寄存器只有高20位是有效的。
+    ; 而低12位保留供更高级处理器使用，因此在往CR3中加载一个新值时低12位必须设置为0。
     mov   eax, cr0
     or    eax , 1
     mov   cr0, eax
 
+    ; 跳转到保护模式代码执行
+    ; 在修改该了PE位之后程序必须立刻使用一条跳转指令，
+    ; 以刷新处理器执行管道中已经获取的不同模式下的任何指令。
+    ; 在设置PE位之前，程序必须初始化几个系统段和控制寄存器。
+    ; 在系统刚上电时，处理器被复位成PE=0、PG=0（即实模式状态），
+    ; 以允许引导代码在启用分段和分页机制之前能够初始化这些寄存器和数据结构
     jmp   dword  SELECTOR_CODE32: 0
     ; jmp   dword  1*8: 0
 
