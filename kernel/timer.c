@@ -125,6 +125,7 @@ void int_handler_for_timer(char *esp) {
 
 static void _timer_callback(void) {
     static unsigned int timer_callback_timer_counter = 0;
+    static char timer_callback_time_string[16];
 
     io_cli();
     unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
@@ -139,12 +140,16 @@ static void _timer_callback(void) {
         multi_task_statistics_display();
         break;
 
-    case INFINITE_TIMER_COUNTER_DATA:
-        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * 11 - 50,
+    case INFINITE_TIMER_COUNTER_DATA: {
+        seconds_to_time_string(timer_callback_timer_counter++,
+                               timer_callback_time_string);
+        unsigned int len = strlen(timer_callback_time_string);
+
+        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * len - 50,
                               g_boot_info.m_screen_y - FONT_HEIGHT - 5,
-                              COLOR_BLACK,
-                              int2hexstr(timer_callback_timer_counter++));
+                              COLOR_BLACK, timer_callback_time_string);
         break;
+    }
 
     default:
         break;

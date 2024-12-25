@@ -210,3 +210,62 @@ unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h) {
     assert(l <= h, "bound assert failed");
     return min_unsigned(max_unsigned(n, l), h);
 }
+
+void int_to_string(int num, char *str) {
+    int i = 0, is_negative = 0;
+
+    if (num < 0) {
+        is_negative = 1;
+        num = -num;
+    }
+
+    do {
+        str[i++] = (char)(num % 10) + '0';
+        num /= 10;
+    } while (num > 0);
+
+    if (is_negative) {
+        str[i++] = '-';
+    }
+
+    str[i] = '\0';
+
+    // 翻转字符串
+    int left = 0, right = i - 1;
+    while (left < right) {
+        char temp = str[left];
+        str[left] = str[right];
+        str[right] = temp;
+        left++, right--;
+    }
+}
+
+char *seconds_to_time_string(unsigned int seconds, char time[16]) {
+    unsigned int days = seconds / (24 * 60 * 60);
+    seconds %= (24 * 60 * 60);
+
+    unsigned int hours = seconds / (60 * 60);
+    seconds %= (60 * 60);
+
+    unsigned int minutes = seconds / 60;
+
+    unsigned int secs = seconds % 60;
+
+    time[0] = '\0';
+
+    char buf[8];
+    unsigned int items[4] = {days, hours, minutes, secs};
+
+    for (unsigned int i = 0; i < 4; i++) {
+        int_to_string((int)items[i], buf);
+        strcat(time, buf);
+
+        if (i == 0) {
+            strpush(time, ' ');
+        } else if (i != 3) {
+            strpush(time, ':');
+        }
+    }
+
+    return time;
+}

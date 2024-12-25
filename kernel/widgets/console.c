@@ -168,7 +168,6 @@ task_t *init_console_task(void) {
     static void *_console_task_argv[] = {"Console"};
     task_t *t = multi_task_alloc((ptr_t)_console_task_main, 1,
                                  _console_task_argv, ONE_RUNNING_TIME_SLICE);
-    show_string_in_canvas(0, 400, COL8_FFFFFF, int2hexstr((ptr_t)t));
     multi_task_run(t);
     return t;
 }

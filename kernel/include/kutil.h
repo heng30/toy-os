@@ -75,3 +75,6 @@ int strcmp(const char *str1, const char *str2);
 // if l < n < h, return n;
 int bound(int n, int l, int h);
 unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h);
+
+// 将秒数转换成时间，格式：`days hours:minutes:seconds`
+char *seconds_to_time_string(unsigned int seconds, char time[16]);
