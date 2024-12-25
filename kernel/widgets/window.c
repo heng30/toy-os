@@ -40,6 +40,7 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
     win->m_title = title;
     win->m_sheet = sht;
     win->m_instance = instance;
+    win->m_task = NULL;
 
     return win;
 }
@@ -182,7 +183,7 @@ bool window_ctl_is_click_window(void) {
     return g_window_ctl.m_mouse_click_flag & WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW;
 }
 
-void window_ctl_up_window_to_top(window_t *p) {
+void window_ctl_move_window_to_top(window_t *p) {
     if (g_window_ctl.m_top == 0 ||
         p == g_window_ctl.m_windows[g_window_ctl.m_top - 1])
         return;
@@ -190,7 +191,7 @@ void window_ctl_up_window_to_top(window_t *p) {
     int start_z = p->m_sheet->m_z;
     assert(start_z >= WINDOW_WIN_SHEET_MIN_Z &&
                start_z <= WINDOW_WIN_SHEET_MAX_Z,
-           "window_ctl_up_window_to_top invaild start_z");
+           "window_ctl_move_window_to_top invaild start_z");
 
     // 窗口和图层向下移动一个位置
     for (unsigned int i = (unsigned int)start_z - WINDOW_WIN_SHEET_MIN_Z;
@@ -203,4 +204,39 @@ void window_ctl_up_window_to_top(window_t *p) {
     g_window_ctl.m_windows[g_window_ctl.m_top - 1] = p;
     win_sheet_show(p->m_sheet,
                    (int)(WINDOW_WIN_SHEET_MIN_Z + g_window_ctl.m_top - 1));
+}
+
+void window_ctl_focus_next_window(void) {
+    // 只有一个窗口
+    if (g_window_ctl.m_top == 1)
+        return;
+
+    unsigned int i = 0;
+
+    // 查找当前获得焦点的窗口
+    for (; i < g_window_ctl.m_top; i++) {
+        window_t *win = g_window_ctl.m_windows[i];
+        if (win == g_window_ctl.m_focus_window)
+            break;
+    }
+
+    // 从当前窗口向后查找下一个窗口
+    for (unsigned int p = i + 1; p < g_window_ctl.m_top; p++) {
+        window_t *win = g_window_ctl.m_windows[p];
+        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0)
+            continue;
+
+        mouse_focus_window(win);
+        return;
+    }
+
+    // 从头开始查找下一个窗口
+    for (unsigned int q = 0; q < i; q++) {
+        window_t *win = g_window_ctl.m_windows[q];
+        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0)
+            continue;
+
+        mouse_focus_window(win);
+        return;
+    }
 }

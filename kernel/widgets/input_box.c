@@ -130,8 +130,9 @@ void input_box_hide(input_box_t *p) {
     window_hide(p->m_win);
 }
 
-static void _input_box_task_main(void) {
-    input_box_t *input_box = input_box_new(300, 300, 168, 52, "Input");
+static void _input_box_task_main(task_t *task, const char *title) {
+    input_box_t *input_box = input_box_new(300, 300, 168, 52, title);
+    input_box->m_win->m_task = task;
     window_ctl_add(input_box->m_win);
 
     for (;;) {
@@ -147,10 +148,15 @@ static void _input_box_task_main(void) {
             continue;
 
         unsigned char code = (unsigned char)c;
-
         show_keyboard_input(code);
-
         set_modkey_status(code);
+
+        // alt+tab切换焦点窗口
+        if (is_alt_key_pressed() && is_tab_down(code)) {
+            window_ctl_focus_next_window();
+            continue;
+        }
+
         if (is_backspace_down(code)) {
             input_box_pop(input_box);
         } else {
@@ -161,7 +167,9 @@ static void _input_box_task_main(void) {
 }
 
 task_t *init_input_box_task(void) {
-    task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 0, NULL, 1);
+    static void *_input_box_task_argv[] = {"Input"};
+    task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 1,
+                                 _input_box_task_argv, ONE_RUNNING_TIME_SLICE);
     multi_task_run(t);
     return t;
 }

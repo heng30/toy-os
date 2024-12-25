@@ -46,6 +46,10 @@ bool is_capslock_down(unsigned char code);
 
 bool is_capslock_up(unsigned char code);
 
+bool is_tab_down(unsigned char code);
+
+bool is_tab_up(unsigned char code);
+
 bool is_capslock_checked();
 
 bool is_shift_key_pressed();

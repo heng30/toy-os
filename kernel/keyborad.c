@@ -114,6 +114,10 @@ bool is_capslock_down(unsigned char code) { return code == 0x3a; }
 
 bool is_capslock_up(unsigned char code) { return code == 0xba; }
 
+bool is_tab_down(unsigned char code) { return code == 0x0f; }
+
+bool is_tab_up(unsigned char code) { return code == 0x8f; }
+
 // modkey status
 bool is_capslock_checked() { return g_modkey_status[0] == KEY_CHECKED; }
 

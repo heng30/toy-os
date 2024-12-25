@@ -175,11 +175,11 @@ static void _moving_window(void) {
     }
 }
 
-static void _focus_window(window_t *win) {
+void mouse_focus_window(window_t *win) {
     if (!win->m_instance)
         return;
 
-    window_ctl_up_window_to_top(win);
+    window_ctl_move_window_to_top(win);
     win_sheet_hide(g_input_cursor_sht);
 
     switch (win->m_id) {
@@ -204,7 +204,7 @@ static void _handle_left_btn_event(void) {
 
             if (!window_ctl_is_click_closebtn() &&
                 window_ctl_is_click_window()) {
-                _focus_window(_handle_left_btn_event_win);
+                mouse_focus_window(_handle_left_btn_event_win);
             }
         }
 
@@ -224,7 +224,7 @@ static void _handle_left_btn_event(void) {
     }
 }
 
-static void _mouse_task_main(void) {
+static void _mouse_task_main(task_t* task) {
     for (;;) {
         io_sti(); // 开中断，保证循环不会被挂起
 
@@ -247,5 +247,5 @@ static void _mouse_task_main(void) {
 }
 
 void init_mouse_task(void) {
-    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 0, NULL, 1);
+    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 0, NULL, ONE_RUNNING_TIME_SLICE);
 }

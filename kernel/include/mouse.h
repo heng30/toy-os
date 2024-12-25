@@ -8,6 +8,8 @@
 #include "timer.h"
 #include "win_sheet.h"
 
+#include "widgets/window.h"
+
 #define CURSOR_ICON_SIZE 16 // 鼠标图标大小
 
 #define KEYCMD_SENDTO_MOUSE 0xd4
@@ -71,3 +73,6 @@ bool is_mouse_middle_btn_pressed(void);
 
 // 初始化鼠标任务
 void init_mouse_task(void);
+
+// 鼠标点击窗口，窗口获得焦点
+void mouse_focus_window(window_t *win);

@@ -127,19 +127,10 @@ void console_hide(console_t *p) {
     window_hide(p->m_win);
 }
 
-static void _console_task_main(task_t *task, const char *title,
-                               const char *foo) {
-    show_string_in_canvas(FONT_WIDTH * 12, 400, COL8_FFFFFF,
-                          int2hexstr((ptr_t)task));
-
-    show_string_in_canvas(FONT_WIDTH * 24, 400, COL8_FFFFFF,
-                          int2hexstr((ptr_t)title));
-
-    show_string_in_canvas(0, 400 + FONT_HEIGHT, COL8_FFFFFF, title);
-    show_string_in_canvas(0, 400 + FONT_HEIGHT * 2, COL8_FFFFFF, foo);
-
+static void _console_task_main(task_t *task, const char *title) {
     console_t *console =
-        console_new(300, 50, CONSOLE_WIDTH, CONSOLE_HEIGHT, "Console");
+        console_new(300, 50, CONSOLE_WIDTH, CONSOLE_HEIGHT, title);
+    console->m_win->m_task = task;
     window_ctl_add(console->m_win);
 
     for (;;) {
@@ -155,10 +146,15 @@ static void _console_task_main(task_t *task, const char *title,
             continue;
 
         unsigned char code = (unsigned char)c;
-
         show_keyboard_input(code);
-
         set_modkey_status(code);
+
+        // alt+tab切换焦点窗口
+        if (is_alt_key_pressed() && is_tab_down(code)) {
+            window_ctl_focus_next_window();
+            continue;
+        }
+
         if (is_backspace_down(code)) {
             console_pop(console);
         } else {
@@ -169,8 +165,8 @@ static void _console_task_main(task_t *task, const char *title,
 }
 
 task_t *init_console_task(void) {
-    static void *_console_task_argv[] = {"hello", "world"};
-    task_t *t = multi_task_alloc((ptr_t)_console_task_main, 2,
+    static void *_console_task_argv[] = {"Console"};
+    task_t *t = multi_task_alloc((ptr_t)_console_task_main, 1,
                                  _console_task_argv, ONE_RUNNING_TIME_SLICE);
     show_string_in_canvas(0, 400, COL8_FFFFFF, int2hexstr((ptr_t)t));
     multi_task_run(t);

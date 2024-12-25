@@ -9,7 +9,7 @@
 static task_t *g_task_print_A = NULL;
 static task_t *g_task_print_B = NULL;
 
-void multi_task_test_schedul_print_A(void) {
+void multi_task_test_schedul_print_A(task_t *task) {
     unsigned int pos = 0;
 
     for (;;) {
@@ -29,7 +29,7 @@ void multi_task_test_schedul_print_A(void) {
     }
 }
 
-void multi_task_test_schedul_print_B(void) {
+void multi_task_test_schedul_print_B(task_t *task) {
     unsigned int pos = 0;
 
     for (;;) {
@@ -59,27 +59,4 @@ void multi_task_test_schedul(void) {
 
     multi_task_run(g_task_print_A);
     multi_task_run(g_task_print_B);
-
-    // unsigned int addr_code32 = get_code32_addr();
-    // g_task_print_A = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
-    // g_task_print_A->m_tss.m_eip =
-    //     (ptr_t)(multi_task_test_schedul_print_A - addr_code32);
-    // g_task_print_A->m_tss.m_es = 0;
-    // g_task_print_A->m_tss.m_cs = 1 * 8; // 6 * 8;
-    // g_task_print_A->m_tss.m_ss = 4 * 8;
-    // g_task_print_A->m_tss.m_ds = 3 * 8;
-    // g_task_print_A->m_tss.m_fs = 0;
-    // g_task_print_A->m_tss.m_gs = 2 * 8;
-    // multi_task_run(g_task_print_A);
-
-    // g_task_print_B = multi_task_alloc(TIMER_ONE_SECOND_TIME_SLICE);
-    // g_task_print_B->m_tss.m_eip =
-    //     (ptr_t)(multi_task_test_schedul_print_B - addr_code32);
-    // g_task_print_B->m_tss.m_es = 0;
-    // g_task_print_B->m_tss.m_cs = 1 * 8; // 6 * 8;
-    // g_task_print_B->m_tss.m_ss = 4 * 8;
-    // g_task_print_B->m_tss.m_ds = 3 * 8;
-    // g_task_print_B->m_tss.m_fs = 0;
-    // g_task_print_B->m_tss.m_gs = 2 * 8;
-    // multi_task_run(g_task_print_B);
 }

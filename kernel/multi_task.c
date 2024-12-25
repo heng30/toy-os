@@ -118,6 +118,7 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             task->m_remain_time_slice = running_time_slice;
             task->m_sleep_time_slice = 0;
             task->m_is_priority_task = false;
+            task->m_ref = 1;
 
             memset((unsigned char *)&task->m_tss, 0, sizeof(task->m_tss));
 
@@ -410,6 +411,17 @@ bool multi_task_priority_task_add(task_t *task) {
 ok:
     io_store_eflags(eflags); // 恢复接收中断信号
     return true;
+}
+
+// 增加1次引用
+void multi_task_ref_inc(task_t *task) { task->m_ref++; }
+
+// 减少1次引用
+void multi_task_ref_dec(task_t *task) {
+    if (task->m_ref == 0)
+        return;
+
+    task->m_ref--;
 }
 
 void multi_task_statistics_display(void) {

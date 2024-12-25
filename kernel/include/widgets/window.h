@@ -1,6 +1,7 @@
 #pragma once
 
 #include "def.h"
+#include "multi_task.h"
 #include "win_sheet.h"
 
 // 窗口id,用于标识不同的窗口
@@ -19,13 +20,14 @@ typedef struct {
     const char *m_title;  // 窗口标题
     unsigned char m_id;   // 窗口id
     void *m_instance;     // 真正的实例对象，NULL则是window_t的对象
+    task_t *m_task;       // 关联的任务
 } window_t;
 
 typedef struct {
-    window_t *m_focus_window;  // 当前获取焦点窗口
-    window_t *m_moving_window; // 需要移动的窗口
-    unsigned char m_mouse_click_flag;   // 鼠标按下时在图层的什么位置
-    unsigned int m_top; // 指向下一个可以添加的下标
+    window_t *m_focus_window;         // 当前获取焦点窗口
+    window_t *m_moving_window;        // 需要移动的窗口
+    unsigned char m_mouse_click_flag; // 鼠标按下时在图层的什么位置
+    unsigned int m_top;               // 指向下一个可以添加的下标
     window_t *m_windows[MAX_SHEETS];
 } window_ctl_t;
 
@@ -73,10 +75,13 @@ window_t *window_ctl_get_mouse_click_window(void);
 bool window_ctl_is_click_closebtn(void);
 
 // 鼠标是否点击了标题栏
-bool window_ctl_is_click_title(void) ;
+bool window_ctl_is_click_title(void);
 
 // 鼠标是否点击了窗口
 bool window_ctl_is_click_window(void);
 
 // 将窗口移到最高层
-void window_ctl_up_window_to_top(window_t *p);
+void window_ctl_move_window_to_top(window_t *p);
+
+// 将焦点移动到当前焦点窗口的下一个窗口
+void window_ctl_focus_next_window(void);

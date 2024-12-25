@@ -57,6 +57,9 @@ typedef struct {
     // 是否在优先任务队列中
     bool m_is_priority_task;
 
+    // 任务引用次数
+    unsigned int m_ref;
+
     TSS32_t m_tss;
 } task_t;
 
@@ -127,12 +130,17 @@ void multi_task_sleep(task_t *task, unsigned int sleep_time_slice);
 // 任务调度
 void multi_task_schedul(void);
 
-// 切换到tr指定的任务
-// 该函数只能在中断函数中调用
+// 切换到tr指定的任务, 该函数只能在中断函数中调用
 void multi_task_switch(task_t *task);
 
 // 将任务添加到优先任务队列中
 bool multi_task_priority_task_add(task_t *task);
+
+// 增加1次引用
+void multi_task_ref_inc(task_t *task);
+
+// 减少1次引用
+void multi_task_ref_dec(task_t *task);
 
 // 显示任务统计信息
 void multi_task_statistics_display(void);

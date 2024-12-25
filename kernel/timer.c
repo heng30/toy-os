@@ -151,7 +151,7 @@ static void _timer_callback(void) {
     }
 }
 
-static void _timer_task_main(void) {
+static void _timer_task_main(task_t *task) {
     for (;;) {
         io_sti(); // 开中断，保证循环不会被挂起
         if (fifo8_is_empty(&g_timerctl.m_fifo))
@@ -166,5 +166,6 @@ void init_timer_task(void) {
     set_timer(infinite_timer, TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS,
               INFINITE_TIMER_COUNTER_DATA);
 
-    g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 0, NULL, 1);
+    g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 0, NULL,
+                                    ONE_RUNNING_TIME_SLICE);
 }
