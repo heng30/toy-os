@@ -119,6 +119,8 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             task->m_sleep_time_slice = 0;
             task->m_is_priority_task = false;
 
+            memset((unsigned char *)&task->m_tss, 0, sizeof(task->m_tss));
+
             task->m_tss.m_eflags = 0x00000202;
             task->m_tss.m_eax = 0;
             task->m_tss.m_ecx = 0;
