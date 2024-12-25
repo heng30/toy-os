@@ -124,12 +124,13 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             task->m_tss.m_ecx = 0;
             task->m_tss.m_edx = 0;
             task->m_tss.m_ebx = 0;
-            task->m_tss.m_ebp = 0;
+            task->m_tss.m_ebp = 0; // 帧寄存器
 
             // 任务堆栈指针位置，需要和kernel.asm中的堆栈对应
             task->m_tss.m_esp = (unsigned int)TASK_STACK_SIZE * (i + 1);
 
-            // 函数调用堆栈结构: 函数参数从右到左依次入栈，调用者下一条执行代码地址入栈
+            // 函数调用堆栈结构:
+            // 函数参数从右到左依次入栈，调用者下一条执行代码地址入栈
             // 参数从右到左入栈
             if (argc > 0 && argv) {
                 for (unsigned int i = argc; i != 0; i--) {
@@ -149,20 +150,19 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
 
             task->m_tss.m_esi = 0;
             task->m_tss.m_edi = 0;
-            task->m_tss.m_es = 0;
-            task->m_tss.m_ds = 0;
-            task->m_tss.m_fs = 0;
-            task->m_tss.m_gs = 0;
             task->m_tss.m_ldtr = 0;
             task->m_tss.m_iomap = 0x40000000;
 
             task->m_tss.m_eip = task_main - addr_code32;
+
             task->m_tss.m_es = 0;
-            task->m_tss.m_cs = 1 * 8; // 6 * 8;
-            task->m_tss.m_ss = 4 * 8;
-            task->m_tss.m_ds = 3 * 8;
             task->m_tss.m_fs = 0;
-            task->m_tss.m_gs = 2 * 8;
+
+            // 每个段描述符占8字节
+            task->m_tss.m_cs = 1 * 8; // 代码段描述符在全局描述符表的第1位
+            task->m_tss.m_gs = 2 * 8; // 显存段描述符在全局描述符表的第2位
+            task->m_tss.m_ds = 3 * 8; // 数据段描述符在全局描述符表的第3位
+            task->m_tss.m_ss = 4 * 8; // 堆栈段描述符在全局描述符表的第4位
 
             g_multi_task_ctl->m_statistics.m_used_task_counts++;
             return task;

@@ -1,11 +1,3 @@
-%macro Descriptor 3
-    dw    %2  &  0FFFFh
-    dw    %1  &  0FFFFh
-    db   (%1>>16) & 0FFh
-    dw   ((%2 >> 8) & 0F00h) | (%3 & 0F0FFh)
-    db   (%1 >> 24) & 0FFh
-%endmacro
-
 DA_32		EQU	4000h	; 32 位段
 DA_C		EQU	98h	; 存在的只执行代码段属性值
 DA_CR		EQU	9Ah
@@ -15,7 +7,18 @@ DA_386IGate EQU 8Eh ; 中断调用门
 DA_LIMIT_4K	EQU	8000h	; 段界限粒度为 4K 字节
 DA_386TSS	EQU	89h     ; 任务门
 
-;Gate selecotor, offset, DCount, Attr
+; 一共8个字节
+; 段基址          段界限                  属性
+%macro Descriptor 3
+    dw    %2  &  0FFFFh
+    dw    %1  &  0FFFFh
+    db   (%1>>16) & 0FFh
+    dw   ((%2 >> 8) & 0F00h) | (%3 & 0F0FFh)
+    db   (%1 >> 24) & 0FFh
+%endmacro
+
+; 一共8个字节
+; Gate selecotor, offset, DCount, Attr
 %macro Gate 4
   dw  (%2 & 0FFFFh)
   dw  %1

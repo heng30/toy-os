@@ -8,8 +8,8 @@ TASK_STACK_SIZE equ 1024
 jmp   LABEL_BEGIN
 
 ; 全局描述符表，用于标明不同内存段的功能和权限
+;                                  段基址          段界限                  属性
 [SECTION .gdt]
- ;                                  段基址          段界限                  属性
 LABEL_GDT:          Descriptor        0,            0,                      0
 LABEL_DESC_CODE32:  Descriptor        0,            0fffffh,                DA_C | DA_32 | DA_LIMIT_4K
 
@@ -198,14 +198,16 @@ BOOT_INFO: times 3 dd 0
 [SECTION .s32]
 [BITS  32]
 LABEL_SEG_CODE32:
-    ; 初始化堆栈
+    ; 初始化堆栈段
     mov   ax, SELECTOR_STACK
     mov   ss, ax
     mov   esp, TOP_OF_STACK_MAIN
 
+    ; 初始化数据段
     mov   ax, SELECTOR_VRAM
     mov   ds, ax
 
+    ; 初始化显存段
     mov   ax, SELECTOR_VIDEO
     mov   gs, ax
 
@@ -220,7 +222,7 @@ C_CODE_ENTRY:
 SEG_CODE32_LEN  equ  $ - LABEL_SEG_CODE32
 
 ; 保护模式数据
-[SECTION .s32.gs]
+[SECTION .s32.ds]
 ALIGN 32
 [BITS 32]
 LABEL_STACK:
