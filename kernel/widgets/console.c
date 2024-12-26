@@ -16,10 +16,72 @@
 
 #define CONSOLE_WIDTH 240
 #define CONSOLE_HEIGHT 200
-#define INPUT_CURSOR_Y_OFFSET (TITLE_BAR_HEIGHT + FONT_HEIGHT / 2)
+#define CONSOLE_INPUT_AREA_MARGIN 8
+#define CONSOLE_INPUT_AREA_PADDING 0
+
+// 黑框的大小
+#define INPUT_AREA_WIDTH (CONSOLE_WIDTH - CONSOLE_INPUT_AREA_MARGIN * 2)
+#define INPUT_AREA_HEIGHT                                                      \
+    (CONSOLE_HEIGHT - CONSOLE_INPUT_AREA_MARGIN * 2 - TITLE_BAR_HEIGHT)
+
+// 黑框开始坐标
+#define INPUT_AREA_START_X_OFFSET CONSOLE_INPUT_AREA_MARGIN
+#define INPUT_AREA_START_Y_OFFSET (TITLE_BAR_HEIGHT + CONSOLE_INPUT_AREA_MARGIN)
+
+// 输入光标开始坐标
+#define INPUT_CURSOR_START_X_OFFSET                                            \
+    (INPUT_AREA_START_X_OFFSET + CONSOLE_INPUT_AREA_PADDING)
+#define INPUT_CURSOR_START_Y_OFFSET                                            \
+    (INPUT_AREA_START_Y_OFFSET + CONSOLE_INPUT_AREA_PADDING)
+
+// 绘制黑框
+static void _console_draw_input_area(win_sheet_t *sht) {
+    make_textbox8(sht, INPUT_AREA_START_X_OFFSET, INPUT_AREA_START_Y_OFFSET,
+                  INPUT_AREA_WIDTH, INPUT_AREA_HEIGHT, COLOR_BLACK);
+}
+
+// 绘制终端提示符
+static void _console_draw_prompt(win_sheet_t *sht, unsigned int x,
+                                 unsigned int y) {
+    show_string(sht, x, y, COLOR_BLACK, COLOR_WHITE, ">");
+}
+
+// 是否需要换行
+static bool _console_is_need_wrap(console_t *p) {
+    return p->m_cursor_pos.m_x + FONT_WIDTH >= INPUT_AREA_START_X_OFFSET +
+                                                   INPUT_AREA_WIDTH -
+                                                   CONSOLE_INPUT_AREA_PADDING;
+}
+
+// 是否需要向上滚动一行
+static bool _console_is_need_scroll_up_one_line(console_t *p) {
+    return p->m_cursor_pos.m_y + FONT_HEIGHT >= INPUT_AREA_START_Y_OFFSET +
+                                                    INPUT_AREA_HEIGHT -
+                                                    CONSOLE_INPUT_AREA_PADDING;
+}
+
+// TODO
+static void _console_draw_ch(console_t *p, const char ch) {
+    unsigned int x = p->m_cursor_pos.m_x, y = p->m_cursor_pos.m_y;
+
+    strpush(p->m_text, ch);
+    show_char(p->m_win->m_sheet, x, y, COLOR_BLACK, COLOR_WHITE, ch);
+
+    if (_console_is_need_wrap(p)) {
+        p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET;
+        p->m_cursor_pos.m_y += FONT_HEIGHT;
+    } else {
+        p->m_cursor_pos.m_x += FONT_WIDTH;
+    }
+
+    console_focus(p);
+}
+
+static void _console_remove_ch(console_t *p) { strpop(p->m_text); }
 
 void console_moving(void *p) {
-    window_t *win = ((console_t *)p)->m_win;
+    console_t *con = (console_t *)p;
+    window_t *win = con->m_win;
 
     unsigned int vx = win->m_sheet->m_vx0, vy = win->m_sheet->m_vy0;
     int dx = g_mdec.m_rel_x, dy = g_mdec.m_rel_y;
@@ -32,56 +94,20 @@ void console_moving(void *p) {
                                  (int)win->m_sheet->m_bysize);
 
     win_sheet_slide(win->m_sheet, vx, vy);
-    input_cursor_move(vx + FONT_WIDTH, vy + INPUT_CURSOR_Y_OFFSET);
+    input_cursor_move(vx + con->m_cursor_pos.m_x, vy + con->m_cursor_pos.m_y);
 }
 
 void console_focus(console_t *p) {
     window_t *win = p->m_win;
-
-    int max_text_len =
-        ((int)win->m_sheet->m_bxsize - FONT_WIDTH * 2 - INPUT_CURSOR_WIDTH) /
-        FONT_WIDTH;
-    unsigned int text_len =
-        (unsigned int)min(max(0, max_text_len), (int)strlen(p->m_text));
-
-    char *dst = NULL;
     unsigned int vx = win->m_sheet->m_vx0, vy = win->m_sheet->m_vy0;
-
     window_ctl_set_focus_window(win);
     win_sheet_show(g_input_cursor_sht, win->m_sheet->m_z);
-
-    if (text_len > 0) {
-        dst = memman_alloc_4k(text_len + 1);
-        assert(dst != NULL, "console_focus alloc 4k error");
-
-        strncpy_tail(dst, text_len + 1, p->m_text);
-    }
-
-    input_cursor_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
-                      vy + INPUT_CURSOR_Y_OFFSET);
-
-    if (text_len > 0) {
-        make_textbox8(win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT,
-                      win->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT,
-                      COLOR_WHITE);
-
-        show_string(win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT,
-                    COLOR_WHITE, COLOR_BLACK, dst);
-    }
-
-    if (dst != NULL)
-        memman_free_4k(dst, text_len + 1);
-}
-
-void console_draw_text(console_t *p, const char *text) {
-    strncpy(p->m_text, CONSOLE_TEXT_MAX_LEN, text);
-    console_focus(p);
+    input_cursor_move(vx + p->m_cursor_pos.m_x, vy + p->m_cursor_pos.m_y);
 }
 
 void console_push(console_t *p, char c) {
     if (strlen(p->m_text) < CONSOLE_TEXT_MAX_LEN - 1) {
-        strpush(p->m_text, c);
-        console_focus(p);
+        _console_draw_ch(p, c);
     }
 }
 
@@ -89,8 +115,7 @@ void console_pop(console_t *p) {
     if (strlen(p->m_text) == 0)
         return;
 
-    strpop(p->m_text);
-    console_focus(p);
+    _console_remove_ch(p);
 }
 
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
@@ -99,14 +124,13 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     assert(p != NULL, "console_new alloc 4k error");
 
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
+    p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET + FONT_WIDTH;
+    p->m_cursor_pos.m_y = INPUT_CURSOR_START_Y_OFFSET;
     p->m_text[0] = '\0';
 
-    make_textbox8(p->m_win->m_sheet, FONT_WIDTH,
-                  TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
-                  p->m_win->m_sheet->m_bxsize - FONT_WIDTH * 2,
-                  p->m_win->m_sheet->m_bysize - TITLE_BAR_HEIGHT - FONT_HEIGHT,
-                  COLOR_BLACK);
-
+    _console_draw_input_area(p->m_win->m_sheet);
+    _console_draw_prompt(p->m_win->m_sheet, INPUT_CURSOR_START_X_OFFSET,
+                         p->m_cursor_pos.m_y);
     return p;
 }
 
@@ -159,6 +183,9 @@ static void _console_task_main(task_t *task, const char *title) {
             console_pop(console);
         } else {
             char ch = get_pressed_char(code);
+            if (ch == 0)
+                continue;
+
             console_push(console, ch);
         }
     }

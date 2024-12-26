@@ -123,6 +123,16 @@ void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
     win_sheet_refresh(sht, begin, y, x, y + FONT_HEIGHT);
 }
 
+void show_char(win_sheet_t *sht, unsigned int x, unsigned int y,
+               unsigned char bg_color, unsigned char text_color,
+               const char ch) {
+    boxfill8(sht->m_buf, sht->m_bxsize, bg_color, x, y, x + FONT_WIDTH - 1,
+             y + FONT_HEIGHT - 1);
+    show_font8(sht->m_buf, sht->m_bxsize, x, y, text_color,
+               system_font + ch * 16);
+    win_sheet_refresh(sht, x, y, x, y + FONT_HEIGHT);
+}
+
 void show_debug_char(unsigned char data) {
     static unsigned int pos_x = 0;
     static unsigned int pos_y = 0;
@@ -218,8 +228,8 @@ void init_background_sheet(void) {
     assert(buf != NULL, "init_background_sht alloc 4k error");
 
     _set_background_vram(buf, xsize, ysize);
-    win_sheet_setbuf(g_background_sht, WIN_SHEET_ID_BACKGROUND, buf, xsize, ysize,
-                     COLOR_INVISIBLE);
+    win_sheet_setbuf(g_background_sht, WIN_SHEET_ID_BACKGROUND, buf, xsize,
+                     ysize, COLOR_INVISIBLE);
     win_sheet_slide(g_background_sht, 0, 0);
     win_sheet_show(g_background_sht, BOTTOM_WIN_SHEET_Z);
 }

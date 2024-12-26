@@ -5,6 +5,9 @@
 #include "widgets/common_widget.h"
 #include "widgets/window.h"
 
+// (x0, y0): 起始坐标
+// (sx, sy):大小
+// c: 颜色
 void make_textbox8(win_sheet_t *sht, unsigned int x0, unsigned int y0,
                    unsigned int sx, unsigned int sy, unsigned char c) {
     unsigned int x1 = x0 + sx, y1 = y0 + sy;

@@ -3,12 +3,14 @@
 #include "def.h"
 #include "multi_task.h"
 #include "window.h"
+#include "wuitl.h"
 
-#define CONSOLE_TEXT_MAX_LEN 4096
+#define CONSOLE_TEXT_MAX_LEN 1024
 
 typedef struct {
     window_t *m_win;
-    char m_text[CONSOLE_TEXT_MAX_LEN + 1]; // 输入的字符串
+    char m_text[CONSOLE_TEXT_MAX_LEN]; // 输入的字符串
+    pos_t m_cursor_pos;                // 输入光标位置
 } console_t;
 
 // 分配对象

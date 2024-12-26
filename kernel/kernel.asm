@@ -7,6 +7,10 @@ TASK_STACK_SIZE equ 1024
 
 jmp   LABEL_BEGIN
 
+; 处理器并不使用GDT中的第1个描述符。把这个“空描述符”的段选择符加载进一个数据段寄存器（DS、ES、FS或GS）并不会产生一个异常，但是若使用这些加载了空描述符的段选择符访问内存时就肯定会产生一般保护性异常。通过使用这个段选择符初始化段寄存器，那么意外引用未使用的段寄存器肯定会产生一个异常。
+
+; LDT表存放在LDT类型的系统段中。此时GDT必须含有LDT的段描述符。如果系统支持多LDT的话，那么每个LDT都必须在GDT中有一个段描述符和段选择符。一个LDT的段描述符可以存放在GDT表的任何地方。
+
 ; 全局描述符表，用于标明不同内存段的功能和权限
 ;                                  段基址          段界限                  属性
 [SECTION .gdt]
@@ -31,8 +35,8 @@ LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409
 %endrep
 
 GDT_LEN     equ    $ - LABEL_GDT
-GDT_PTR     dw     GDT_LEN - 1
-            dd     0            ; 这里会保存LABEL_GDT的地址
+GDT_PTR     dw     GDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）
+            dd     0           ; 这里会保存LABEL_GDT的地址
 
 SELECTOR_CODE32    equ   LABEL_DESC_CODE32 -  LABEL_GDT
 SELECTOR_VIDEO     equ   LABEL_DESC_VIDEO  -  LABEL_GDT
@@ -60,7 +64,7 @@ LABEL_IDT:
     Gate SELECTOR_CODE32, MOUSE_HANDLER,    0, DA_386IGate
 
 IDT_LEN  equ $ - LABEL_IDT
-IDT_PTR  dw  IDT_LEN - 1
+IDT_PTR  dw  IDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）
          dd  0
 
 ; 实模式代码

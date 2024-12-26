@@ -161,6 +161,9 @@ static void _input_box_task_main(task_t *task, const char *title) {
             input_box_pop(input_box);
         } else {
             char ch = get_pressed_char(code);
+            if (ch == 0)
+                continue;
+
             input_box_push(input_box, ch);
         }
     }

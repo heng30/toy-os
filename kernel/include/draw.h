@@ -48,6 +48,10 @@ void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
                  unsigned char bg_color, unsigned char text_color,
                  const char *s);
 
+// 显示一个字符
+void show_char(win_sheet_t *sht, unsigned int x, unsigned int y,
+               unsigned char bg_color, unsigned char text_color, const char ch);
+
 // 显示调试信息
 void show_debug_char(unsigned char data);
 
