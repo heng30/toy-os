@@ -126,6 +126,10 @@ void show_string(win_sheet_t *sht, unsigned int x, unsigned int y,
 void show_char(win_sheet_t *sht, unsigned int x, unsigned int y,
                unsigned char bg_color, unsigned char text_color,
                const char ch) {
+
+    if (x + FONT_WIDTH > sht->m_bxsize)
+        return;
+
     boxfill8(sht->m_buf, sht->m_bxsize, bg_color, x, y, x + FONT_WIDTH - 1,
              y + FONT_HEIGHT - 1);
     show_font8(sht->m_buf, sht->m_bxsize, x, y, text_color,

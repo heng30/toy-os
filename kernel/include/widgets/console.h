@@ -21,7 +21,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
 void console_free(const console_t *p);
 
 // 获取关注点
-void console_focus(console_t *box);
+void console_focus(console_t *p);
 
 // 显示对象
 void console_show(console_t *p, int z);
@@ -30,13 +30,13 @@ void console_show(console_t *p, int z);
 void console_hide(console_t *p);
 
 // 绘制字符串
-void console_draw_text(console_t *box, const char *text);
+void console_draw_text(console_t *p, const char *text);
 
 // 添加一个字符
-void console_push(console_t *box, char c);
+void console_push(console_t *p, char c);
 
 // 移除一个字符
-void console_pop(console_t *box);
+void console_pop(console_t *p);
 
 // 移动窗口回调函数
 void console_moving(void *p);

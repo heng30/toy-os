@@ -19,6 +19,8 @@
 #define CONSOLE_INPUT_AREA_MARGIN 8
 #define CONSOLE_INPUT_AREA_PADDING 0
 
+#define CONSOLE_PROMPT_WIDTH (FONT_WIDTH * 2)
+
 // 黑框的大小
 #define INPUT_AREA_WIDTH (CONSOLE_WIDTH - CONSOLE_INPUT_AREA_MARGIN * 2)
 #define INPUT_AREA_HEIGHT                                                      \
@@ -34,6 +36,16 @@
 #define INPUT_CURSOR_START_Y_OFFSET                                            \
     (INPUT_AREA_START_Y_OFFSET + CONSOLE_INPUT_AREA_PADDING)
 
+// 输入光标结束位置
+#define INPUT_CURSOR_END_X_OFFSET                                              \
+    (INPUT_CURSOR_START_X_OFFSET +                                             \
+     ((INPUT_AREA_WIDTH - CONSOLE_INPUT_AREA_PADDING * 2) / FONT_WIDTH) *      \
+         FONT_WIDTH)
+#define INPUT_CURSOR_END_Y_OFFSET                                              \
+    (INPUT_CURSOR_START_Y_OFFSET +                                             \
+     ((INPUT_AREA_HEIGHT - CONSOLE_INPUT_AREA_PADDING * 2) / FONT_HEIGHT) *    \
+         FONT_HEIGHT)
+
 // 绘制黑框
 static void _console_draw_input_area(win_sheet_t *sht) {
     make_textbox8(sht, INPUT_AREA_START_X_OFFSET, INPUT_AREA_START_Y_OFFSET,
@@ -41,16 +53,20 @@ static void _console_draw_input_area(win_sheet_t *sht) {
 }
 
 // 绘制终端提示符
-static void _console_draw_prompt(win_sheet_t *sht, unsigned int x,
-                                 unsigned int y) {
-    show_string(sht, x, y, COLOR_BLACK, COLOR_WHITE, ">");
+static void _console_draw_prompt(console_t *p, unsigned int y) {
+    show_string(p->m_win->m_sheet, INPUT_CURSOR_START_X_OFFSET, y, COLOR_BLACK,
+                COLOR_WHITE, "> ");
+    p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET + CONSOLE_PROMPT_WIDTH;
 }
 
 // 是否需要换行
-static bool _console_is_need_wrap(console_t *p) {
-    return p->m_cursor_pos.m_x + FONT_WIDTH >= INPUT_AREA_START_X_OFFSET +
-                                                   INPUT_AREA_WIDTH -
-                                                   CONSOLE_INPUT_AREA_PADDING;
+static bool _console_is_text_need_wrap(console_t *p) {
+    return p->m_cursor_pos.m_x + FONT_WIDTH >= INPUT_CURSOR_END_X_OFFSET;
+}
+
+// 是否需要回到上一行的末尾
+static bool _console_is_text_need_back_to_preview_row(console_t *p) {
+    return p->m_cursor_pos.m_x <= INPUT_CURSOR_START_X_OFFSET;
 }
 
 // 是否需要向上滚动一行
@@ -60,14 +76,13 @@ static bool _console_is_need_scroll_up_one_line(console_t *p) {
                                                     CONSOLE_INPUT_AREA_PADDING;
 }
 
-// TODO
 static void _console_draw_ch(console_t *p, const char ch) {
     unsigned int x = p->m_cursor_pos.m_x, y = p->m_cursor_pos.m_y;
 
     strpush(p->m_text, ch);
     show_char(p->m_win->m_sheet, x, y, COLOR_BLACK, COLOR_WHITE, ch);
 
-    if (_console_is_need_wrap(p)) {
+    if (_console_is_text_need_wrap(p)) {
         p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET;
         p->m_cursor_pos.m_y += FONT_HEIGHT;
     } else {
@@ -77,7 +92,69 @@ static void _console_draw_ch(console_t *p, const char ch) {
     console_focus(p);
 }
 
-static void _console_remove_ch(console_t *p) { strpop(p->m_text); }
+static void _console_remove_ch(console_t *p) {
+    if (strlen(p->m_text) == 0)
+        return;
+
+    strpop(p->m_text);
+
+    if (_console_is_text_need_back_to_preview_row(p)) {
+        p->m_cursor_pos.m_x = INPUT_CURSOR_END_X_OFFSET - FONT_WIDTH;
+        p->m_cursor_pos.m_y -= FONT_HEIGHT;
+    } else {
+        p->m_cursor_pos.m_x -= FONT_WIDTH;
+    }
+
+    unsigned int x = p->m_cursor_pos.m_x, y = p->m_cursor_pos.m_y;
+    show_char(p->m_win->m_sheet, x, y, COLOR_BLACK, COLOR_BLACK, ' ');
+    console_focus(p);
+}
+
+static void _console_input_area_clear_all(console_t *p) {
+    p->m_text[0] = '\0';
+    p->m_cursor_pos.m_y = INPUT_CURSOR_START_Y_OFFSET;
+    _console_draw_input_area(p->m_win->m_sheet);
+    _console_draw_prompt(p, p->m_cursor_pos.m_y);
+    win_sheet_refresh(p->m_win->m_sheet, INPUT_AREA_START_X_OFFSET,
+                      INPUT_AREA_START_Y_OFFSET, INPUT_CURSOR_END_X_OFFSET,
+                      INPUT_CURSOR_END_Y_OFFSET);
+}
+
+static void _console_handle_command(console_t *p) {
+    const char *cmd = p->m_text;
+
+    if (!strcmp(cmd, "clear")) {
+        _console_input_area_clear_all(p);
+    }
+
+    p->m_text[0] = '\0';
+}
+
+static void _console_enter_pressed(console_t *p) {
+    if (_console_is_need_scroll_up_one_line(p)) {
+        // TODO: reach the end of input area of Y
+    } else {
+        p->m_cursor_pos.m_y += FONT_HEIGHT;
+    }
+
+    _console_draw_prompt(p, p->m_cursor_pos.m_y);
+    _console_handle_command(p);
+
+    console_focus(p);
+}
+
+static void _console_push(console_t *p, char c) {
+    if (strlen(p->m_text) < CONSOLE_TEXT_MAX_LEN - 1) {
+        _console_draw_ch(p, c);
+    }
+}
+
+static void _console_pop(console_t *p) {
+    if (strlen(p->m_text) == 0)
+        return;
+
+    _console_remove_ch(p);
+}
 
 void console_moving(void *p) {
     console_t *con = (console_t *)p;
@@ -105,32 +182,13 @@ void console_focus(console_t *p) {
     input_cursor_move(vx + p->m_cursor_pos.m_x, vy + p->m_cursor_pos.m_y);
 }
 
-void console_push(console_t *p, char c) {
-    if (strlen(p->m_text) < CONSOLE_TEXT_MAX_LEN - 1) {
-        _console_draw_ch(p, c);
-    }
-}
-
-void console_pop(console_t *p) {
-    if (strlen(p->m_text) == 0)
-        return;
-
-    _console_remove_ch(p);
-}
-
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
                        unsigned int height, const char *title) {
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
-    p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET + FONT_WIDTH;
-    p->m_cursor_pos.m_y = INPUT_CURSOR_START_Y_OFFSET;
-    p->m_text[0] = '\0';
-
-    _console_draw_input_area(p->m_win->m_sheet);
-    _console_draw_prompt(p->m_win->m_sheet, INPUT_CURSOR_START_X_OFFSET,
-                         p->m_cursor_pos.m_y);
+    _console_input_area_clear_all(p);
     return p;
 }
 
@@ -180,13 +238,15 @@ static void _console_task_main(task_t *task, const char *title) {
         }
 
         if (is_backspace_down(code)) {
-            console_pop(console);
+            _console_pop(console);
+        } else if (is_enter_down(code)) {
+            _console_enter_pressed(console);
         } else {
             char ch = get_pressed_char(code);
             if (ch == 0)
                 continue;
 
-            console_push(console, ch);
+            _console_push(console, ch);
         }
     }
 }
