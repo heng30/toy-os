@@ -1,12 +1,6 @@
 #pragma once
 
-
-#define SECTOR_COUNT 18   // 一个柱面的扇区数量
-#define CYLINDER_COUNT 80 // 一个盘面的柱面数量
-#define FLOPPY_DISK_COUNT 1 // 磁盘数量，一个磁盘两个面，都可以存数据
-
-#define SECTOR_SIZE 512 // 扇区大小
-#define CYLINDER_SIZE (SECTOR_COUNT * SECTOR_SIZE)      // 一个柱面的大小
+#include "def.h"
 
 typedef enum FLOPPY_DISK_MAGNETIC_HEAD {
     MAGNETIC_HEAD_0 = 0,
@@ -25,10 +19,10 @@ typedef struct floppy_disk {
     unsigned char *m_data[FLOPPY_DISK_COUNT][2];
 
     // 设置要读取的扇区位置
-    unsigned int m_disk;                // 第几个磁盘,从0开始计数。汇编从0开始计数
+    unsigned int m_disk; // 第几个磁盘,从0开始计数。汇编从0开始计数
     floppy_disk_magnetic_head_t m_head; // 磁头位置, 0/1
-    unsigned int m_cylinder;            // 第几个柱面,从0开始计数。汇编从0开始计数
-    unsigned int m_sector;              // 第几个扇区,从0开始计数。汇编从1开始计数
+    unsigned int m_cylinder; // 第几个柱面,从0开始计数。汇编从0开始计数
+    unsigned int m_sector; // 第几个扇区,从0开始计数。汇编从1开始计数
 } floppy_disk_t;
 
 // 初始化软盘

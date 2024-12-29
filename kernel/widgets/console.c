@@ -113,6 +113,7 @@ static void _console_draw_ch(console_t *p, const char ch) {
     strpush(p->m_text, ch);
     show_char(p->m_win->m_sheet, x, y, COLOR_BLACK, COLOR_WHITE, ch);
 
+    // 换行
     if (_console_is_text_need_wrap(p)) {
         p->m_cursor_pos.m_x = INPUT_CURSOR_START_X_OFFSET;
         p->m_cursor_pos.m_y += FONT_HEIGHT;
@@ -125,6 +126,7 @@ static void _console_draw_ch(console_t *p, const char ch) {
     } else {
         p->m_cursor_pos.m_x += FONT_WIDTH;
     }
+
     _console_input_cursor_move(p);
 }
 

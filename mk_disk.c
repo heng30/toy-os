@@ -4,12 +4,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "def.h"
 #include "floppy.h"
+#include "fs.h"
 #include "logger.h"
 #include "mk_font.h"
 #include "util.h"
 
+/* 整个软盘的布局：
+ *  - 0号柱面1号扇区存放启动程序
+ *  - 1-10号柱面存放内核程序
+ *  - 11号柱面及以后存放文件系统
+ *
+ * 如果内核大小超过10个柱面需要修改FS_START_CYLINDER和其他相关参数。
+ */
+
 #define BOOT_SIZE 512
+#define KERNEL_START_CYLINDER 1 // 从第几个柱面号开始写入内核
+#define FS_START_CYLINDER 11    // 从第几个柱面号开始写入文件系统
 
 static unsigned char BOOT_IMAGE[BOOT_SIZE] = {
     [0 ...(BOOT_SIZE - 3)] = 0,
@@ -31,7 +43,8 @@ static void _load_boot(char *boot_file) {
     assert(feof(fp));
     fclose(fp);
 
-    debug("boot image size is %d bytes, and it will be written in the sector 1 of "
+    debug("boot image size is %d bytes, and it will be written in the sector 1 "
+          "of "
           "cylinder 0",
           rb);
 }
@@ -74,7 +87,7 @@ static void _mk_disk(char *disk_file) {
 
     // 从第1个柱面第1个扇区开始写入
     for (unsigned int i = 0; i < sector_count; i++) {
-        unsigned int cylinder_index = i / SECTOR_COUNT + 1;
+        unsigned int cylinder_index = KERNEL_START_CYLINDER + i / SECTOR_COUNT;
         unsigned int sector_index = i % SECTOR_COUNT;
 
         floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, cylinder_index, sector_index);
@@ -87,6 +100,9 @@ static void _mk_disk(char *disk_file) {
     debug("finish writing kernel in the start of sector 1 of cylinder 1, and "
           "total size is %d cylinders and %d sectors",
           sector_count / SECTOR_COUNT, sector_count % SECTOR_COUNT);
+
+    // TODO: 写入文件系统
+    buf_t fs_info = mk_fs("./res/fs-data");
 
     floppy_disk_make(disk_file);
 
