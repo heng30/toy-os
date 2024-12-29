@@ -43,12 +43,13 @@ buf_t mk_fs(const char *data_dir) {
     }
     closedir(dir);
 
+    // 计算头表大小和需要的扇区数
     unsigned int header_size =
         file_count * (unsigned int)sizeof(fs_header_t) +
         (unsigned int)sizeof(fs_header_t); // 加上一个结束头
-    unsigned int header_sector =
+    unsigned int header_sector_count =
         header_size / SECTOR_SIZE + (header_size % SECTOR_SIZE == 0 ? 0 : 1);
-    total_sector_count = header_sector + data_sector_count;
+    total_sector_count = header_sector_count + data_sector_count;
 
     buf.m_size = total_sector_count * SECTOR_SIZE;
     buf.m_data = (unsigned char *)malloc(buf.m_size);
@@ -56,7 +57,7 @@ buf_t mk_fs(const char *data_dir) {
 
     fs_header_t *fh = (fs_header_t *)buf.m_data;
     unsigned char *ds = buf.m_data + header_size;
-    unsigned short clustno = (unsigned short)header_sector;
+    unsigned short clustno = (unsigned short)header_sector_count;
 
     // 构建头结构和复制文件数据
     dir = opendir(data_dir);
@@ -71,7 +72,6 @@ buf_t mk_fs(const char *data_dir) {
         // 读取文件内容
         FILE *fp = fopen(fpath, "rb");
         assert(fp);
-
         unsigned char *file_buf =
             (unsigned char *)malloc((size_t)finfo.st_size);
         size_t rb = fread(file_buf, 1, (size_t)finfo.st_size, fp);
@@ -84,7 +84,6 @@ buf_t mk_fs(const char *data_dir) {
                            (finfo.st_size % SECTOR_SIZE == 0 ? 0 : 1));
         unsigned int one_file_data_size =
             one_file_data_sector_count * SECTOR_SIZE;
-        clustno += (unsigned short)one_file_data_sector_count;
 
         // 设置头结构
         memset(fh, 0, sizeof(fs_header_t));
@@ -117,8 +116,9 @@ buf_t mk_fs(const char *data_dir) {
         fh->m_clustno = clustno;
         memcpy(ds, file_buf, rb);
 
-        fh++, ds +=
-              one_file_data_size; // 数据指针移动到下一个文件写入的起始扇区位置
+        fh++;
+        ds += one_file_data_size; // 数据指针移动到下一个文件写入的起始扇区位置
+        clustno += (unsigned short)one_file_data_sector_count;
 
         assert(data_sector_count >= one_file_data_sector_count);
         file_count--, data_sector_count -= one_file_data_sector_count;
@@ -167,6 +167,4 @@ unsigned char *fs_read(unsigned char *start_addr, const char *filename) {
 }
 
 // TODO
-void fs_test(void) {
-
-}
+void fs_test(void) {}
