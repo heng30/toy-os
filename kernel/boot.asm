@@ -123,7 +123,8 @@ beginLoad:
     mov  ds, ax
     jmp          LoadAddr   ; 调整到内核中执行代码
 
-load_count db 10            ; 连续读取几个柱面
+; 连续读取15个柱面: kernel.img(10 cylinders) + fs.img(5 cylinders)
+load_count db 15
 load_section dw 0800h
 
 fin:

@@ -36,6 +36,11 @@ long file_size(const char *filename) {
     return size;
 }
 
+bool is_little_endian(void) {
+    int num = 1;
+    return (*(unsigned char *)&num == 1);
+}
+
 #ifdef __TEST__
 #include <unistd.h>
 

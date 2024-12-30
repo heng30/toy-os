@@ -101,8 +101,29 @@ static void _mk_disk(char *disk_file) {
           "total size is %d cylinders and %d sectors",
           sector_count / SECTOR_COUNT, sector_count % SECTOR_COUNT);
 
-    // TODO: 写入文件系统
+    // 写入文件系统
     buf_t fs_info = mk_fs("./res/fs-data");
+    assert(fs_info.m_data && fs_info.m_size > 0);
+    assert(fs_info.m_size % SECTOR_SIZE == 0);
+
+    sector_count = fs_info.m_size / SECTOR_SIZE;
+
+    // 从第11个柱面第1个扇区开始写入
+    for (unsigned int i = 0; i < sector_count; i++) {
+        unsigned int cylinder_index = FS_START_CYLINDER + i / SECTOR_COUNT;
+        unsigned int sector_index = i % SECTOR_COUNT;
+
+        floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, cylinder_index, sector_index);
+        floppy_disk_write_sector(KERNEL_IMAGE + i * SECTOR_SIZE);
+
+        // debug("write a sector in cylinder %d and sector %d", cylinder_index,
+        //       sector_index + 1);
+    }
+
+    debug("finish writing fs in the start of sector 1 of cylinder %d, and "
+          "total size is %d cylinders and %d sectors",
+          FS_START_CYLINDER, sector_count / SECTOR_COUNT,
+          sector_count % SECTOR_COUNT);
 
     floppy_disk_make(disk_file);
 

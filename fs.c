@@ -10,9 +10,12 @@
 
 #include "fs.h"
 #include "logger.h"
+#include "util.h"
 
 // 将一个文件夹里的所有一级目录文件制作成一个文件系统
 buf_t mk_fs(const char *data_dir) {
+    assert(is_little_endian());
+
     char fpath[4096];
     struct stat finfo;
     struct dirent *entry = NULL;
@@ -47,10 +50,12 @@ buf_t mk_fs(const char *data_dir) {
         header_size / SECTOR_SIZE + (header_size % SECTOR_SIZE == 0 ? 0 : 1);
     total_sector_count = header_sector_count + data_sector_count;
 
+    // 设置文件系统缓冲区和大小
     buf.m_size = total_sector_count * SECTOR_SIZE;
     buf.m_data = (unsigned char *)malloc(buf.m_size);
     assert(buf.m_data);
 
+    // 为制作文件系统做准备，设置数据写入位置和变动数据
     fs_header_t *fh = (fs_header_t *)buf.m_data;
     unsigned char *ds = buf.m_data + header_sector_count * SECTOR_SIZE;
     unsigned short clustno = (unsigned short)header_sector_count;
@@ -84,7 +89,7 @@ buf_t mk_fs(const char *data_dir) {
         unsigned int one_file_data_size =
             one_file_data_sector_count * SECTOR_SIZE;
 
-        // 设置头结构
+        // 初始化头结构
         memset(fh, 0, sizeof(fs_header_t));
 
         // 复制文件名, 不包括扩展名
@@ -116,8 +121,8 @@ buf_t mk_fs(const char *data_dir) {
         memcpy(ds, file_buf, rb);
         free(file_buf);
 
-        fh++;
-        ds += one_file_data_size; // 数据指针移动到下一个文件写入的起始扇区位置
+        // 更新写入位置
+        fh++, ds += one_file_data_size;
         clustno += (unsigned short)one_file_data_sector_count;
 
         assert(data_sector_count >= one_file_data_sector_count);
@@ -127,7 +132,7 @@ buf_t mk_fs(const char *data_dir) {
         if (file_count == 0)
             fh->m_type = FS_HEADER_TYPE_END;
 
-        debug("filename: %s, size: %lld bytes", entry->d_name, finfo.st_size);
+        // debug("filename: %s, size: %lld bytes", entry->d_name, finfo.st_size);
     }
     closedir(dir);
 
