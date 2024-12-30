@@ -112,8 +112,9 @@ static void _mk_disk(char *disk_file) {
 #ifdef __TEST__
 static void _test() {
     // logger_test();
-    util_test();
-    floppy_disk_test();
+    // util_test();
+    // floppy_disk_test();
+    fs_test();
 }
 #endif
 
