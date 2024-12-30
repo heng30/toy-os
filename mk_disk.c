@@ -114,7 +114,7 @@ static void _mk_disk(char *disk_file) {
         unsigned int sector_index = i % SECTOR_COUNT;
 
         floppy_disk_set_pos(MAGNETIC_HEAD_0, 0, cylinder_index, sector_index);
-        floppy_disk_write_sector(KERNEL_IMAGE + i * SECTOR_SIZE);
+        floppy_disk_write_sector(fs_info.m_data + i * SECTOR_SIZE);
 
         // debug("write a sector in cylinder %d and sector %d", cylinder_index,
         //       sector_index + 1);
