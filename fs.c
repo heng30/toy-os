@@ -11,10 +11,6 @@
 #include "fs.h"
 #include "logger.h"
 
-#define FS_HEADER_TYPE_FILE 0 // 文件
-#define FS_HEADER_TYPE_DIR 1  // 目录
-#define FS_HEADER_TYPE_END 2  // 头结果结束标志
-
 // 将一个文件夹里的所有一级目录文件制作成一个文件系统
 buf_t mk_fs(const char *data_dir) {
     char fpath[4096];

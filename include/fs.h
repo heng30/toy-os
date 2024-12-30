@@ -1,9 +1,14 @@
 #pragma once
 #include "def.h"
 
+#define FS_HEADER_RESERVE_SIZE 10
 #define FS_HEADER_NAME_SIZE 8
 #define FS_HEADER_EXT_SIZE 3
 #define FS_HEADER_FILENAME_SIZE (FS_HEADER_NAME_SIZE + FS_HEADER_EXT_SIZE + 2)
+
+#define FS_HEADER_TYPE_FILE 0 // 文件
+#define FS_HEADER_TYPE_DIR 1  // 目录
+#define FS_HEADER_TYPE_END 2  // 头结果结束标志
 
 /*
  * 这时一个类似于fat32的文件系统，不过为了方便会简化很多实现。
@@ -14,14 +19,14 @@
  *  - 每个文件必须独占一整个扇区，即一个扇区不能同时存储超过1个文件
  */
 typedef struct {
-    char m_name[FS_HEADER_NAME_SIZE]; // 文件名
-    char m_ext[FS_HEADER_EXT_SIZE];   // 文件扩展名
-    unsigned char m_type;             // 文件类型
-    unsigned char m_reserve[10];      // 保留
-    unsigned short m_time;            // 时间
-    unsigned short m_date;            // 日期
-    unsigned short m_clustno; // 簇号，从文件系统开始的偏移扇区
-    unsigned int m_size;      // 文件大小
+    char m_name[FS_HEADER_NAME_SIZE];                // 文件名
+    char m_ext[FS_HEADER_EXT_SIZE];                  // 文件扩展名
+    unsigned char m_type;                            // 文件类型
+    unsigned char m_reserve[FS_HEADER_RESERVE_SIZE]; // 保留
+    unsigned short m_time;                           // 时间
+    unsigned short m_date;                           // 日期
+    unsigned short m_clustno; // 簇号，从文件系统开始位置偏移的扇区数
+    unsigned int m_size; // 文件大小
 } fs_header_t;
 
 // 将一个文件夹里的所有一级目录文件制作成一个文件系统
