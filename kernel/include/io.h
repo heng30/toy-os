@@ -22,6 +22,13 @@ void io_out8(int port, unsigned char data);
 void io_out16(int port, unsigned short data);
 void io_out32(int port, unsigned int data);
 
+/* 1. 标志寄存器EFLAGS的中断允许标志IF（Interrupt
+ * enableFlag）能够禁止为处理器INTR引脚上收到的可屏蔽硬件中断提供服务。当IF=0时，处理器禁止发送到INTR引脚的中断；当IF=1时，则发送到INTR引脚的中断信号会被处理器进行处理。
+ * 2. EFLAGS中的IF标志不能够屏蔽使用INT指令从软件中产生的中断。
+ * 3. IF标志并不影响发送到NMI引脚的非屏蔽中断，也不影响处理器产生的异常。
+ * 如同EFLAGS中的其他标志一样，处理器在响应硬件复位操作时会清除IF标志（IF=0）。IF标志可以使用指令STI和CLI来设置或清除。只有当程序的CPL<=IOPL时才可执行这两条指令，否则将引发一般保护性异常。
+ */
+
 // 获取eflags寄存器
 int io_load_eflags(void);
 
@@ -69,4 +76,4 @@ void taskswitch9(void);
 // 将esp+4指向的栈中的值赋值给eip寄存器(指向下一条要执行的代码)
 // 并且自动读取接下来的2个字节作为段描述符的索引下标，即gdt+n的位置, n = tr >> 3
 // 从段描述符中加载TSS32对象到cpu中，从而实现任务切换
-void farjmp(unsigned int a,  unsigned short tr);
+void farjmp(unsigned int a, unsigned short tr);

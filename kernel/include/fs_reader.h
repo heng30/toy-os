@@ -1,6 +1,19 @@
 #pragma once
 
+#define ORG_ADDR 0x8000 // 这个地址要和kernel.asm中定义的保持一致
 #define SECTOR_SIZE 512 // 扇区大小
+#define SECTOR_COUNT_PER_CYLINDER 18 // 一个柱面的扇区数量
+
+// 文件系统开始的柱面号，这个值要和制作镜像文件时保存一致
+#define FS_START_CYLINDER 11
+
+// 文件系统在内存中的位置
+// `FS_START_CYLINDER - 1` 的原因是第0柱面是启动扇区柱面
+// 内核代码从第1柱面开始写入镜像文件
+// 启动代码加载内核和文件系统到ORG_ADDR处
+#define FS_START_ADDR                                                          \
+    (ORG_ADDR +                                                                \
+     (FS_START_CYLINDER - 1) * SECTOR_COUNT_PER_CYLINDER * SECTOR_SIZE)
 
 #define FS_HEADER_RESERVE_SIZE 10
 #define FS_HEADER_NAME_SIZE 8

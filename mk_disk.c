@@ -85,7 +85,7 @@ static void _mk_disk(char *disk_file) {
     // 写入kernel到一个柱面
     unsigned int sector_count = KERNEL_SIZE / SECTOR_SIZE;
 
-    // 从第1个柱面第1个扇区开始写入
+    // 从第1柱面第1个扇区开始写入
     for (unsigned int i = 0; i < sector_count; i++) {
         unsigned int cylinder_index = KERNEL_START_CYLINDER + i / SECTOR_COUNT;
         unsigned int sector_index = i % SECTOR_COUNT;
@@ -108,7 +108,7 @@ static void _mk_disk(char *disk_file) {
 
     sector_count = fs_info.m_size / SECTOR_SIZE;
 
-    // 从第11个柱面第1个扇区开始写入
+    // 从第11柱面第1个扇区开始写入
     for (unsigned int i = 0; i < sector_count; i++) {
         unsigned int cylinder_index = FS_START_CYLINDER + i / SECTOR_COUNT;
         unsigned int sector_index = i % SECTOR_COUNT;
@@ -120,7 +120,7 @@ static void _mk_disk(char *disk_file) {
         //       sector_index + 1);
     }
 
-    debug("finish writing fs in the start of sector 1 of cylinder %d, and "
+    debug("finish writing filesystem in the start of sector 1 of cylinder %d, and "
           "total size is %d cylinders and %d sectors",
           FS_START_CYLINDER, sector_count / SECTOR_COUNT,
           sector_count % SECTOR_COUNT);
@@ -133,8 +133,8 @@ static void _mk_disk(char *disk_file) {
 #ifdef __TEST__
 static void _test() {
     // logger_test();
-    // util_test();
-    // floppy_disk_test();
+    util_test();
+    floppy_disk_test();
     fs_test();
 }
 #endif

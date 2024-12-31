@@ -1,3 +1,4 @@
+#include "cmd.h"
 #include "colo8.h"
 #include "def.h"
 #include "draw.h"
@@ -107,7 +108,7 @@ static void _console_scroll_up_one_line(console_t *p) {
 }
 
 // 绘制一个字符
-static void _console_draw_ch(console_t *p, const char ch) {
+void console_draw_ch(console_t *p, const char ch) {
     unsigned int x = p->m_cursor_pos.m_x, y = p->m_cursor_pos.m_y;
 
     strpush(p->m_text, ch);
@@ -163,6 +164,8 @@ static void _console_handle_command(console_t *p) {
 
     if (!strcmp(cmd, "clear")) {
         _console_input_area_clear_all(p);
+    } else if (!strcmp(cmd, "ls")) {
+        cmd_ls(p);
     }
 
     p->m_text[0] = '\0';
@@ -182,7 +185,7 @@ static void _console_enter_pressed(console_t *p) {
 
 static void _console_push(console_t *p, char c) {
     if (strlen(p->m_text) < CONSOLE_TEXT_MAX_LEN - 1) {
-        _console_draw_ch(p, c);
+        console_draw_ch(p, c);
     }
 }
 
@@ -191,6 +194,21 @@ static void _console_pop(console_t *p) {
         return;
 
     _console_remove_ch(p);
+}
+
+void console_move_to_next_line(console_t *p) {
+    if (_console_is_need_scroll_up_one_line(p)) {
+        _console_scroll_up_one_line(p);
+    } else {
+        p->m_cursor_pos.m_y += FONT_HEIGHT;
+    }
+    _console_draw_prompt(p);
+    _console_input_cursor_move(p);
+}
+
+void console_draw_text(console_t *p, const char *text) {
+    for (; *text != '\0'; text++)
+        _console_push(p, *text);
 }
 
 void console_moving(void *p) {

@@ -45,6 +45,7 @@ SELECTOR_VRAM      equ   LABEL_DESC_VRAM   -  LABEL_GDT
 SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 
 ; 中断描述符
+; 允许的向量号范围是0到255。其中0到31保留用作80X86处理器定义的异常和中断，不过目前该范围内的向量号并非每个都已定义了功能，未定义功能的向量号将留作今后使用。
 LABEL_IDT:
 %rep  32
     Gate SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate

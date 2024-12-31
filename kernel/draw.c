@@ -134,7 +134,7 @@ void show_char(win_sheet_t *sht, unsigned int x, unsigned int y,
              y + FONT_HEIGHT - 1);
     show_font8(sht->m_buf, sht->m_bxsize, x, y, text_color,
                system_font + ch * 16);
-    win_sheet_refresh(sht, x, y, x, y + FONT_HEIGHT);
+    win_sheet_refresh(sht, x, y, x + FONT_WIDTH, y + FONT_HEIGHT);
 }
 
 void show_debug_char(unsigned char data) {

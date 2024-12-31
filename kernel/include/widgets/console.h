@@ -29,8 +29,14 @@ void console_show(console_t *p, int z);
 // 隐藏对象
 void console_hide(console_t *p);
 
-// 绘制字符串
+// 绘制字符串,结尾不要有回车符
 void console_draw_text(console_t *p, const char *text);
+
+// 绘制一个字符
+void console_draw_ch(console_t *p, const char ch);
+
+// 移动到下一行
+void console_move_to_next_line(console_t *p);
 
 // 添加一个字符
 void console_push(console_t *p, char c);

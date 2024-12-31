@@ -4,7 +4,9 @@
 #include "memory.h"
 
 unsigned char *fs_read(unsigned char *start_addr, const char *filename) {
-    char fname[FS_HEADER_FILENAME_SIZE];
+    char *fname = (char *)memman_alloc_4k(FS_HEADER_FILENAME_SIZE);
+    assert(fname != NULL, "fs_read alloc fname buffer error");
+
     fs_header_t *p = (fs_header_t *)start_addr;
 
     for (; p->m_type != FS_HEADER_TYPE_END; p++) {
@@ -13,9 +15,10 @@ unsigned char *fs_read(unsigned char *start_addr, const char *filename) {
         if (strcmp(filename, fname))
             continue;
 
+        memman_free_4k(fname, FS_HEADER_FILENAME_SIZE);
+
         unsigned char *buf = (unsigned char *)memman_alloc_4k(p->m_size + 1);
-        if (!buf)
-            return NULL;
+        assert(buf != NULL, "fs_read alloc file size buffer error");
 
         unsigned char *data_ptr = start_addr + p->m_clustno * SECTOR_SIZE;
         memcpy(buf, data_ptr, p->m_size);
@@ -23,6 +26,7 @@ unsigned char *fs_read(unsigned char *start_addr, const char *filename) {
         return buf;
     }
 
+    memman_free_4k(fname, FS_HEADER_FILENAME_SIZE);
     return NULL;
 }
 
