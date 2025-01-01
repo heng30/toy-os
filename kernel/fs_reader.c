@@ -4,9 +4,7 @@
 #include "memory.h"
 
 buf_t *fs_read(const char *filename) {
-    char *fname = (char *)memman_alloc_4k(FS_HEADER_FILENAME_SIZE);
-    assert(fname != NULL, "fs_read alloc fname buffer error");
-
+    char fname[FS_HEADER_FILENAME_SIZE];
     fs_header_t *p = (fs_header_t *)FS_START_ADDR;
 
     for (; p->m_type != FS_HEADER_TYPE_END; p++) {
@@ -14,8 +12,6 @@ buf_t *fs_read(const char *filename) {
 
         if (strcmp(filename, fname))
             continue;
-
-        memman_free_4k(fname, FS_HEADER_FILENAME_SIZE);
 
         buf_t *buf = (buf_t *)memman_alloc_4k(sizeof(buf_t));
         assert(buf != NULL, "fs_read alloc buf_t error");
@@ -31,7 +27,6 @@ buf_t *fs_read(const char *filename) {
         return buf;
     }
 
-    memman_free_4k(fname, FS_HEADER_FILENAME_SIZE);
     return NULL;
 }
 

@@ -6,9 +6,25 @@
 
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 
-void cmd_mem(console_t *console) {}
+void cmd_mem(console_t *console) {
+    char buf[32];
+    unsigned int total = memman_total() / MB;
+    uint_to_string(total, buf);
+    console_draw_text(console, "total memory: ");
+    console_draw_text(console, buf);
+    console_draw_text(console, "MB");
+    console_move_to_next_line(console);
+}
 
-void cmd_free(console_t *console) {}
+void cmd_free(console_t *console) {
+    char buf[32];
+    unsigned int total = memman_available() / MB;
+    uint_to_string(total, buf);
+    console_draw_text(console, "free memory: ");
+    console_draw_text(console, buf);
+    console_draw_text(console, "MB");
+    console_move_to_next_line(console);
+}
 
 void cmd_ls(console_t *console) {
     bool have_file = false;

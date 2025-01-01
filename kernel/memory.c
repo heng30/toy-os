@@ -12,11 +12,15 @@ typedef struct {
 } freeinfo_t;
 
 typedef struct {
-    unsigned int m_frees, m_lostsize, m_losts;
-    freeinfo_t *m_free;
+    unsigned int m_total;    // 所有可分配的内存,空闲+已经分配的
+    unsigned int m_frees;    // 空闲内存块
+    unsigned int m_lostsize; // 内存泄漏大小
+    unsigned int m_losts;    // 内存泄露次数
+    freeinfo_t *m_free;      // 表头数组
 } memman_t;
 
 memman_t g_memman = {
+    .m_total = 0,
     .m_frees = 0,
     .m_lostsize = 0,
     .m_losts = 0,
@@ -40,14 +44,18 @@ void init_memman(void) {
 
     addr_range_desc_t *mem_desc = desc + max_mem_index;
     g_memman.m_free = (freeinfo_t *)mem_desc->m_base_addr_low;
+    g_memman.m_total =
+        mem_desc->m_length_low - MEMMAN_FREES * sizeof(freeinfo_t);
 
     // 将内存放入内存管理器中
     memman_free((const void *)(mem_desc->m_base_addr_low +
                                MEMMAN_FREES * sizeof(freeinfo_t)),
-                mem_desc->m_length_low - MEMMAN_FREES * sizeof(freeinfo_t));
+                g_memman.m_total);
 }
 
-unsigned int memman_total(void) {
+unsigned int memman_total(void) { return g_memman.m_total; }
+
+unsigned int memman_available(void) {
     unsigned int t = 0;
     for (unsigned int i = 0; i < g_memman.m_frees; i++) {
         t += g_memman.m_free[i].m_size;

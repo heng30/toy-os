@@ -3,13 +3,15 @@
 这是一个根据[Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)课程的学习项目。
 
 ### 实现的功能
-- 运行在保护模式下
+- 运行在保护模式下，不支持分页功能
 - 处理鼠标和键盘输入
 - 简单的定时器
 - 简单的内存管理
 - 简单的图层管理，保证图层及时刷新
 - 简单的任务调度
+- 类似于fat32的只读文件系统
 - 一个输入框，可以输入和删除字符
+- 一个简易的中断，支持：`cls, ls, cat, mem, free` 命令
 
 ### 如何使用该项目？
 - 编译启动镜像：`make`

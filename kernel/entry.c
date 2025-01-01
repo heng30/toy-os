@@ -54,7 +54,6 @@ void start_kernel(void) {
     io_sti(); // 开中断
     enable_mouse();
 
-    show_memman_info();
     _test();
 
     task_t *input_box_task = init_input_box_task();
