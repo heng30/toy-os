@@ -24,6 +24,11 @@
 #define FS_HEADER_TYPE_DIR 1  // 目录
 #define FS_HEADER_TYPE_END 2  // 头结果结束标志
 
+typedef struct {
+    unsigned char *m_data; // 数据
+    unsigned int m_size;   // 大小
+} buf_t;
+
 /*
  * 这时一个类似于fat32的文件系统，不过为了方便会简化很多实现。
  * 整个文件系统的结构是:
@@ -44,10 +49,10 @@ typedef struct {
 } fs_header_t;
 
 // 读取文件内容
-unsigned char *fs_read(unsigned char *start_addr, const char *filename);
+buf_t *fs_read(const char *filename);
+
+// 释放内存
+void fs_free_buf(buf_t *p);
 
 // 获取文件名
 void get_filename(fs_header_t *p, char *buf, unsigned int size);
-
-// 展示头节点信息
-void fs_header_display(fs_header_t *p);

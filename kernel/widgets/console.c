@@ -149,7 +149,7 @@ static void _console_remove_ch(console_t *p) {
     _console_input_cursor_move(p);
 }
 
-static void _console_input_area_clear_all(console_t *p) {
+void console_input_area_clear_all(console_t *p) {
     p->m_text[0] = '\0';
     p->m_cursor_pos.m_y = INPUT_CURSOR_START_Y_OFFSET;
     _console_draw_input_area(p->m_win->m_sheet);
@@ -162,10 +162,16 @@ static void _console_input_area_clear_all(console_t *p) {
 static void _console_handle_command(console_t *p) {
     const char *cmd = p->m_text;
 
-    if (!strcmp(cmd, "clear")) {
-        _console_input_area_clear_all(p);
+    if (!strcmp(cmd, "cls")) {
+        cmd_cls(p);
+    } else if (!strcmp(cmd, "mem")) {
+        cmd_mem(p);
+    } else if (!strcmp(cmd, "free")) {
+        cmd_free(p);
     } else if (!strcmp(cmd, "ls")) {
         cmd_ls(p);
+    } else if (str_start_with(cmd, "cat ")) {
+        cmd_cat(p);
     }
 
     p->m_text[0] = '\0';
@@ -241,7 +247,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     assert(p != NULL, "console_new alloc 4k error");
 
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
-    _console_input_area_clear_all(p);
+    console_input_area_clear_all(p);
     return p;
 }
 

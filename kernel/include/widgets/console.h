@@ -49,3 +49,6 @@ void console_moving(void *p);
 
 // 终端任务
 task_t *init_console_task(void);
+
+// 清空屏幕
+void console_input_area_clear_all(console_t *p);

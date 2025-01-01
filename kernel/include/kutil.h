@@ -37,6 +37,9 @@ unsigned char *memcpy(unsigned char *dst, unsigned char *src, unsigned int len);
 unsigned char *mempcpy(unsigned char *dst, unsigned char *src,
                        unsigned int len);
 
+// 移动数据
+void memmove(char *dst, const char *src, unsigned int size);
+
 // 获取字符串长度
 unsigned int strlen(const char *s);
 
@@ -70,6 +73,12 @@ char to_uppercast(char ch);
 // 判断字符串大小， 1: str1 > str2; 0: str1 == str2; 1: str1 < str2
 int strcmp(const char *str1, const char *str2);
 
+// 移除字符串前后的空字符
+char* str_trim_space(char *text);
+
+// 判断一个字符是否以某个字符串开头
+bool str_start_with(const char *src, const char *pattern);
+
 // if n <= l, return l;
 // if n >= h, return h;
 // if l < n < h, return n;
@@ -78,3 +87,9 @@ unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h);
 
 // 将秒数转换成时间，格式：`days hours:minutes:seconds`
 char *seconds_to_time_string(unsigned int seconds, char time[16]);
+
+// 数字转字符串
+void int_to_string(int num, char *str);
+
+// 数字转字符串
+void uint_to_string(unsigned int num, char *str);
