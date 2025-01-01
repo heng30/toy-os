@@ -1,18 +1,13 @@
 DIR = $(shell pwd)
 BUILD_DIR = $(DIR)/build
-TARGET = ckernel
-TARGET_OBJ = $(TARGET).o
-
-BOOT_IMAGE = boot.img
-DISK_IMAGE = disk.img
-KERNEL_IMAGE = kernel.img
+FS_DATA_DIR = $(DIR)/../res/fs-data
 
 CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
 REVERT_ASM_TOOL = objconv
 
-DEFINE_FLAGS = #-D __DEBUG__ __USE_CALLBAK_MOVING_FUNCTION__ __MULTI_TASK_DEBUG__  __RING_TEST__
+DEFINE_FLAGS =
 DEBUG_FLAGS =
 RELEASE_FLAGS =
 
@@ -23,6 +18,12 @@ NASM_FLAG = -w-zeroing -Ox
 REVERT_ASM_TOOL_FLAG = -v0
 
 EXCLUDE_SRC_DIR := grep -v build | grep -v backup
+
+ASM_SRC = $(shell find . -name '*.asm' | $(EXCLUDE_SRC_DIR))
+vpath %.asm $(sort $(dir $(ASM_SRC))) # 将.c文件加入到vpath中
+
+BIN_ASM = $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SRC:%.asm=%)))
+vpath % $(sort $(dir $(BIN_ASM)))
 
 C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
 vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中
@@ -36,6 +37,9 @@ vpath %.revert.asm $(sort $(dir $(REVERT_ASM))) # 将.revert.asm文件加入到v
 FINAL_ASM = $(addprefix $(BUILD_DIR)/,$(notdir $(REVERT_ASM:%.revert.asm=%.asm)))
 vpath %.asm $(sort $(dir $(FINAL_ASM))) # 将.asm文件加入到vpath中
 
+BIN_C = $(addprefix $(BUILD_DIR)/,$(notdir $(FINAL_ASM:%.asm=%)))
+vpath % $(sort $(dir $(BIN_C)))
+
 .PHONY: all build clean
 
 all: mk-dir build
@@ -44,9 +48,6 @@ all: mk-dir build
 $(BUILD_DIR)/%.o: %.c | $(DIR)
 	$(CC) $(C_FLAGS) -o $@ $<
 
-$(BUILD_DIR)/$(TARGET_OBJ): $(OBJ)
-	$(LD) $(LD_FLAGS) -r $^ -o $@
-
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
 	$(REVERT_ASM_TOOL) $(REVERT_ASM_TOOL_FLAG) -fnasm $< $@
@@ -54,16 +55,12 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
 $(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
-boot-img:
-	nasm -o $(BUILD_DIR)/$(BOOT_IMAGE) boot.asm
+# 从vpath中读取所有的.asm文件，逐个编译成二进制文件
+$(BUILD_DIR)/%: %.asm | $(DIR)
+	nasm $(NASM_FLAG) -o $@ $<
+	- cp -f $@ $(FS_DATA_DIR)
 
-kernel-img:
-	nasm $(NASM_FLAG) -o $(BUILD_DIR)/$(KERNEL_IMAGE) kernel.asm
-
-pack-build-files:
-	tar -zcvf build/kernel.tar.gz build/*
-
-build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BUILD_DIR)/$(TARGET).revert.asm $(BUILD_DIR)/$(TARGET).asm boot-img kernel-img
+build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BIN_ASM) $(BIN_C)
 
 clean:
 	- rm -rf $(BUILD_DIR)
