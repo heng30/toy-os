@@ -1,8 +1,10 @@
 #include "cmd.h"
 #include "def.h"
 #include "fs_reader.h"
+#include "io.h"
 #include "kutil.h"
 #include "memory.h"
+#include "multi_task.h"
 
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 
@@ -51,7 +53,7 @@ void cmd_cat(console_t *console) {
     buf_t *buf = fs_read(filename);
 
     if (!buf)
-        goto err;
+        goto end;
 
     // 移除文件最后的'.'号
     if (buf->m_size >= 2 && buf->m_data[buf->m_size - 2] == 0x0a) {
@@ -61,6 +63,22 @@ void cmd_cat(console_t *console) {
     console_draw_text(console, (const char *)buf->m_data);
     fs_free_buf(buf);
 
-err:
+end:
     console_move_to_next_line(console);
+}
+
+void cmd_exe(console_t *console) {
+    const char *filename = str_trim_space(console->m_text);
+    unsigned short func_tr = 6; // 要和kernel.asm中的调用外部程序描述符一致
+
+    console_move_to_next_line(console);
+
+    buf_t *buf = fs_read(filename);
+    if (!buf)
+        return;
+
+    segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
+    set_segmdesc(gdt + func_tr, 0xfffff, (ptr_t)buf->m_data, AR_FUNCTION);
+    farjmp(0, func_tr << 3); // 跳转到外部程序代码并执行
+    fs_free_buf(buf);
 }

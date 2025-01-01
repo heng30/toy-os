@@ -79,6 +79,9 @@ char* str_trim_space(char *text);
 // 判断一个字符是否以某个字符串开头
 bool str_start_with(const char *src, const char *pattern);
 
+// 判断一个字符是否以某个字符串结尾
+bool str_end_with(const char *src, const char *pattern);
+
 // if n <= l, return l;
 // if n >= h, return h;
 // if l < n < h, return n;

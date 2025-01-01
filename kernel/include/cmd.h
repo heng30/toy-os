@@ -16,3 +16,6 @@ void cmd_ls(console_t *console);
 
 // 输出文件内容到终端
 void cmd_cat(console_t *console);
+
+// 执行外部命令
+void cmd_exe(console_t* console);

@@ -26,10 +26,10 @@ LABEL_DESC_VRAM:    Descriptor        0,            0fffffh,                DA_D
 LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_DRWA | DA_32
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 
-; 进程切换相关
+; 调用外部程序描述符
 LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
 
-; 创建6个TSS32结构，用户保存任务相关寄存器
+; 进程切换相关. 创建TSS32结构，用户保存任务相关寄存器
 %rep TASK_COUNTS
                     Descriptor        0,            0,                      0 ; 任务的TSS32对象
 %endrep

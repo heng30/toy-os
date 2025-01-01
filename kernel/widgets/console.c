@@ -172,6 +172,8 @@ static void _console_handle_command(console_t *p) {
         cmd_ls(p);
     } else if (str_start_with(cmd, "cat ")) {
         cmd_cat(p);
+    } else if (str_end_with(cmd, ".exe")) {
+        cmd_exe(p);
     }
 
     p->m_text[0] = '\0';

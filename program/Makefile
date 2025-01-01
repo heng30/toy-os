@@ -22,8 +22,8 @@ EXCLUDE_SRC_DIR := grep -v build | grep -v backup
 ASM_SRC = $(shell find . -name '*.asm' | $(EXCLUDE_SRC_DIR))
 vpath %.asm $(sort $(dir $(ASM_SRC))) # 将.c文件加入到vpath中
 
-BIN_ASM = $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SRC:%.asm=%)))
-vpath % $(sort $(dir $(BIN_ASM)))
+BIN_ASM = $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SRC:%.asm=%.exe)))
+vpath %.exe $(sort $(dir $(BIN_ASM)))
 
 C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
 vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中
@@ -37,8 +37,8 @@ vpath %.revert.asm $(sort $(dir $(REVERT_ASM))) # 将.revert.asm文件加入到v
 FINAL_ASM = $(addprefix $(BUILD_DIR)/,$(notdir $(REVERT_ASM:%.revert.asm=%.asm)))
 vpath %.asm $(sort $(dir $(FINAL_ASM))) # 将.asm文件加入到vpath中
 
-BIN_C = $(addprefix $(BUILD_DIR)/,$(notdir $(FINAL_ASM:%.asm=%)))
-vpath % $(sort $(dir $(BIN_C)))
+BIN_C = $(addprefix $(BUILD_DIR)/,$(notdir $(FINAL_ASM:%.asm=%.exe)))
+vpath %.exe $(sort $(dir $(BIN_C)))
 
 .PHONY: all build clean
 
@@ -56,7 +56,7 @@ $(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
 
 # 从vpath中读取所有的.asm文件，逐个编译成二进制文件
-$(BUILD_DIR)/%: %.asm | $(DIR)
+$(BUILD_DIR)/%.exe: %.asm | $(DIR)
 	nasm $(NASM_FLAG) -o $@ $<
 	- cp -f $@ $(FS_DATA_DIR)
 

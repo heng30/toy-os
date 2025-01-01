@@ -208,7 +208,7 @@ int strcmp(const char *str1, const char *str2) {
         return 1;
 }
 
-char* str_trim_space(char *text) {
+char *str_trim_space(char *text) {
     char *eof_text = text + strlen(text) - 1;
     char *s = text, *e = eof_text;
 
@@ -250,6 +250,29 @@ bool str_start_with(const char *src, const char *pattern) {
     else if (*pattern == '\0')
         return true;
 
+    for (; *src != '\0' && *pattern != '\0'; src++, pattern++) {
+        if (*src != *pattern)
+            return false;
+    }
+
+    return *pattern == '\0';
+}
+
+bool str_end_with(const char *src, const char *pattern) {
+    if (*src == '\0' && *pattern == '\0')
+        return true;
+    else if (*src == '\0')
+        return false;
+    else if (*pattern == '\0')
+        return true;
+
+    unsigned int src_len = strlen(src);
+    unsigned int pattern_len = strlen(pattern);
+
+    if (src_len < pattern_len)
+        return false;
+
+    src += (src_len - pattern_len);
     for (; *src != '\0' && *pattern != '\0'; src++, pattern++) {
         if (*src != *pattern)
             return false;

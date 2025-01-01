@@ -3,6 +3,7 @@
 #include "ring.h"
 #include "timer.h"
 
+#define LIMIT_TSS32 103
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
 

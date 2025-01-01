@@ -82,7 +82,7 @@ void init_multi_task_ctl(void) {
         g_multi_task_ctl->m_tasks0[i].m_tr = TASK_GDT0 + i;
 
         // 设置全局描述附表中的段描述符为TSS32对象
-        set_segmdesc(gdt + TASK_GDT0 + i, 103,
+        set_segmdesc(gdt + TASK_GDT0 + i, LIMIT_TSS32,
                      (ptr_t)&g_multi_task_ctl->m_tasks0[i].m_tss, AR_TSS32);
     }
 

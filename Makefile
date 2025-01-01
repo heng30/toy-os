@@ -29,7 +29,7 @@ vpath %.o $(sort $(dir $(OBJ))) # 将.o文件加入到vpath中
 
 all: run
 
-build: mk-dir build-kernel build-program $(BUILD_DIR)/$(TARGET)
+build: mk-dir build-kernel $(BUILD_DIR)/$(TARGET)
 
 ## 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
