@@ -30,8 +30,9 @@ LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_D
 LABEL_DESC_6:       Descriptor        0,            0fffffh,                0409Ah
 
 ; 进程切换相关. 创建TSS32结构，用户保存任务相关寄存器
+; TSS描述符, 指向任务的TSS32对象
 %rep TASK_COUNTS
-                    Descriptor        0,            0,                      0 ; 任务的TSS32对象
+                    Descriptor        0,            0,                      0
 %endrep
 
 GDT_LEN     equ    $ - LABEL_GDT
@@ -67,6 +68,12 @@ LABEL_IDT:
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）
          dd  0
+
+; 在能够切换到保护模式之前，软件初始化代码还必须设置以下系统寄存器：
+;   - 全局描述符表基地址寄存器GDTR；
+;   - 中断描述符表基地址寄存器IDTR；
+;   - 控制寄存器CR1--CR3；
+; 在初始化了这些数据结构、代码模块和系统寄存器之后，通过设置CR0寄存器的保护模式标志PE（位0），处理器就可以切换到保护模式下运行。
 
 ; 实模式代码
 [SECTION  .s16]

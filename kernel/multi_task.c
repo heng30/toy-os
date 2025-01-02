@@ -101,6 +101,7 @@ void init_multi_task_ctl(void) {
     g_multi_task_ctl->m_current_task = task;
     multi_task_run(task);
 
+    // 在处理器切换到保护模式之后，可以用LTR指令把TSS段描述符的选择符加载到任务寄存器TR中。这个指令会把TSS标记成忙状态（B=1），但是并不执行任务切换操作。然后处理器可以使用这个TSS来定位特权级0、1和2的堆栈。在保护模式中，软件进行第一次任务切换之前必须首先加载TSS段的选择符，因为任务切换会把当前任务状态复制到该TSS中。在LTR指令执行之后，随后对任务寄存器的操作由任务切换进行。
     // 确保第一次任务切换时，当前的TSS32值保存到`task->m_tss`中
     load_tr(task->m_tr << 3);
 }

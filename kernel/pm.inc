@@ -7,7 +7,7 @@ DA_386IGate EQU 8Eh ; 中断调用门
 DA_LIMIT_4K	EQU	8000h	; 段界限粒度为 4K 字节
 DA_386TSS	EQU	89h     ; 任务门
 
-; 一共8个字节
+; GDT表段描述符，一共8个字节
 ; 段基址          段界限                  属性
 %macro Descriptor 3
     dw    %2  &  0FFFFh
@@ -17,7 +17,7 @@ DA_386TSS	EQU	89h     ; 任务门
     db   (%1 >> 24) & 0FFh
 %endmacro
 
-; 一共8个字节
+; 中断描述符, 一共8个字节
 ; Gate selecotor, offset, DCount, Attr
 %macro Gate 4
   dw  (%2 & 0FFFFh)
