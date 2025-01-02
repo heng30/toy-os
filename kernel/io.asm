@@ -133,6 +133,18 @@ taskswitch9:
     jmp 9*8:0
     ret
 
+; farjmp:
+;     jmp FAR [esp + 4] ; 获取到第一个参数的值
+;     ret
+
 farjmp:
-    jmp FAR [esp + 4] ; 获取到第一个参数的值
+    ; 保存跳转之前的eip值到0x6000，外部任务执行完后通过这个地址返回
+    xor  eax, eax
+    mov  eax, [esp]
+    mov  [CALL_EXTERNAL_BIN_SAVE_EIP_ADDR], eax
+    jmp FAR [esp + 4]
+    ret
+
+call_external_bin_save_eip_addr:
+    mov eax, CALL_EXTERNAL_BIN_SAVE_EIP_ADDR
     ret

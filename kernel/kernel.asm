@@ -2,8 +2,13 @@
 
 org   0x8000 ; 内核代码开始执行的地址，也是编译时代码相对偏移地址
 
-TASK_COUNTS equ 10
-TASK_STACK_SIZE equ 1024
+TASK_COUNTS equ 10 ; 任务数量
+TASK_STACK_SIZE equ 1024 ; 任务堆栈大小
+
+; 调用外部命令时需要保存当前任务的eip值，
+; 该值保存在CALL_EXTERNAL_BIN_SAVE_EIP_ADDR地址处.
+; 外部命令执行完通过这个地址返回到当前任务继续执行
+CALL_EXTERNAL_BIN_SAVE_EIP_ADDR equ 0x6000  ; 占用4个字节
 
 jmp   LABEL_BEGIN
 

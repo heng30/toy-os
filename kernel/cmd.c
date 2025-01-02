@@ -67,11 +67,29 @@ end:
     console_move_to_next_line(console);
 }
 
-void cmd_exe(console_t *console) {
-    const char *filename = str_trim_space(console->m_text);
-    unsigned short func_tr = 6; // 要和kernel.asm中的调用外部程序描述符一致
+static void _after_cmd_exe(console_t *console, const char *filename) {
+    if (!strcmp(filename, "rhlt.exe")) {
+        const char *text = (const char *)EXTERNAL_BIN_AND_KERNEL_SHARED_MEMORY;
+        unsigned int len = strlen(text);
+        console_draw_text(console, int2hexstr(len));
+        if (len > 32) {
+            console_draw_text(console, "error from rhlt.exe");
+        } else {
+            console_draw_text(console, text);
+        }
+        console_move_to_next_line(console);
+    }
+}
 
-    console_move_to_next_line(console);
+void cmd_exe(console_t *console) {
+    const char *clean_filename = str_trim_space(console->m_text);
+    unsigned int fsize = strlen(clean_filename) + 1;
+
+    char *filename = (char *)memman_alloc_4k(fsize);
+    assert(filename != NULL, "cmd_exe alloc for filename error");
+    strdup(filename, clean_filename);
+
+    unsigned short func_tr = 6; // 要和kernel.asm中的调用外部程序描述符一致
 
     buf_t *buf = fs_read(filename);
     if (!buf)
@@ -80,5 +98,8 @@ void cmd_exe(console_t *console) {
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     set_segmdesc(gdt + func_tr, 0xfffff, (ptr_t)buf->m_data, AR_FUNCTION);
     farjmp(0, func_tr << 3); // 跳转到外部程序代码并执行
+    _after_cmd_exe(console, filename);
+
+    memman_free_4k(filename, fsize);
     fs_free_buf(buf);
 }

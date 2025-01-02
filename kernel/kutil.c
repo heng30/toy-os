@@ -154,6 +154,13 @@ char *strcat(char *dst, const char *src) {
     return dst;
 }
 
+void strdup(char *dst, const char *src) {
+    for (; *src != '\0'; src++, dst++)
+        *dst = *src;
+
+    *dst = '\0';
+}
+
 char *strpush(char *dst, const char c) {
     unsigned int len = strlen(dst);
     *(dst + len) = c;

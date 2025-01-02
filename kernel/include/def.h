@@ -12,4 +12,3 @@ typedef unsigned int ptr_t;
 #define KB 1024
 #define MB (KB * KB)
 #define GB (MB * KB)
-
