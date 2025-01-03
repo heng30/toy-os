@@ -238,9 +238,23 @@ void console_moving(void *p) {
 }
 
 void console_focus(console_t *p) {
+    if (!p->m_win->m_enabled)
+        return;
+
     window_ctl_set_focus_window(p->m_win);
     win_sheet_show(g_input_cursor_sht, p->m_win->m_sheet->m_z);
     _console_input_cursor_move(p);
+}
+
+void console_enable(console_t *p) {
+    p->m_win->m_enabled = true;
+    console_focus(p);
+}
+
+void console_disable(console_t *p) {
+    p->m_win->m_enabled = false;
+    window_ctl_set_focus_window(NULL);
+    win_sheet_hide(g_input_cursor_sht);
 }
 
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,

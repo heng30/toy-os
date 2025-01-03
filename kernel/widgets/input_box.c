@@ -61,12 +61,13 @@ void input_box_focus(input_box_t *p) {
     input_cursor_move(vx + text_len * FONT_WIDTH + FONT_WIDTH,
                       vy + TITLE_BAR_HEIGHT + FONT_HEIGHT / 2);
 
-    // 绘制输入框
-    if (text_len > 0) {
-        make_textbox8(
-            win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
-            win->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT, COLOR_WHITE);
+    // 绘制输入框背景颜色
+    make_textbox8(win->m_sheet, FONT_WIDTH, TITLE_BAR_HEIGHT + FONT_HEIGHT / 2,
+                  win->m_sheet->m_bxsize - FONT_WIDTH * 2, FONT_HEIGHT,
+                  COLOR_WHITE);
 
+    // 绘制输入框输入字符串
+    if (text_len > 0) {
         show_string(win->m_sheet, FONT_WIDTH,
                     TITLE_BAR_HEIGHT + FONT_HEIGHT / 2, COLOR_WHITE,
                     COLOR_BLACK, dst);

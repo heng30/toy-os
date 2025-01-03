@@ -15,6 +15,7 @@ entry:
     retf
 
 ; 代码有问题，无法复制字符串到EXTERNAL_BIN_AND_KERNEL_SHARED_MEMORY
+; 可能是权限的问题，可以读取内容，但无法写入内容
 copy_msg:
     ; 复制字符串
     push esi

@@ -23,6 +23,12 @@ void console_free(const console_t *p);
 // 获取关注点
 void console_focus(console_t *p);
 
+// 窗口可用, 从外部命令返回后需要调用该函数
+void console_enable(console_t *p);
+
+// 窗口不可用, 调用外部命令时终端处于不可用状态
+void console_disable(console_t *p);
+
 // 显示对象
 void console_show(console_t *p, int z);
 

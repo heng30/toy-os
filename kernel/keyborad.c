@@ -7,6 +7,7 @@
 #include "kutil.h"
 
 #include "widgets/canvas.h"
+#include "widgets/window.h"
 
 #define KEY_UNPRESSED 0 // 按键没有被按下
 #define KEY_PRESSED 1   // 按键正在按下
@@ -38,7 +39,10 @@ fifo8_t g_keyinfo = {
 void int_handler_from_c(char *esp) {
     io_out8(PIC_OCW2, 0x20);
     unsigned char data = io_in8(PORT_KEYDAT);
-    fifo8_put(&g_keyinfo, data);
+
+    // 当前有焦点窗口才获取输入字符
+    if (g_window_ctl.m_focus_window)
+        fifo8_put(&g_keyinfo, data);
 }
 
 void init_keyboard(void) {

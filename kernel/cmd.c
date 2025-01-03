@@ -1,6 +1,7 @@
 #include "cmd.h"
 #include "def.h"
 #include "fs_reader.h"
+#include "input_cursor.h"
 #include "io.h"
 #include "kutil.h"
 #include "memory.h"
@@ -95,9 +96,14 @@ void cmd_exe(console_t *console) {
     if (!buf)
         return;
 
+    console_disable(console);
+
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     set_segmdesc(gdt + func_tr, 0xfffff, (ptr_t)buf->m_data, AR_FUNCTION);
     farjmp(0, func_tr << 3); // 跳转到外部程序代码并执行
+
+    console_enable(console);
+
     _after_cmd_exe(console, filename);
 
     memman_free_4k(filename, fsize);

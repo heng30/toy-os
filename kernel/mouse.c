@@ -203,7 +203,8 @@ static void _handle_left_btn_event(void) {
             _handle_left_btn_event_win = window_ctl_get_mouse_click_window();
 
             if (!window_ctl_is_click_closebtn() &&
-                window_ctl_is_click_window()) {
+                window_ctl_is_click_window() &&
+                _handle_left_btn_event_win->m_enabled) {
                 mouse_focus_window(_handle_left_btn_event_win);
             }
         }
@@ -211,7 +212,8 @@ static void _handle_left_btn_event(void) {
         if (_handle_left_btn_event_win) {
             if (window_ctl_is_click_closebtn()) {
                 // TODO
-            } else if (window_ctl_is_click_title()) {
+            } else if (window_ctl_is_click_title() &&
+                       _handle_left_btn_event_win->m_enabled) {
                 window_ctl_set_moving_window(_handle_left_btn_event_win);
                 _moving_window();
             }
@@ -224,7 +226,7 @@ static void _handle_left_btn_event(void) {
     }
 }
 
-static void _mouse_task_main(task_t* task) {
+static void _mouse_task_main(task_t *task) {
     for (;;) {
         io_sti(); // 开中断，保证循环不会被挂起
 
@@ -247,5 +249,6 @@ static void _mouse_task_main(task_t* task) {
 }
 
 void init_mouse_task(void) {
-    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 0, NULL, ONE_RUNNING_TIME_SLICE);
+    g_mouse_task = multi_task_alloc((ptr_t)_mouse_task_main, 0, NULL,
+                                    ONE_RUNNING_TIME_SLICE);
 }

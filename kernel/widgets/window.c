@@ -36,6 +36,7 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
     draw_title_bar(sht, title, COLOR_TITLE_BAR_FOCUS);
     win_sheet_slide(sht, x, y);
 
+    win->m_enabled = true;
     win->m_id = id;
     win->m_title = title;
     win->m_sheet = sht;
@@ -107,9 +108,12 @@ void window_ctl_set_focus_window(window_t *p) {
     }
 
     g_window_ctl.m_focus_window = p;
-    draw_title_bar(p->m_sheet, p->m_title, COLOR_TITLE_BAR_FOCUS);
-    win_sheet_refresh(p->m_sheet, 0, 0, p->m_sheet->m_bxsize,
-                      TITLE_BAR_HEIGHT + 1);
+
+    if (p) {
+        draw_title_bar(p->m_sheet, p->m_title, COLOR_TITLE_BAR_FOCUS);
+        win_sheet_refresh(p->m_sheet, 0, 0, p->m_sheet->m_bxsize,
+                          TITLE_BAR_HEIGHT + 1);
+    }
 }
 
 bool window_ctl_is_focus_window(window_t *p) {

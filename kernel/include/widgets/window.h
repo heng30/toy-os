@@ -16,7 +16,8 @@
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW 4
 
 typedef struct {
-    win_sheet_t *m_sheet; // 图层J
+    bool m_enabled;        // 是否启用
+    win_sheet_t *m_sheet; // 图层
     const char *m_title;  // 窗口标题
     unsigned char m_id;   // 窗口id
     void *m_instance;     // 真正的实例对象，NULL则是window_t的对象
