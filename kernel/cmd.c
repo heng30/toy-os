@@ -71,7 +71,7 @@ static void _after_cmd_exe(console_t *console, const char *filename) {
     if (!strcmp(filename, "rhlt.exe")) {
         const char *text = (const char *)EXTERNAL_BIN_AND_KERNEL_SHARED_MEMORY;
         unsigned int len = strlen(text);
-        console_draw_text(console, int2hexstr(len));
+
         if (len > 32) {
             console_draw_text(console, "error from rhlt.exe");
         } else {

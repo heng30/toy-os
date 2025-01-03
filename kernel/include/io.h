@@ -88,3 +88,6 @@ void farjmp(unsigned int a, unsigned short tr);
 
 // 获取保存eip值的位置
 unsigned int call_external_bin_save_eip_addr(void);
+
+// rhlt复制字符串测试
+void test_rhlt_copy_msg(void);

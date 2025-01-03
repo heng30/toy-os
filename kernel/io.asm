@@ -148,3 +148,25 @@ farjmp:
 call_external_bin_save_eip_addr:
     mov eax, CALL_EXTERNAL_BIN_SAVE_EIP_ADDR
     ret
+
+test_rhlt_copy_msg:
+    ; 复制字符串
+    push esi
+    push edi
+    mov esi, EOF_KERNEL
+    mov edi, 0x6004
+
+    _rhlt_copy_msg_loop:
+        mov al, [esi]
+        mov [edi], al
+        inc esi
+        inc edi
+        cmp al, 0
+        jne _rhlt_copy_msg_loop
+
+    ; 复制结束符
+    mov [edi], al
+
+    pop edi
+    pop esi
+    ret
