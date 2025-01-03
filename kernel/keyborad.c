@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "keyboard_mouse.h"
 #include "kutil.h"
+#include "string.h"
 
 #include "widgets/canvas.h"
 #include "widgets/window.h"

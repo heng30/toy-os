@@ -6,6 +6,7 @@
 #include "kutil.h"
 #include "memory.h"
 #include "multi_task.h"
+#include "string.h"
 
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 

@@ -7,6 +7,7 @@
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
+#include "string.h"
 #include "win_sheet.h"
 
 #include "widgets/common_widget.h"

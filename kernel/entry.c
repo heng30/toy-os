@@ -9,6 +9,7 @@
 #include "mouse.h"
 #include "multi_task.h"
 #include "ring.h"
+#include "string.h"
 #include "timer.h"
 #include "win_sheet.h"
 

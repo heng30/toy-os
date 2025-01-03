@@ -2,6 +2,7 @@
 #include "def.h"
 #include "kutil.h"
 #include "memory.h"
+#include "string.h"
 
 buf_t *fs_read(const char *filename) {
     char fname[FS_HEADER_FILENAME_SIZE];

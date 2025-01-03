@@ -4,6 +4,7 @@
 #include "draw.h"
 #include "io.h"
 #include "kutil.h"
+#include "string.h"
 
 #include "widgets/canvas.h"
 

@@ -8,6 +8,7 @@
 #include "kutil.h"
 #include "memory.h"
 #include "multi_task.h"
+#include "string.h"
 
 #include "widgets/canvas.h"
 

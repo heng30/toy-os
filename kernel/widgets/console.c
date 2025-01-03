@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "mouse.h"
 #include "multi_task.h"
+#include "string.h"
 #include "win_sheet.h"
 
 #include "widgets/canvas.h"
