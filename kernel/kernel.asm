@@ -5,11 +5,6 @@ org   0x8000 ; 内核代码开始执行的地址，也是编译时代码相对�
 TASK_COUNTS equ 10 ; 任务数量
 TASK_STACK_SIZE equ 1024 ; 任务堆栈大小
 
-; 调用外部命令时需要保存当前任务的eip值，
-; 该值保存在CALL_EXTERNAL_BIN_SAVE_EIP_ADDR地址处.
-; 外部命令执行完通过这个地址返回到当前任务继续执行
-CALL_EXTERNAL_BIN_SAVE_EIP_ADDR equ 0x6000  ; 占用4个字节
-
 jmp   LABEL_BEGIN
 
 ; 处理器并不使用GDT中的第1个描述符。把这个“空描述符”的段选择符加载进一个数据段寄存器（DS、ES、FS或GS）并不会产生一个异常，但是若使用这些加载了空描述符的段选择符访问内存时就肯定会产生一般保护性异常。通过使用这个段选择符初始化段寄存器，那么意外引用未使用的段寄存器肯定会产生一个异常。
@@ -54,21 +49,25 @@ SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 ; 允许的向量号范围是0到255。其中0到31保留用作80X86处理器定义的异常和中断，不过目前该范围内的向量号并非每个都已定义了功能，未定义功能的向量号将留作今后使用。
 LABEL_IDT:
 %rep  32
-    Gate SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, SPURIOUS_HANDLER,     0, DA_386IGate
 %endrep
 
 .020h:
-    Gate SELECTOR_CODE32, TIMER_HANDLER,    0, DA_386IGate
+    Gate SELECTOR_CODE32, TIMER_HANDLER,        0, DA_386IGate
 
 .021h:
-    Gate SELECTOR_CODE32, KEYBOARD_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, KEYBOARD_HANDLER,     0, DA_386IGate
 
 %rep  10
-    Gate SELECTOR_CODE32, SPURIOUS_HANDLER, 0, DA_386IGate
+    Gate SELECTOR_CODE32, SPURIOUS_HANDLER,     0, DA_386IGate
 %endrep
 
 .2CH:
-    Gate SELECTOR_CODE32, MOUSE_HANDLER,    0, DA_386IGate
+    Gate SELECTOR_CODE32, MOUSE_HANDLER,        0, DA_386IGate
+
+; 系统调用终端，具体的使用方法看system_call函数
+.2DH:
+    Gate SELECTOR_CODE32, SYSTEM_CALL_HANDLER,   0, DA_386IGate
 
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）

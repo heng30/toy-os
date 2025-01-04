@@ -40,10 +40,10 @@ $(BUILD_DIR)/$(TARGET): $(OBJ)
 	$(LD) $(LD_FLAGS) $^ -o $@
 
 build-kernel:
-	cd kernel && make && cd ..
+	make -C kernel
 
 build-program:
-	cd program && make && cd ..
+	make -C program
 
 build-font: mk-dir $(BUILD_DIR)/$(TARGET)
 	$(BUILD_DIR)/$(TARGET) --font
@@ -55,8 +55,8 @@ test: build
 	$(BUILD_DIR)/$(TARGET) --test
 
 clean:
-	cd kernel && make clean && cd ..
-	cd program && make clean && cd ..
+	make -C kernel clean
+	make -C program clean
 	- rm -rf $(BUILD_DIR)
 
 mk-dir:

@@ -1,9 +1,9 @@
 ; 开机后，biso检查完硬件后，会将软盘的第一个扇区的内容复制到0x7c00处，并跳转到这里继续执行代码。
 
 ; 关键变量：
-;   内核代码起始地址：0x8000
-;   临时缓冲区起始地址：0x7e00
 ;   boot代码起始地址：0x7c00
+;   临时缓冲区起始地址：0x7e00
+;   内核代码起始地址：0x8000
 ;   栈顶指针：sp = 0x7c00, 栈指针从高地址向低地址生长，所以不会覆盖掉boot代码
 
 ; 执行的过程：
@@ -18,28 +18,17 @@ BufferAddr EQU 7E0h  ; 保存一个扇区数据的地址。 该值会被赋值�
 
 BaseOfStack     equ 07c00h
 
-jmp  entry
+jmp entry
 
-; 内核相关信息
-db   0x90
-db   "BOOT LOADER"
-dw   512
-db   1
-dw   1
-db   2
-dw   224
-dw   2880
-db   0xf0
-dw   9
-dw   18
-dw   2
-dd   0
-dd   2880
-db   0,0,0x29
-dd   0xFFFFFFFF
-db   "TOY OS"
-db   "DUMMY-FAT32"
-times 18  db 0 ; 保留18个字节的空间
+; 系统相关信息
+db  "BOOT-LOADER: TOY-LOADER"
+db  "SYSTEM: TOY-OS"
+db  "FILESYSTEM: TOY-FAT32"
+db  "SECTOR = 512B"
+db  "CYLINDERS = 18 * SECTOR"
+db  "HALF-DISK = 80 * CYLINDERS"
+db  "FLOPPY = 2 * 80 * 18 * 512B"
+times 10 db 0
 
 entry:
     mov  ax, 0

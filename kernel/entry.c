@@ -60,9 +60,6 @@ void start_kernel(void) {
     task_t *input_box_task = init_input_box_task();
     task_t *console_task = init_console_task();
 
-    // show_string_in_canvas(0, 400, COL8_FFFFFF,
-    //                       int2hexstr(call_external_bin_save_eip_addr()));
-
     unsigned int counter = 0;
     for (;;) {
         io_sti();

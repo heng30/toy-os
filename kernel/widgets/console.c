@@ -263,6 +263,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
+    p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
     console_input_area_clear_all(p);
     return p;

@@ -90,7 +90,7 @@ get_font_data:
     mov ax, SELECTOR_FONT
     mov es, ax
     xor edi, edi
-    mov edi, [esp + 4] ;char
+    mov edi, [esp + 4]
     shl edi, 4
     add edi, [esp + 8]
     xor eax, eax
@@ -138,35 +138,39 @@ taskswitch9:
 ;     ret
 
 farjmp:
-    ; 保存跳转之前的eip值到0x6000，外部任务执行完后通过这个地址返回
-    xor  eax, eax
     mov  eax, [esp]
-    mov  [CALL_EXTERNAL_BIN_SAVE_EIP_ADDR], eax
-    jmp FAR [esp + 4]
+    push 1*8    ; 保存代码段描述符偏移
+    push eax    ; 保存跳转前任务下一条要执行的代码位置, eip寄存器值
+    jmp FAR [esp + 12]  ; 跳过2个push指令值和eip值，[esp+12]就是参数的传入值
     ret
 
-call_external_bin_save_eip_addr:
-    mov eax, CALL_EXTERNAL_BIN_SAVE_EIP_ADDR
-    ret
+system_call:
+SYSTEM_CALL_HANDLER equ system_call - $$
+        pushad ; 保存8个寄存器参数
 
-test_rhlt_copy_msg:
+        ; 为调用system_call_api传递8个寄存器参数
+        pushad
+        call system_call_api
+        add esp, 32 ; 弹出system_call_api的8个函数参数
+
+        popad ; 恢复8个寄存器参数
+        iretd
+
+io_copy_msg:
+    ; 获取函数参数
+    mov edi, [esp + 4] ; dst
+    mov esi, [esp + 8] ; src
+
     ; 复制字符串
-    push esi
-    push edi
-    mov esi, EOF_KERNEL
-    mov edi, 0x6004
-
-    _rhlt_copy_msg_loop:
+    _io_copy_msg_loop:
         mov al, [esi]
         mov [edi], al
         inc esi
         inc edi
         cmp al, 0
-        jne _rhlt_copy_msg_loop
+        jne _io_copy_msg_loop
 
     ; 复制结束符
     mov [edi], al
 
-    pop edi
-    pop esi
     ret

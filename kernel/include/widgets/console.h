@@ -1,6 +1,7 @@
 #pragma once
 
 #include "def.h"
+#include "fs_reader.h"
 #include "multi_task.h"
 #include "window.h"
 #include "wuitl.h"
@@ -11,6 +12,7 @@ typedef struct {
     window_t *m_win;
     char m_text[CONSOLE_TEXT_MAX_LEN]; // 输入的字符串
     pos_t m_cursor_pos;                // 输入光标位置
+    buf_t *m_cmd;                      // 保存外部命令的代码缓冲区
 } console_t;
 
 // 分配对象
