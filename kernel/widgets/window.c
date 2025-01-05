@@ -227,7 +227,8 @@ void window_ctl_focus_next_window(void) {
     // 从当前窗口向后查找下一个窗口
     for (unsigned int p = i + 1; p < g_window_ctl.m_top; p++) {
         window_t *win = g_window_ctl.m_windows[p];
-        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0)
+        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0 ||
+            !win->m_enabled)
             continue;
 
         mouse_focus_window(win);
@@ -237,7 +238,8 @@ void window_ctl_focus_next_window(void) {
     // 从头开始查找下一个窗口
     for (unsigned int q = 0; q < i; q++) {
         window_t *win = g_window_ctl.m_windows[q];
-        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0)
+        if (!win_sheet_is_visible(win->m_sheet) || win->m_task->m_ref == 0 ||
+            !win->m_enabled)
             continue;
 
         mouse_focus_window(win);

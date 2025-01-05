@@ -1,5 +1,3 @@
-%include "include/ppm.inc"
-
 [SECTION .s23]
 [BITS 32]
 

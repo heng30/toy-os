@@ -1,6 +1,10 @@
+#!/bin/sh
+
 DIR = $(shell pwd)
 BUILD_DIR = $(DIR)/build
 FS_DATA_DIR = $(DIR)/../res/fs-data
+SYSTEM_CALL_LIB_DIR = $(DIR)/lib
+ENTRY_FILE = entry.asm
 
 CROSS_COMPILE=
 CC = $(CROSS_COMPILE)gcc
@@ -11,13 +15,13 @@ DEFINE_FLAGS =
 DEBUG_FLAGS =
 RELEASE_FLAGS =
 
-C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -fno-stack-protector -fno-pic -m32 -fno-asynchronous-unwind-tables -s -c -O0  -I$(DIR)/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin -Wconversion -Wextra -Wsign-compare -Wfloat-equal -Warray-bounds -fno-delete-null-pointer-checks
+C_FLAGS = $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -fno-stack-protector -fno-pic -m32 -fno-asynchronous-unwind-tables -s -c -O0  -I$(DIR)/lib/include -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) -fno-builtin -Wconversion -Wextra -Wsign-compare -Wfloat-equal -Warray-bounds -fno-delete-null-pointer-checks
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS) -m elf_i386
 NASM_FLAG = -w-zeroing -Ox
 REVERT_ASM_TOOL_FLAG = -v0
 
-EXCLUDE_SRC_DIR := grep -v build | grep -v backup
+EXCLUDE_SRC_DIR := grep -v build | grep -v backup | grep -v lib
 
 ASM_SRC = $(shell find . -name '*.asm' | $(EXCLUDE_SRC_DIR))
 vpath %.asm $(sort $(dir $(ASM_SRC))) # 将.c文件加入到vpath中
@@ -42,7 +46,7 @@ vpath %.exe $(sort $(dir $(BIN_C)))
 
 .PHONY: all build clean
 
-all: mk-dir build
+all: mk-dir copy-entry-file build
 
 # 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
@@ -54,6 +58,7 @@ $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
 
 $(BUILD_DIR)/%.asm: %.revert.asm | $(DIR)
 	sed -n '/SECTION .text/,/SECTION .note.gnu.property/p' $< | sed '/SECTION/d' > $@
+	sed -i '1r $(BUILD_DIR)/$(ENTRY_FILE)' $@
 
 # 从vpath中读取所有的.asm文件，逐个编译成二进制文件
 $(BUILD_DIR)/%.exe: %.asm | $(DIR)
@@ -67,3 +72,8 @@ clean:
 
 mk-dir:
 	- mkdir -p $(BUILD_DIR)
+
+copy-entry-file:
+	cp -f $(SYSTEM_CALL_LIB_DIR)/$(ENTRY_FILE) $(BUILD_DIR)
+	@sed -i 's/ppm.inc/lib\/ppm.inc/g' $(BUILD_DIR)/$(ENTRY_FILE)
+	@sed -i 's/api.asm/lib\/api.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)

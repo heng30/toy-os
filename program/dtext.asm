@@ -1,12 +1,10 @@
-%include "include/ppm.inc"
-
 [SECTION .s32]
 BITS 32
 
 entry:
-    mov edx, SYSTEM_CALL_CONSOLE_DRAW_TEXT
+    mov edx, 1001
     mov ebx, msg
-    int SYSTEM_CALL_INT
+    int 0x2d
     retf
 
 [SECTION .data]

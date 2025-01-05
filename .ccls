@@ -1,3 +1,4 @@
 clang
 -isystem./include
 -isystem./kernel/include
+-isystem./program/lib/include
