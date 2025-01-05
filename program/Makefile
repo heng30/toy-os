@@ -74,6 +74,6 @@ mk-dir:
 	- mkdir -p $(BUILD_DIR)
 
 copy-entry-file:
-	cp -f $(SYSTEM_CALL_LIB_DIR)/$(ENTRY_FILE) $(BUILD_DIR)
+	- cp -f $(SYSTEM_CALL_LIB_DIR)/$(ENTRY_FILE) $(BUILD_DIR)
 	@sed -i 's/ppm.inc/lib\/ppm.inc/g' $(BUILD_DIR)/$(ENTRY_FILE)
 	@sed -i 's/api.asm/lib\/api.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)

@@ -6,11 +6,12 @@
 #define LIMIT_TSS32 103
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
+#define AR_FUNCTION_DS 0x4092 // 设置段描述符对应的函数对象段描述符标志位
 
 // 最大支持的任务数, 数量小于256
 // 需要根据kernel.asm的TSS32描述符和堆栈数量确定
 #define MAX_TASKS 10
-#define TASK_GDT0 7 // 开始的tr值, 也是主任务的tr
+#define TASK_GDT0 10 // 开始的tr值, 也是主任务的tr
 
 // 任务堆栈大小，需要和kernel.asm中分配的堆栈大小一致
 #define TASK_STACK_SIZE 1024

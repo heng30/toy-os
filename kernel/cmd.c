@@ -83,7 +83,7 @@ void cmd_exe(console_t *console) {
     assert(filename != NULL, "cmd_exe alloc for filename error");
     strdup(filename, clean_filename);
 
-    unsigned short func_tr = 6; // 要和kernel.asm中的调用外部程序描述符一致
+    unsigned short cmd_tr = GDT_CONSOLE_CMD_TR;
 
     console->m_cmd = fs_read(filename);
     if (!console->m_cmd)
@@ -92,9 +92,15 @@ void cmd_exe(console_t *console) {
     console_disable(console);
 
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
-    set_segmdesc(gdt + func_tr, 0xfffff, (ptr_t)console->m_cmd->m_data,
+    set_segmdesc(gdt + cmd_tr, 0xfffff, (ptr_t)console->m_cmd->m_data,
                  AR_FUNCTION);
-    farjmp(0, func_tr << 3); // 跳转到外部程序代码并执行
+
+    // 跳转到外部程序代码并执行
+    // farjmp(0, cmd_tr << 3);
+
+    // 跳转到外部程序代码并执行
+    // 参数: eip, cs, esp, ds
+    start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3);
 
     console_enable(console);
 

@@ -86,5 +86,9 @@ void taskswitch9(void);
 // 当任务切换是由JMP指令造成，那么新任务就不会是嵌套的。也即，NT标志会被设置为0，并且不使用前一任务链接字段。JMP指令用于不希望出现嵌套的任务切换中。
 void farjmp(unsigned int a, unsigned short tr);
 
+// 使用一个不同于内核的数据段来运行外部命令，需要进行寄存器切换
+void start_cmd(unsigned int eip, unsigned int cs, unsigned int esp,
+               unsigned int ds);
+
 // 复制字符串
-void io_copy_msg(char* dst, const char* src);
+void io_copy_msg(char *dst, const char *src);

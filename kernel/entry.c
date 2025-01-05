@@ -13,7 +13,6 @@
 #include "timer.h"
 #include "win_sheet.h"
 
-#include "multi_task_test.h"
 #include "widgets/canvas.h"
 #include "widgets/console.h"
 #include "widgets/input_box.h"
@@ -22,8 +21,6 @@ static void _test(void) {
 #ifdef __RING_TEST__
     ring_test();
 #endif
-
-    multi_task_test_schedul();
 }
 
 void start_kernel(void) {

@@ -133,10 +133,6 @@ taskswitch9:
     jmp 9*8:0
     ret
 
-; farjmp:
-;     jmp FAR [esp + 4] ; 获取到第一个参数的值
-;     ret
-
 farjmp:
     mov  eax, [esp]
     push 1*8    ; 保存代码段描述符偏移
@@ -144,17 +140,37 @@ farjmp:
     jmp FAR [esp + 12]  ; 跳过2个push指令值和eip值，[esp+12]就是参数的传入值
     ret
 
-system_call:
-SYSTEM_CALL_HANDLER equ system_call - $$
-        pushad ; 保存8个寄存器参数
+; 调用外部命令：
+;   - 保存当前任务的寄存器
+;   - 切换到外部任务数据段
+start_cmd:
+    cli                 ; 关中断
+    pushad              ; 保存8个通用寄存器, 占用32字节
+    mov eax, [esp + 36] ; eip, 这里32+4,其中4字节是返回地址eip
+    mov ecx, [esp + 40] ; cs
+    mov edx, [esp + 44] ; esp
+    mov ebx, [esp + 48] ; ds
 
-        ; 为调用system_call_api传递8个寄存器参数
-        pushad
-        call system_call_api
-        add esp, 32 ; 弹出system_call_api的8个函数参数
+    ; 切换到外部命令的段描述符，并进行寄存器切换
+    mov  [0xfe4], esp   ; 保存当前任务esp，从外部命令返回后需要使用
+    mov  ds,  bx        ; ds
+    mov  ss,  bx        ; ds
+    mov  esp, edx       ; esp
+    sti                 ; 开中断
+    push ecx            ; cs
+    push eax            ; eip
 
-        popad ; 恢复8个寄存器参数
-        iretd
+    call far [esp]      ; 跳转到外部命令代码去执行
+
+    ; 切换到内核任务的段描述符，并进行寄存器切换
+    mov  ax, SELECTOR_VRAM
+    mov  ds, ax
+    mov  esp, [0xfe4]   ; 恢复esp
+    mov  ax, SELECTOR_STACK
+    mov  ss, ax
+
+    popad               ; 弹出8个通用寄存器
+    ret
 
 io_copy_msg:
     ; 获取函数参数

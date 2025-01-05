@@ -263,6 +263,14 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
+    p->m_cmd_ds = memman_alloc_4k(CONSOLE_CMD_DS_SIZE);
+    assert(p->m_cmd_ds != NULL, "console_new alloc cmd_ds error");
+
+    // 设置外部命令调用的数据段描述符，为了与内核的数据段进行隔离
+    segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
+    set_segmdesc(gdt + GDT_CONSOLE_CMD_DS_TR, CONSOLE_CMD_DS_SIZE - 1,
+                 (ptr_t)p->m_cmd_ds, AR_FUNCTION_DS);
+
     p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
     console_input_area_clear_all(p);
@@ -271,6 +279,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
 
 void console_free(const console_t *p) {
     window_free(p->m_win);
+    memman_free_4k(p->m_cmd_ds, CONSOLE_CMD_DS_SIZE);
     memman_free_4k(p, sizeof(console_t));
 }
 
