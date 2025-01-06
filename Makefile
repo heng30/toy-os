@@ -61,3 +61,7 @@ clean:
 
 mk-dir:
 	- mkdir -p $(BUILD_DIR)
+
+# 有问题
+qemu:
+	qemu-system-i386 -fda build/disk.img -boot a -serial stdio

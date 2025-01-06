@@ -196,3 +196,29 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     pop  ds
     sti                 ; 开中断
     iretd
+
+; 外部命令出错会调用该中断函数
+_EXCEPTION_HANDLER:
+EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
+    cli
+    mov  ax, SELECTOR_VRAM  ; 数据段切换到内核
+    mov  ds, ax
+    mov  es, ax
+    mov  ax, SELECTOR_STACK ; 切换到内核堆栈段
+    mov  ss, ax
+    mov  esp, [KERNEL_ESP]   ; 获取内核堆栈指针
+
+    ; 当作函数参数
+    push ss
+    push esp
+    call int_handler_for_exception
+
+    ; 通过把CPU交给内核的方式直接杀掉应用程序
+    mov  esp, [KERNEL_ESP]
+    sti
+
+    ; start_cmd函数的开头有一个pushad的指令
+    ; 所以这里需要使用popad弹出栈中的数据
+    ; 这里使用ret是模拟start_cmd因为异常没有走往的返回流程
+    popad
+    ret

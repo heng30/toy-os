@@ -110,3 +110,15 @@ void cmd_exe(console_t *console) {
     fs_free_buf(console->m_cmd);
     console->m_cmd = NULL;
 }
+
+void int_handler_for_exception(int *esp) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        window_t *w = g_window_ctl.m_windows[i];
+        if (w->m_id == WINDOW_ID_CONSOLE) {
+            console_t *p = (console_t *)w->m_instance;
+            console_draw_text(p, "INT 0D, Protected Exception");
+            console_move_to_next_line(p);
+            return;
+        }
+    }
+}

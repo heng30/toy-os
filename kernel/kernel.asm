@@ -55,26 +55,34 @@ SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 ; 中断描述符
 ; 允许的向量号范围是0到255。其中0到31保留用作80X86处理器定义的异常和中断，不过目前该范围内的向量号并非每个都已定义了功能，未定义功能的向量号将留作今后使用。
 LABEL_IDT:
-%rep  32
-    Gate SELECTOR_CODE32, SPURIOUS_HANDLER,     0, DA_386IGate
+%rep  13
+    Gate SELECTOR_CODE32,   SPURIOUS_HANDLER,       0, DA_386IGate
+%endrep
+
+; 外部命令出错导致内核错误会触发该中断
+.0Dh:
+    Gate SELECTOR_CODE32,    EXCEPTION_HANDLER,     0, DA_386IGate
+
+%rep  18
+    Gate SELECTOR_CODE32,   SPURIOUS_HANDLER,       0, DA_386IGate
 %endrep
 
 .020h:
-    Gate SELECTOR_CODE32, TIMER_HANDLER,        0, DA_386IGate
+    Gate SELECTOR_CODE32,   TIMER_HANDLER,          0, DA_386IGate
 
 .021h:
-    Gate SELECTOR_CODE32, KEYBOARD_HANDLER,     0, DA_386IGate
+    Gate SELECTOR_CODE32,   KEYBOARD_HANDLER,       0, DA_386IGate
 
 %rep  10
-    Gate SELECTOR_CODE32, SPURIOUS_HANDLER,     0, DA_386IGate
+    Gate SELECTOR_CODE32,   SPURIOUS_HANDLER,       0, DA_386IGate
 %endrep
 
 .2CH:
-    Gate SELECTOR_CODE32, MOUSE_HANDLER,        0, DA_386IGate
+    Gate SELECTOR_CODE32,   MOUSE_HANDLER,          0, DA_386IGate
 
 ; 系统调用终端，具体的使用方法看system_call函数
 .2DH:
-    Gate SELECTOR_CODE32, SYSTEM_CALL_HANDLER,   0, DA_386IGate
+    Gate SELECTOR_CODE32,   SYSTEM_CALL_HANDLER,    0, DA_386IGate
 
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）
@@ -152,18 +160,18 @@ LABEL_MEM_CHK_OK:
     mov byte [LABEL_DESC_STACK + 4], al
     mov byte [LABEL_DESC_STACK + 7], ah
 
-    ; 准备加载中断描述表
+    ; 加载全局描述表
     xor   eax, eax
     mov   ax, ds
     shl   eax, 4
     add   eax,  LABEL_GDT
     mov   dword  [GDT_PTR + 2], eax
 
-    lgdt  [GDT_PTR] ; 加载中断描述表
+    lgdt  [GDT_PTR] ; 加载全局描述表
 
     cli   ;关中断
 
-    ; 加载中断描述符
+    ; 加载中断描述表
     xor   eax, eax
     mov   ax,  ds
     shl   eax, 4
