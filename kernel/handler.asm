@@ -83,7 +83,7 @@ TIMER_HANDLER equ _TIMER_HANDLER - $$
         mov  ax, SELECTOR_VRAM
         mov  ds, ax
         mov  es, ax
-        mov  ecx, [0xfe4]       ; 获取内核esp
+        mov  ecx, [KERNEL_ESP]       ; 获取内核esp
 
         mov  bx, ss
         mov  edx, esp
@@ -136,7 +136,7 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     mov  ax, SELECTOR_VRAM
     mov  ds, ax
     mov  es, ax
-    mov  ecx, [0xfe4]           ; 获取内核esp
+    mov  ecx, [KERNEL_ESP]           ; 获取内核esp
 
     ; 因为gdt表中栈描述符的基地址是LABEL_STACK
     ; 而数据栈描述符的基地址是0,

@@ -217,6 +217,9 @@ MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
 BOOT_INFO: times 3 dd 0
 
+; 分配4字节的空间存储调用外部命令时保存的内核任务esp值
+KERNEL_ESP: dd 0
+
 ; 保护模式代码
 [SECTION .s32]
 [BITS  32]

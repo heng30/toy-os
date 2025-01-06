@@ -154,7 +154,7 @@ start_cmd:
     mov edx, [esp + 44] ; esp
     mov ebx, [esp + 48] ; ds
 
-    mov  [0xfe4], esp   ; 保存当前任务esp，从外部命令返回后需要使用
+    mov  [KERNEL_ESP], esp   ; 保存当前任务esp，从外部命令返回后需要使用
 
     ; 切换到外部命令的段描述符，并进行寄存器切换
     mov  ds,  bx        ; ds
@@ -169,7 +169,7 @@ start_cmd:
     ; 恢复内核任务的段描述符，并恢复寄存器
     mov  ax, SELECTOR_VRAM
     mov  ds, ax
-    mov  esp, [0xfe4]   ; 恢复esp
+    mov  esp, [KERNEL_ESP]   ; 恢复esp
     mov  ax, SELECTOR_STACK
     mov  ss, ax
 
