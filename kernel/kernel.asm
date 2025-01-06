@@ -27,7 +27,7 @@ LABEL_DESC_STACK:   Descriptor        0,            LEN_OF_STACK_SECTION,   DA_D
 LABEL_DESC_FONT:    Descriptor        0,            0fffffh,                DA_DRW | DA_LIMIT_4K
 
 ; 调用外部程序描述符
-LABEL_DESC_6:       Descriptor        0,            0,                      0409Ah
+LABEL_DESC_6:       Descriptor        0,            0,                      0
 
 ; 调用外部命令分配的数据段描述符，与内核进行隔离
 LABEL_DESC_7:       Descriptor        0,            0,                      0

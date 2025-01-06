@@ -141,18 +141,22 @@ farjmp:
     ret
 
 ; 调用外部命令：
-;   - 保存当前任务的寄存器
-;   - 切换到外部任务数据段
+;   - 保存当前任务寄存器
+;   - 切换到外部命令数据段
+;   - 恢复当前任务寄存器
 start_cmd:
     cli                 ; 关中断
     pushad              ; 保存8个通用寄存器, 占用32字节
+
+    ; 获取参数
     mov eax, [esp + 36] ; eip, 这里32+4,其中4字节是返回地址eip
     mov ecx, [esp + 40] ; cs
     mov edx, [esp + 44] ; esp
     mov ebx, [esp + 48] ; ds
 
-    ; 切换到外部命令的段描述符，并进行寄存器切换
     mov  [0xfe4], esp   ; 保存当前任务esp，从外部命令返回后需要使用
+
+    ; 切换到外部命令的段描述符，并进行寄存器切换
     mov  ds,  bx        ; ds
     mov  ss,  bx        ; ds
     mov  esp, edx       ; esp
@@ -162,7 +166,7 @@ start_cmd:
 
     call far [esp]      ; 跳转到外部命令代码去执行
 
-    ; 切换到内核任务的段描述符，并进行寄存器切换
+    ; 恢复内核任务的段描述符，并恢复寄存器
     mov  ax, SELECTOR_VRAM
     mov  ds, ax
     mov  esp, [0xfe4]   ; 恢复esp

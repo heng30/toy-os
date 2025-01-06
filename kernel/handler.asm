@@ -79,28 +79,31 @@ TIMER_HANDLER equ _TIMER_HANDLER - $$
 
     ; 运行在外部命令态，需要保存外部命令段寄存器，并进行切换
     .from_cmd:
+        ; 恢复内核态的段寄存器
         mov  ax, SELECTOR_VRAM
         mov  ds, ax
         mov  es, ax
         mov  ecx, [0xfe4]       ; 获取内核esp
 
-        ; 保存外部命令段寄存器
-        add  ecx, -8
-        mov  [ecx + 4], ss      ; 保存中断时的外部命令ss
-        mov  [ecx], esp         ; 保存中断时的外部命令esp
+        mov  bx, ss
+        mov  edx, esp
 
         ; 切换到内核堆栈段
         mov  ax, SELECTOR_STACK
         mov  ss, ax
-        mov  esp, ecx           ; 切换内核esp
+        mov  esp, ecx           ; 更新内核esp
+
+        ; 保存外部命令段寄存器
+        push bx
+        push edx
 
         call int_handler_for_timer
 
         ; 恢复外部命令段寄存器
-        pop  ecx                ; 外部命令esp
-        pop  eax                ; 外部命令ss
-        mov  ss, ax
-        mov  esp, ecx
+        pop  edx                ; 外部命令esp
+        pop  ebx                ; 外部命令ss
+        mov  ss, bx
+        mov  esp, edx
 
         ; 弹出函数刚开始入栈的10各寄存器
         popad
@@ -135,6 +138,12 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     mov  es, ax
     mov  ecx, [0xfe4]           ; 获取内核esp
 
+    ; 因为gdt表中栈描述符的基地址是LABEL_STACK
+    ; 而数据栈描述符的基地址是0,
+    ; 所以想要通过通过内存访问操作栈上的数据需要esp加上LABEL_STACK
+    ; 此时[ds:ecx]上的位置正好等于[ss:esp]
+    add  ecx, LABEL_STACK
+
     ; 将函数开始push了10各参数，占用40各字节. 复制到内核堆栈上
     ; 内核堆栈从低地址到高地址： edi, esi, ebp, esp, ebx, edx, ecx, eax, esp, ss
     add  ecx, -40               ; 将更新后的esp保存到ecx寄存器中
@@ -165,7 +174,10 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     ; 切换到内核堆栈段
     mov  ax, SELECTOR_STACK
     mov  ss, ax
-    mov  esp, ecx       ; 更新esp
+
+    ; 更新esp
+    sub  ecx, LABEL_STACK
+    mov  esp, ecx
     sti                 ; 开中断
 
     ; 进行系统调用
@@ -182,5 +194,5 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     popad
     pop  es
     pop  ds
-    ; sti                 ; 开中断
+    sti                 ; 开中断
     iretd
