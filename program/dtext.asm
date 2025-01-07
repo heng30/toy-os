@@ -5,7 +5,9 @@ entry:
     mov edx, 1001
     mov ebx, msg
     int 0x2d
-    retf
+
+    mov edx, 1
+    int 0x2d
 
 [SECTION .data]
 ALIGN 32

@@ -5,4 +5,6 @@ entry:
     mov edx, 1000
     mov al, 'A'
     int 0x2d
-    retf
+
+    mov edx, 1
+    int 0x2d

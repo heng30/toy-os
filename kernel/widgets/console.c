@@ -269,7 +269,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     // 设置外部命令调用的数据段描述符，为了与内核的数据段进行隔离
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     set_segmdesc(gdt + GDT_CONSOLE_CMD_DS_TR, CONSOLE_CMD_DS_SIZE - 1,
-                 (ptr_t)p->m_cmd_ds, AR_FUNCTION_DS);
+                 (ptr_t)p->m_cmd_ds, AR_FUNCTION_DS + AR_RING_3);
 
     p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
@@ -301,7 +301,11 @@ static void _console_task_main(task_t *task, const char *title) {
     console->m_win->m_task = task;
     window_ctl_add(console->m_win);
 
+    unsigned int counter = 0;
     for (;;) {
+        show_string_in_canvas(FONT_WIDTH * 14, 0, COL8_FFFFFF,
+                              int2hexstr(counter++));
+
         if (fifo8_is_empty(&g_keyinfo) ||
             console->m_win != g_window_ctl.m_focus_window)
             continue;

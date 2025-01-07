@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "multi_task.h"
 #include "string.h"
+#include "timer.h"
 
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 
@@ -93,14 +94,12 @@ void cmd_exe(console_t *console) {
 
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     set_segmdesc(gdt + cmd_tr, 0xfffff, (ptr_t)console->m_cmd->m_data,
-                 AR_FUNCTION);
+                 AR_FUNCTION + AR_RING_3);
 
     // 跳转到外部程序代码并执行
-    // farjmp(0, cmd_tr << 3);
-
-    // 跳转到外部程序代码并执行
-    // 参数: eip, cs, esp, ds
-    start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3);
+    // 参数: eip, cs, esp, ds, esp0
+    start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3,
+              &g_multi_task_ctl->m_current_task->m_tss.m_esp0);
 
     console_enable(console);
 
@@ -111,14 +110,16 @@ void cmd_exe(console_t *console) {
     console->m_cmd = NULL;
 }
 
-void int_handler_for_exception(int *esp) {
+ptr_t* int_handler_for_exception(int *esp) {
     for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
         window_t *w = g_window_ctl.m_windows[i];
         if (w->m_id == WINDOW_ID_CONSOLE) {
             console_t *p = (console_t *)w->m_instance;
             console_draw_text(p, "INT 0D, Protected Exception");
             console_move_to_next_line(p);
-            return;
+            break;
         }
     }
+
+    return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
 }

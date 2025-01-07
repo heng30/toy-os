@@ -6,4 +6,6 @@ entry:
     mov al, 'A'
     pop ebx     ; 这条命令会引发一个异常
     int 0x2d
-    retf
+
+    mov edx, 1
+    int 0x2d

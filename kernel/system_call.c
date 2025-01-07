@@ -41,13 +41,24 @@ static void _console_draw_invalid_system_call(int edx) {
     }
 }
 
-void system_call_api(int edi, int esi, int ebp, int esp, int ebx, int edx,
-                     int ecx, int eax) {
+ptr_t *system_call_api(int edi, int esi, int ebp, int esp, int ebx, int edx,
+                       int ecx, int eax) {
+
+    // _console_draw_invalid_system_call(
+    //     (int)g_multi_task_ctl->m_current_task->m_tss.m_esp0);
+
+    // _console_draw_invalid_system_call(
+    //     (int)g_multi_task_ctl->m_current_task->m_tss.m_ss0);
+
     if (edx == SYSTEM_CALL_CONSOLE_DRAW_CH) {
         _console_draw_ch(eax);
     } else if (edx == SYSTEM_CALL_CONSOLE_DRAW_TEXT) {
         _console_draw_text(ebx);
+    } else if (edx == SYSTEM_CALL_END_CMD) {
+        return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
     } else {
         _console_draw_invalid_system_call(edx);
     }
+
+    return NULL;
 }

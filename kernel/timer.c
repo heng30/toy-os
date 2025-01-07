@@ -87,9 +87,13 @@ void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
+void enable_timer_int(void) {
+    io_out8(PIC0_OCW2, 0x60); // 每次中断后都需要重新设置
+}
+
 // 每10ms会中断一次
 void int_handler_for_timer(char *esp) {
-    io_out8(PIC0_OCW2, 0x60); // 每次中断后都需要重新设置
+    enable_timer_int();
     g_timerctl.m_count++;
 
     // 遍历所有定时器

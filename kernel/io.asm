@@ -140,41 +140,47 @@ farjmp:
     jmp FAR [esp + 12]  ; 跳过2个push指令值和eip值，[esp+12]就是参数的传入值
     ret
 
-; 调用外部命令：
-;   - 保存当前任务寄存器
-;   - 切换到外部命令数据段
-;   - 恢复当前任务寄存器
-start_cmd:
-    cli                 ; 关中断
-    pushad              ; 保存8个通用寄存器, 占用32字节
-
-    ; 获取参数
-    mov eax, [esp + 36] ; eip, 这里32+4,其中4字节是返回地址eip
-    mov ecx, [esp + 40] ; cs
-    mov edx, [esp + 44] ; esp
-    mov ebx, [esp + 48] ; ds
-
-    mov  [KERNEL_ESP], esp   ; 保存当前任务esp，从外部命令返回后需要使用
-
-    ; 切换到外部命令的段描述符，并进行寄存器切换
-    mov  ds,  bx        ; ds
-    mov  ss,  bx        ; ds
-    mov  esp, edx       ; esp
-    sti                 ; 开中断
-    push ecx            ; cs
-    push eax            ; eip
-
-    call far [esp]      ; 跳转到外部命令代码去执行
-
-    ; 恢复内核任务的段描述符，并恢复寄存器
-    mov  ax, SELECTOR_VRAM
-    mov  ds, ax
-    mov  esp, [KERNEL_ESP]   ; 恢复esp
-    mov  ax, SELECTOR_STACK
-    mov  ss, ax
-
-    popad               ; 弹出8个通用寄存器
+get_esp:
+    mov eax ,esp
     ret
+
+get_ss:
+    xor eax, eax
+    mov eax, ss
+    ret
+
+; 调用外部命令. 函数参数: eip, cs, esp, ds, &esp0
+start_cmd:
+    pushad              ; 8个通用寄存器入栈
+
+    ; 保存内核esp到tss->m_esp0,
+    ; 让cpu从用户态切换到内核态能够自动实现esp0->esp, ss0->ss的寄存器赋值
+    mov eax, [esp + 52] ; 获取&esp0的值
+    mov [eax], esp
+    mov [eax + 4], ss   ; 在TSS32_t结构中esp0的下一个成员是ss0
+
+    ; 因为堆栈上第一个值是eip，然后是8个通用寄存器
+    mov eax, [esp + 36]  ; eip
+    mov ecx, [esp + 40]  ; cs
+    mov edx, [esp + 44]  ; esp
+    mov ebx, [esp + 48]  ; ds
+
+    ; 切换到用户态数据段
+    mov  ds,  bx
+    mov  es,  bx
+
+    ; 进行特权级切换，从0->3
+    or ecx, 3   ; cs
+    or ebx, 3   ; ds
+
+    push ebx    ; ds
+    push edx    ; esp
+    push ecx    ; cs
+    push eax    ; eip
+
+    ; retf的作用是从堆栈中弹出两个4字节，作为eip和cs, 并跳转到cs:eip
+    ; 如果发现cs是一个特权级调整，会继续从堆栈中弹出两个4字节作为esp和ds
+    retf
 
 io_copy_msg:
     ; 获取函数参数

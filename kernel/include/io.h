@@ -88,7 +88,11 @@ void farjmp(unsigned int a, unsigned short tr);
 
 // 使用一个不同于内核的数据段来运行外部命令，需要进行寄存器切换
 void start_cmd(unsigned int eip, unsigned int cs, unsigned int esp,
-               unsigned int ds);
+               unsigned int ds, unsigned int *esp0);
+
+unsigned int get_esp(void);
+
+unsigned int get_ss(void);
 
 // 复制字符串
 void io_copy_msg(char *dst, const char *src);

@@ -82,7 +82,7 @@ LABEL_IDT:
 
 ; 系统调用终端，具体的使用方法看system_call函数
 .2DH:
-    Gate SELECTOR_CODE32,   SYSTEM_CALL_HANDLER,    0, DA_386IGate
+    Gate SELECTOR_CODE32,   SYSTEM_CALL_HANDLER,    0, DA_386IGate + AR_RING_3
 
 IDT_LEN  equ $ - LABEL_IDT
 IDT_PTR  dw  IDT_LEN - 1 ; 因为段描述符总是8字节长，因此GDT的限长值应该设置成总是8的倍数减1（即8N-1）
@@ -224,9 +224,6 @@ LABEL_MEM_CHK_OK:
 MEM_CHK_BUF: times 256 db 0
 MEMORY_CHK_NUMBER: dd 0
 BOOT_INFO: times 3 dd 0
-
-; 分配4字节的空间存储调用外部命令时保存的内核任务esp值
-KERNEL_ESP: dd 0
 
 ; 保护模式代码
 [SECTION .s32]

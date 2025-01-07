@@ -7,6 +7,9 @@
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
 #define AR_FUNCTION_DS 0x4092 // 设置段描述符对应的函数对象段描述符标志位
+                              //
+// 特权级别3，一共有0,1,2,3共4种特权级别，3级别最低，为应用程序级别,很多危险的指令都无法执行
+#define AR_RING_3 0x60
 
 // 最大支持的任务数, 数量小于256
 // 需要根据kernel.asm的TSS32描述符和堆栈数量确定
@@ -33,6 +36,9 @@ typedef struct {
 } segment_descriptor_t;
 
 // 任务却换需要保存的寄存器
+// ssx和espx分别对应不同特权级的寄存器，当发送特权级别变化时，
+// cpu会自动将ssx和espx自动赋值给ss和esp寄存器。
+// 例如：中断，因为中断是运行在特权级0上的
 typedef struct {
     unsigned int m_backlink, m_esp0, m_ss0, m_esp1, m_ss1, m_esp2, m_ss2, m_cr3;
     unsigned int m_eip, m_eflags, m_eax, m_ecx, m_edx, m_ebx, m_esp, m_ebp,

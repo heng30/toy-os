@@ -52,6 +52,9 @@ timer_t *timer_alloc(void);
 void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
                unsigned char data);
 
+// 重新启用时钟中断
+void enable_timer_int(void);
+
 // 释放定时器
 void timer_free(timer_t *timer);
 

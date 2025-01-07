@@ -130,6 +130,8 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             task->m_tss.m_edx = 0;
             task->m_tss.m_ebx = 0;
             task->m_tss.m_ebp = 0; // 帧寄存器
+            task->m_tss.m_esp0 = 0;
+            task->m_tss.m_ss0 = 0;
 
             // 任务堆栈指针位置，需要和kernel.asm中的堆栈对应
             task->m_tss.m_esp = (unsigned int)TASK_STACK_SIZE * (i + 1);
