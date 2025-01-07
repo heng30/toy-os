@@ -1,4 +1,3 @@
-#include "cmd.h"
 #include "colo8.h"
 #include "draw.h"
 #include "fifo8.h"
@@ -9,7 +8,6 @@
 #include "string.h"
 
 #include "widgets/canvas.h"
-#include "widgets/console.h"
 #include "widgets/window.h"
 
 #define KEY_UNPRESSED 0 // 按键没有被按下
@@ -40,20 +38,12 @@ fifo8_t g_keyinfo = {
 };
 
 static void _keyboard_kill_cmd(void) {
-    unsigned int addr_code32 = get_code32_addr();
-
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
-        window_t *w = g_window_ctl.m_windows[i];
-        if (w->m_id == WINDOW_ID_CONSOLE) {
-            console_t *p = (console_t *)w->m_instance;
-            task_t *task = p->m_win->m_task;
-            if (task && task->m_tss.m_ss0 != 0) {
-                // 等到下次任务调度时，会跳转到cmd_kill_process函数执行
-                task->m_tss.m_eip =
-                    (unsigned int)cmd_kill_process - addr_code32;
-            }
-            return;
-        }
+    if (data == KEY_CONTROL && key_shift != 0 && task_cons->tss.ss0 != 0) {
+        cons_putstr("kill process");
+        io_cli();
+        int addr_code32 = get_code32_addr();
+        task_cons->tss.eip = (int)kill_process - addr_code32;
+        io_sti();
     }
 }
 
@@ -64,11 +54,8 @@ void int_handler_from_c(char *esp) {
     show_keyboard_input(code);
     set_modkey_status(code);
 
-    // ctrl+shift+k
-    if (is_ctrl_key_pressed() && is_shift_key_pressed() && code == 0x25) {
-        io_cli();
-        _keyboard_kill_cmd();
-        io_sti();
+    // ctrl+k
+    if (is_ctrl_key_pressed() && code == 0x25) {
         return;
     }
 

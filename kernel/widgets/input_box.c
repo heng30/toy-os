@@ -150,8 +150,8 @@ static void _input_box_task_main(task_t *task, const char *title) {
             continue;
 
         unsigned char code = (unsigned char)c;
-        show_keyboard_input(code);
-        set_modkey_status(code);
+        // show_keyboard_input(code);
+        // set_modkey_status(code);
 
         // alt+tab切换焦点窗口
         if (is_alt_key_pressed() && is_tab_down(code)) {

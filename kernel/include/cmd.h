@@ -19,3 +19,6 @@ void cmd_cat(console_t *console);
 
 // 执行外部命令
 void cmd_exe(console_t *console);
+
+// 结束外部命令进程
+void cmd_kill_process(void);

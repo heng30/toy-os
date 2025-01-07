@@ -16,8 +16,8 @@
 #include "widgets/common_widget.h"
 #include "widgets/console.h"
 
-#define CONSOLE_WIDTH 240
-#define CONSOLE_HEIGHT 200
+#define CONSOLE_WIDTH 300
+#define CONSOLE_HEIGHT 240
 #define CONSOLE_INPUT_AREA_MARGIN 8
 #define CONSOLE_INPUT_AREA_PADDING 0
 
@@ -318,8 +318,8 @@ static void _console_task_main(task_t *task, const char *title) {
             continue;
 
         unsigned char code = (unsigned char)c;
-        show_keyboard_input(code);
-        set_modkey_status(code);
+        // show_keyboard_input(code);
+        // set_modkey_status(code);
 
         // alt+tab切换焦点窗口
         if (is_alt_key_pressed() && is_tab_down(code)) {

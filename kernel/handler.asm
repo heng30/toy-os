@@ -67,6 +67,28 @@ TIMER_HANDLER equ _TIMER_HANDLER - $$
     pop es
     iretd
 
+; 外部命令使用超出数据段大小的内存会调用该中断函数
+; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
+_STACK_OVERFLOW_HANDLER:
+STACK_OVERFLOW_HANDLER equ _STACK_OVERFLOW_HANDLER - $$
+    sti
+    push es
+    push ds
+    pushad
+
+    ; int_handler_for_stack_overflow函数参数
+    mov eax, esp
+    push eax
+
+    ; 把数据段切换到内核数据段
+    mov  ax, SELECTOR_VRAM
+    mov  ds, ax
+    mov  es, ax
+
+    call int_handler_for_stack_overflow
+
+    jmp near end_cmd
+
 ; 外部命令出错会调用该中断函数
 ; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
 _EXCEPTION_HANDLER:
@@ -94,7 +116,6 @@ EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
 ; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
 _SYSTEM_CALL_HANDLER:
 SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
-    ; 这里暂时不知为什么要开中断， 也没有看到之前有关中断的代码
     sti
 
     push ds

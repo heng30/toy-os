@@ -55,13 +55,17 @@ SELECTOR_FONT      equ   LABEL_DESC_FONT   -  LABEL_GDT
 ; 中断描述符
 ; 允许的向量号范围是0到255。其中0到31保留用作80X86处理器定义的异常和中断，不过目前该范围内的向量号并非每个都已定义了功能，未定义功能的向量号将留作今后使用。
 LABEL_IDT:
-%rep  13
+%rep  12
     Gate SELECTOR_CODE32,   SPURIOUS_HANDLER,       0, DA_386IGate
 %endrep
 
+; 外部命令使用的内存超过分配的数据段大小会触发该中断
+.0Ch:
+    Gate SELECTOR_CODE32,   STACK_OVERFLOW_HANDLER, 0, DA_386IGate
+
 ; 外部命令出错导致内核错误会触发该中断
 .0Dh:
-    Gate SELECTOR_CODE32,    EXCEPTION_HANDLER,     0, DA_386IGate
+    Gate SELECTOR_CODE32,   EXCEPTION_HANDLER,     0, DA_386IGate
 
 %rep  18
     Gate SELECTOR_CODE32,   SPURIOUS_HANDLER,       0, DA_386IGate

@@ -182,6 +182,14 @@ start_cmd:
     ; 如果发现cs是一个特权级调整，会继续从堆栈中弹出两个4字节作为esp和ds
     retf
 
+kill_cmd:
+    sti
+    mov eax, [esp + 4]
+    mov esp, [eax]
+    mov DWORD [eax + 4], 0  ; 重置tss->m_ss0
+    popad                   ; 对应start_cmd函数开头的pushad
+    ret
+
 io_copy_msg:
     ; 获取函数参数
     mov edi, [esp + 4] ; dst

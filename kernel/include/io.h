@@ -90,8 +90,11 @@ void farjmp(unsigned int a, unsigned short tr);
 void start_cmd(unsigned int eip, unsigned int cs, unsigned int esp,
                unsigned int ds, unsigned int *esp0);
 
-unsigned int get_esp(void);
 
+// 强制结束外部命令
+void kill_cmd(unsigned int* esp0);
+
+unsigned int get_esp(void);
 unsigned int get_ss(void);
 
 // 复制字符串
