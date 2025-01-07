@@ -71,7 +71,7 @@ end:
 }
 
 static void _after_cmd_exe(console_t *console, const char *filename) {
-    if (!strcmp(filename, "dchar.exe") || !strcmp(filename, "dtext.exe")) {
+    if (!strcmp(filename, "dch.exe") || !strcmp(filename, "dtext.exe")) {
         console_move_to_next_line(console);
     }
 }
@@ -96,8 +96,7 @@ void cmd_exe(console_t *console) {
     set_segmdesc(gdt + cmd_tr, 0xfffff, (ptr_t)console->m_cmd->m_data,
                  AR_FUNCTION + AR_RING_3);
 
-    // 跳转到外部程序代码并执行
-    // 参数: eip, cs, esp, ds, esp0
+    // 跳转到外部程序代码并执行. 参数: eip, cs, esp, ds, esp0
     start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3,
               &g_multi_task_ctl->m_current_task->m_tss.m_esp0);
 

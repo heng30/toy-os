@@ -76,7 +76,7 @@ EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
     push ds
     pushad
 
-    ; .end_cmd有`mov esp, [eax]`的语句
+    ; int_handler_for_exception函数参数
     mov eax, esp
     push eax
 
