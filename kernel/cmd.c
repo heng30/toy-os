@@ -9,6 +9,8 @@
 #include "string.h"
 #include "timer.h"
 
+#include "widgets/console.h"
+
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 
 void cmd_mem(console_t *console) {
@@ -110,48 +112,30 @@ void cmd_exe(console_t *console) {
 }
 
 void cmd_kill_process(void) {
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
-        window_t *w = g_window_ctl.m_windows[i];
-        if (w->m_id == WINDOW_ID_CONSOLE) {
-            console_t *p = (console_t *)w->m_instance;
-            console_draw_text(p, "Kill Process");
-            console_move_to_next_line(p);
-            kill_cmd(&p->m_win->m_task->m_tss.m_esp0);
-            break;
-        }
-    }
+    console_t *p = console_get();
+    console_draw_text(p, "Kill Process");
+    console_move_to_next_line(p);
+    kill_cmd(&p->m_win->m_task->m_tss.m_esp0);
 }
 
 ptr_t *int_handler_for_exception(int *esp) {
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
-        window_t *w = g_window_ctl.m_windows[i];
-        if (w->m_id == WINDOW_ID_CONSOLE) {
-            console_t *p = (console_t *)w->m_instance;
-            console_draw_text(p, "INT 0D, Protected Exception");
-            console_move_to_next_line(p);
-            break;
-        }
-    }
+    console_t *p = console_get();
+    console_draw_text(p, "INT 0D, Protected Exception");
+    console_move_to_next_line(p);
 
     return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
 }
 
 ptr_t *int_handler_for_stack_overflow(unsigned int *esp) {
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
-        window_t *w = g_window_ctl.m_windows[i];
-        if (w->m_id == WINDOW_ID_CONSOLE) {
-            console_t *p = (console_t *)w->m_instance;
-            console_draw_text(p, "INT 0C, Stack Exception");
-            console_move_to_next_line(p);
+    console_t *p = console_get();
+    console_draw_text(p, "INT 0C, Stack Exception");
+    console_move_to_next_line(p);
 
-            // 出错代码的位置
-            const char *eip = int2hexstr(esp[11]);
-            console_draw_text(p, "eip = ");
-            console_draw_text(p, eip);
-            console_move_to_next_line(p);
-            break;
-        }
-    }
+    // 出错代码的位置
+    const char *eip = int2hexstr(esp[11]);
+    console_draw_text(p, "eip = ");
+    console_draw_text(p, eip);
+    console_move_to_next_line(p);
 
     return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
 }

@@ -258,6 +258,19 @@ void console_disable(console_t *p) {
     win_sheet_hide(g_input_cursor_sht);
 }
 
+console_t *console_get(void) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        window_t *w = g_window_ctl.m_windows[i];
+        if (w->m_id == WINDOW_ID_CONSOLE) {
+            return (console_t *)w->m_instance;
+        }
+    }
+
+    assert(false, "get_console error");
+
+    return NULL;
+}
+
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
                        unsigned int height, const char *title) {
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
@@ -318,8 +331,6 @@ static void _console_task_main(task_t *task, const char *title) {
             continue;
 
         unsigned char code = (unsigned char)c;
-        // show_keyboard_input(code);
-        // set_modkey_status(code);
 
         // alt+tab切换焦点窗口
         if (is_alt_key_pressed() && is_tab_down(code)) {

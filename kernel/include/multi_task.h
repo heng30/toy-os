@@ -6,8 +6,9 @@
 #define LIMIT_TSS32 103
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
-#define AR_FUNCTION_DS 0x4092 // 设置段描述符对应的函数对象段描述符标志位
-                              //
+#define AR_FUNCTION_DS                                                         \
+    0x4092 // 设置段描述符对应的函数对象段描述符标志位
+           //
 // 特权级别3，一共有0,1,2,3共4种特权级别，3级别最低，为应用程序级别,很多危险的指令都无法执行
 #define AR_RING_3 0x60
 
@@ -34,6 +35,13 @@ typedef struct {
     unsigned char m_base_mid, m_access_right;
     unsigned char m_limit_high, m_base_high;
 } segment_descriptor_t;
+
+// 中断描述符
+typedef struct {
+    unsigned short m_offset_low, m_selector;
+    unsigned char m_dw_count, m_access_right;
+    unsigned short m_offset_hight;
+} gate_descriptor_t;
 
 // 任务却换需要保存的寄存器
 // ssx和espx分别对应不同特权级的寄存器，当发送特权级别变化时，
@@ -108,6 +116,10 @@ extern multi_task_ctl_t *g_multi_task_ctl;
 // 设置段描述符
 void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
                   unsigned int base, unsigned int ar);
+
+// 设置中断描述符
+void set_gate(gate_descriptor_t *sg, unsigned int offset, unsigned short selector,
+              unsigned short ar);
 
 // 初始化
 void init_multi_task_ctl();

@@ -67,6 +67,15 @@ void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
     sd->m_base_high = (unsigned char)((base >> 24) & 0xff);
 }
 
+void set_gate(gate_descriptor_t *sg, unsigned int offset,
+              unsigned short selector, unsigned short ar) {
+    sg->m_offset_low = offset & 0xffff;
+    sg->m_selector = selector;
+    sg->m_dw_count = (unsigned char)(ar >> 8) & 0xff;
+    sg->m_access_right = (unsigned char)ar & 0xff;
+    sg->m_offset_hight = (unsigned short)(offset >> 16) & 0xffff;
+}
+
 void init_multi_task_ctl(void) {
     assert(MAX_TASKS <= 256, "init_multi_task_ctl MAX_TASKS is more than 256");
 

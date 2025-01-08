@@ -42,19 +42,16 @@ fifo8_t g_keyinfo = {
 static void _keyboard_kill_cmd(void) {
     unsigned int addr_code32 = get_code32_addr();
 
-    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
-        window_t *w = g_window_ctl.m_windows[i];
-        if (w->m_id == WINDOW_ID_CONSOLE) {
-            console_t *p = (console_t *)w->m_instance;
-            task_t *task = p->m_win->m_task;
-            if (task && task->m_tss.m_ss0 != 0) {
-                // 等到下次任务调度时，会跳转到cmd_kill_process函数执行
-                task->m_tss.m_eip =
-                    (unsigned int)cmd_kill_process - addr_code32;
-            }
-            return;
-        }
+    console_t *p = console_get();
+    task_t *task = p->m_win->m_task;
+
+    io_cli();
+    // 等到下次任务调度时，会跳转到cmd_kill_process函数执行
+    if (task && task != g_multi_task_ctl->m_current_task &&
+        task->m_tss.m_ss0 != 0) {
+        task->m_tss.m_eip = (unsigned int)cmd_kill_process - addr_code32;
     }
+    io_sti();
 }
 
 void int_handler_from_c(char *esp) {
@@ -64,16 +61,11 @@ void int_handler_from_c(char *esp) {
     show_keyboard_input(code);
     set_modkey_status(code);
 
-    // ctrl+shift+k
-    if (is_ctrl_key_pressed() && is_shift_key_pressed() && code == 0x25) {
-        io_cli();
+    // ctrl+k
+    if (is_ctrl_key_pressed() && code == 0x25) {
         _keyboard_kill_cmd();
-        io_sti();
-        return;
-    }
-
-    // 当前有焦点窗口才获取输入字符
-    if (g_window_ctl.m_focus_window) {
+    } else if (g_window_ctl.m_focus_window) {
+        // 当前有焦点窗口才获取输入字符
         fifo8_put(&g_keyinfo, code);
     }
 }

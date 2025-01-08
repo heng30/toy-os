@@ -8,6 +8,7 @@
 #define WINDOW_ID_NONE 0
 #define WINDOW_ID_INPUT_BOX 1
 #define WINDOW_ID_CONSOLE 2
+#define WINDOW_ID_USER 3    // 用户态创建的窗口对象
 
 // 鼠标点击的位置
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_NONE 0

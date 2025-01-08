@@ -35,6 +35,9 @@ void console_enable(console_t *p);
 // 窗口不可用, 调用外部命令时终端处于不可用状态
 void console_disable(console_t *p);
 
+// 获取唯一的终端对象
+console_t *console_get(void);
+
 // 显示对象
 void console_show(console_t *p, int z);
 

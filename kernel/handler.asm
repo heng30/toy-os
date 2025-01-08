@@ -117,7 +117,6 @@ EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
 _SYSTEM_CALL_HANDLER:
 SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     sti
-
     push ds
     push es
     pushad  ; 为了从system_call_api返回后能够正确恢复寄存器
