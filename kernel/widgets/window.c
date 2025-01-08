@@ -79,6 +79,8 @@ void window_ctl_add(window_t *p) {
         } else if (p->m_id == WINDOW_ID_CONSOLE) {
             console_show(p->m_instance, z);
         }
+    } else {
+        window_show(p, z);
     }
 }
 
@@ -245,4 +247,25 @@ void window_ctl_focus_next_window(void) {
         mouse_focus_window(win);
         return;
     }
+}
+
+bool window_ctl_is_window_exist(window_t* p) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        if (p == g_window_ctl.m_windows[i]) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+window_t *window_ctl_find_window_by_id(unsigned char id) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        window_t *w = g_window_ctl.m_windows[i];
+        if (w->m_id == id) {
+            return w;
+        }
+    }
+
+    return NULL;
 }

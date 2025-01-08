@@ -1,14 +1,17 @@
 #include "system_call.h"
+#include "colo8.h"
+#include "draw.h"
 #include "string.h"
 
 #include "widgets/console.h"
+#include "widgets/window.h"
 
-static void _console_draw_ch(int eax) {
+static void _sc_console_draw_ch(unsigned int eax) {
     console_t *p = console_get();
     console_draw_ch(p, (char)(eax & 0xff));
 }
 
-static void _console_draw_text(int ebx) {
+static void _sc_console_draw_text(unsigned int ebx) {
     console_t *p = console_get();
     if (!p->m_cmd->m_data)
         return;
@@ -17,23 +20,70 @@ static void _console_draw_text(int ebx) {
     console_draw_text(p, text);
 }
 
-static void _console_draw_invalid_system_call(int edx) {
+static void _sc_console_draw_invalid_system_call(unsigned int edx) {
     console_t *p = console_get();
     console_draw_text(p, "invalid system call: ");
-    console_draw_text(p, int2hexstr((unsigned int)edx));
+    console_draw_text(p, int2hexstr(edx));
     console_move_to_next_line(p);
 }
 
-ptr_t *system_call_api(int edi, int esi, int ebp, int esp, int ebx, int edx,
-                       int ecx, int eax) {
+static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
+                           unsigned int width, unsigned int height,
+                           unsigned int title) {
+
+    console_t *p = console_get();
+    const char *real_title = (char *)p->m_cmd->m_data + title;
+    window_t *win =
+        window_new(x, y, width, height, WINDOW_ID_USER, real_title, NULL);
+
+    window_ctl_add(win);
+
+    // 赋值到栈上eax寄存器，popad后会赋值给eax寄存器
+    // 作为函数调用的返回值
+    reg[7] = (ptr_t)win;
+}
+
+static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
+                                    unsigned int y, unsigned char col,
+                                    unsigned int text) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        const char *real_text = p->m_cmd->m_data + text;
+        show_string(pwin->m_sheet, x, y, COL8_848484, col, real_text);
+    } else {
+        console_draw_text(p, "invalid win handler: ");
+        console_draw_text(p, int2hexstr(win));
+        console_move_to_next_line(p);
+    }
+}
+
+static void _sc_draw_box_in_window() {}
+
+ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
+                       unsigned int esp, unsigned int ebx, unsigned int edx,
+                       unsigned int ecx, unsigned int eax) {
+    // SYSTEM_CALL_HANDLER中断函数开头会执行两次pushad指令，
+    // 一共压入了16各寄存器到堆栈中，第二次是为system_call_api函数传递参数。
+    // 第一次是在system_call_api函数返回后恢复用户态寄存器值的。
+    // 此处reg保存的是执行第一次pushad后的esp值, 即指向edi的指针
+    // 而且最右侧参数先入栈.
+    unsigned int *reg = &eax + 1;
+
     if (edx == SYSTEM_CALL_CONSOLE_DRAW_CH) {
-        _console_draw_ch(eax);
+        _sc_console_draw_ch(eax);
     } else if (edx == SYSTEM_CALL_CONSOLE_DRAW_TEXT) {
-        _console_draw_text(ebx);
+        _sc_console_draw_text(ebx);
     } else if (edx == SYSTEM_CALL_END_CMD) {
         return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
+    } else if (edx == SYSTEM_CALL_NEW_WINDOW) {
+        _sc_new_window(reg, ebx, esi, edi, eax, ecx);
+    } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW) {
+        _sc_draw_text_in_window(ebx, esi, edi, (unsigned char)eax, ecx);
+    } else if (edx == SYSTEM_CALL_DRAW_BOX_IN_WINDOW) {
     } else {
-        _console_draw_invalid_system_call(edx);
+        _sc_console_draw_invalid_system_call(edx);
     }
 
     return NULL;

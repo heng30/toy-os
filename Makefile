@@ -17,7 +17,7 @@ C_FLAGS = -c $(DEFINE_FLAGS) $(RELEASE_FLAGS) $(DEBUG_FLAGS) -I$(DIR)/include -W
 
 LD_FLAGS = $(RELEASE_FLAGS) $(DEBUG_FLAGS)
 
-EXCLUDE_SRC_DIR := grep -v build | grep -v .git | grep -v kernel | grep -v backup | grep -v program
+EXCLUDE_SRC_DIR := grep -v build | grep -v .git | grep -v kernel | grep -v backup | grep -v program | grep -v course
 
 C_SRC = $(shell find . -name '*.c' | $(EXCLUDE_SRC_DIR))
 vpath %.c $(sort $(dir $(C_SRC))) # 将.c文件加入到vpath中

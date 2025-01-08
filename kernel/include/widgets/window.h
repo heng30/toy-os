@@ -87,3 +87,9 @@ void window_ctl_move_window_to_top(window_t *p);
 
 // 将焦点移动到当前焦点窗口的下一个窗口
 void window_ctl_focus_next_window(void);
+
+// 判断一个窗口是否存在
+bool window_ctl_is_window_exist(window_t* p);
+
+// 通过id来找窗口
+window_t *window_ctl_find_window_by_id(unsigned char id);

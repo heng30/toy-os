@@ -47,8 +47,9 @@ static void _keyboard_kill_cmd(void) {
 
     io_cli();
     // 等到下次任务调度时，会跳转到cmd_kill_process函数执行
-    if (task && task != g_multi_task_ctl->m_current_task &&
-        task->m_tss.m_ss0 != 0) {
+    if (task
+        // && task == g_multi_task_ctl->m_current_task
+        && task->m_tss.m_ss0 != 0) {
         task->m_tss.m_eip = (unsigned int)cmd_kill_process - addr_code32;
     }
     io_sti();

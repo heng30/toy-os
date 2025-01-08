@@ -11,6 +11,15 @@
 // 结束外部命令，返回到内核态
 #define SYSTEM_CALL_END_CMD 1
 
+// 创建一个新窗口
+#define SYSTEM_CALL_NEW_WINDOW 500
+
+// 在窗口中绘制一个字符串
+#define SYSTEM_CALL_DRAW_TEXT_IN_WINDOW 501
+
+// 在窗口中绘制一个矩形
+#define SYSTEM_CALL_DRAW_BOX_IN_WINDOW 502
+
 // 需要终端打印的字符放到al寄存器中
 #define SYSTEM_CALL_CONSOLE_DRAW_CH 1000
 
@@ -21,5 +30,6 @@
  * 系统调用函数：
  *  edx: 系统调用号
  */
-ptr_t *system_call_api(int edi, int esi, int ebp, int esp, int ebx, int edx,
-                       int ecx, int eax);
+ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
+                       unsigned int esp, unsigned int ebx, unsigned int edx,
+                       unsigned int ecx, unsigned int eax);

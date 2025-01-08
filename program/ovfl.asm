@@ -1,4 +1,4 @@
-[map symbols ovfl.map]
+; [map symbols ovfl.map]
 [SECTION .s32]
 BITS 32
 
