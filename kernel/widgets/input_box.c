@@ -10,6 +10,7 @@
 #include "string.h"
 #include "win_sheet.h"
 
+#include "widgets/canvas.h"
 #include "widgets/common_widget.h"
 #include "widgets/input_box.h"
 
@@ -137,7 +138,11 @@ static void _input_box_task_main(task_t *task, const char *title) {
     input_box->m_win->m_task = task;
     window_ctl_add(input_box->m_win);
 
+    unsigned int counter = 0;
     for (;;) {
+        show_string_in_canvas(FONT_WIDTH * 24, 0, COL8_FFFFFF,
+                              int2hexstr(counter++));
+
         if (fifo8_is_empty(&g_keyinfo) ||
             input_box->m_win != g_window_ctl.m_focus_window)
             continue;

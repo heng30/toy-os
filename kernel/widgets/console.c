@@ -86,7 +86,7 @@ static void _console_scroll_up_one_line(console_t *p) {
     win_sheet_t *sht = p->m_win->m_sheet;
 
     // 向上移动一个字符高度
-    for (unsigned int y = INPUT_CURSOR_START_X_OFFSET + FONT_HEIGHT;
+    for (unsigned int y = INPUT_CURSOR_START_Y_OFFSET + FONT_HEIGHT;
          y < INPUT_CURSOR_END_Y_OFFSET; y++) {
         for (unsigned int x = INPUT_CURSOR_START_X_OFFSET;
              x < INPUT_CURSOR_END_X_OFFSET; x++) {
@@ -320,7 +320,7 @@ static void _console_task_main(task_t *task, const char *title) {
 
     unsigned int counter = 0;
     for (;;) {
-        show_string_in_canvas(FONT_WIDTH * 14, 0, COL8_FFFFFF,
+        show_string_in_canvas(FONT_WIDTH * 12, 0, COL8_FFFFFF,
                               int2hexstr(counter++));
 
         if (fifo8_is_empty(&g_keyinfo) ||
