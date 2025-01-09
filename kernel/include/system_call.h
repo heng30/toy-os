@@ -12,13 +12,22 @@
 #define SYSTEM_CALL_END_CMD 1
 
 // 创建一个新窗口
-#define SYSTEM_CALL_NEW_WINDOW 500
+#define SYSTEM_CALL_NEW_WINDOW 400
+
+// 刷新窗口指定区域
+#define SYSTEM_CALL_REFRESH_WINDOW 401
 
 // 在窗口中绘制一个字符串
 #define SYSTEM_CALL_DRAW_TEXT_IN_WINDOW 501
 
 // 在窗口中绘制一个矩形
 #define SYSTEM_CALL_DRAW_BOX_IN_WINDOW 502
+
+// 在窗口绘制一个像素点
+#define SYSTEM_CALL_DRAW_POINT_IN_WINDOW 503
+
+// 在窗口绘制一条直线
+#define SYSTEM_CALL_DRAW_LINE_IN_WINDOW 504
 
 // 需要终端打印的字符放到al寄存器中
 #define SYSTEM_CALL_CONSOLE_DRAW_CH 1000

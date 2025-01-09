@@ -12,6 +12,10 @@ void api_console_draw_text(const char *text);
 unsigned int api_new_window(unsigned int x, unsigned int y, unsigned int xsize,
                             unsigned int ysize, char *title);
 
+// 刷新窗口指定区域
+void api_refresh_windowwin(unsigned int win, unsigned int x0, unsigned int y0,
+                           unsigned int x1, unsigned int y1);
+
 // 在窗口中绘制字符串
 // col 的高8字节为背景色，低8字节为前景色
 void api_draw_text_in_window(unsigned int win, unsigned int x, unsigned int y,
@@ -21,3 +25,12 @@ void api_draw_text_in_window(unsigned int win, unsigned int x, unsigned int y,
 void api_draw_box_in_window(unsigned int win, unsigned int x0, unsigned int y0,
                             unsigned int x1, unsigned int y1,
                             unsigned char col);
+
+// 在窗口绘制一个像素点
+void api_draw_point_in_window(unsigned int win, unsigned int x, unsigned int y,
+                              unsigned char col);
+
+// 在窗口绘制一条直线
+void api_draw_line_in_window(unsigned int win, unsigned int x0, unsigned int y0,
+                             unsigned int x1, unsigned int y1,
+                             unsigned char col);

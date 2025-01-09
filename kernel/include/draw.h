@@ -81,3 +81,7 @@ unsigned int max_screen_font_column(void);
 
 // 屏幕最大能显示的字体行数
 unsigned int max_screen_font_rows(void);
+
+// 绘制直线
+void draw_line(win_sheet_t *sht, int x0, int y0, int x1, int y1,
+               unsigned char col);

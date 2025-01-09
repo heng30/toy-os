@@ -9,6 +9,12 @@
 #include "widgets/console.h"
 #include "widgets/window.h"
 
+static void _sc_no_window_errmsg(console_t *p, unsigned int win) {
+    console_draw_text(p, "invalid win handler: ");
+    console_draw_text(p, int2hexstr(win));
+    console_move_to_next_line(p);
+}
+
 static void _sc_console_draw_ch(unsigned int eax) {
     console_t *p = console_get();
     console_draw_ch(p, (char)(eax & 0xff));
@@ -48,10 +54,18 @@ static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
     reg[7] = (ptr_t)win;
 }
 
-static void _sc_no_window_errmsg(console_t *p, unsigned int win) {
-    console_draw_text(p, "invalid win handler: ");
-    console_draw_text(p, int2hexstr(win));
-    console_move_to_next_line(p);
+static void _sc_refresh_window(unsigned int win, unsigned int x0,
+                               unsigned int y0, unsigned int x1,
+                               unsigned int y1) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+        win_sheet_refresh(sht, x0, y0, x1, y1);
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
 }
 
 static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
@@ -85,6 +99,34 @@ static void _sc_draw_box_in_window(unsigned int win, unsigned int x0,
     }
 }
 
+static void _sc_draw_point_in_window(unsigned int win, unsigned int x,
+                                     unsigned int y, unsigned char col) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+        boxfill8(sht->m_buf, sht->m_bxsize, col, x, y, x + 1, y + 1);
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
+
+static void _sc_draw_line_in_window(unsigned int win, unsigned int x0,
+                                    unsigned int y0, unsigned int x1,
+                                    unsigned int y1, unsigned char col) {
+
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+        draw_line(sht, (int)x0, (int)y0, (int)x1, (int)y1, col);
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
+
 ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
                        unsigned int esp, unsigned int ebx, unsigned int edx,
                        unsigned int ecx, unsigned int eax) {
@@ -107,11 +149,20 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
     case SYSTEM_CALL_NEW_WINDOW:
         _sc_new_window(reg, ebx, esi, edi, eax, ecx);
         break;
+    case SYSTEM_CALL_REFRESH_WINDOW:
+        _sc_refresh_window(ebx, eax, ecx, esi, edi);
+        break;
     case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
         _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
         break;
     case SYSTEM_CALL_DRAW_BOX_IN_WINDOW:
         _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+        break;
+    case SYSTEM_CALL_DRAW_POINT_IN_WINDOW:
+        _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
+        break;
+    case SYSTEM_CALL_DRAW_LINE_IN_WINDOW:
+        _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
         break;
     case SYSTEM_CALL_CONSOLE_DRAW_CH:
         _sc_console_draw_ch(eax);
