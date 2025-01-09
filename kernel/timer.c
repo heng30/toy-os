@@ -79,11 +79,13 @@ void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
                unsigned char data) {
     int eflags = io_load_eflags();
     io_cli(); // 暂时停止接收中断信号
+
     timer->m_flags = RUNNING;
     timer->m_timeout = timeout; // 设定时间片
     timer->m_const_timeout = timeout;
     timer->m_run_count = run_count;
     timer->m_data = data;
+
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
@@ -132,9 +134,10 @@ static void _timer_callback(void) {
     static unsigned int timer_callback_timer_counter = 0;
     static char timer_callback_time_string[16];
 
+    int eflags = io_load_eflags();
     io_cli();
     unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
-    io_sti();
+    io_store_eflags(eflags); // 恢复接收中断信号
 
     switch (data) {
     case INPUT_CURSOR_TIMER_DATA:

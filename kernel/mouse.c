@@ -233,9 +233,10 @@ static void _mouse_task_main(task_t *task) {
         if (fifo8_is_empty(&g_mouseinfo))
             continue;
 
+        int eflags = io_load_eflags();
         io_cli();
         int code = fifo8_get(&g_mouseinfo);
-        io_sti();
+        io_store_eflags(eflags); // 恢复接收中断信号
 
         if (code < 0)
             continue;

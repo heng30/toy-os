@@ -235,6 +235,7 @@ void multi_task_run(task_t *task) {
     g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_tasks_counts] = task;
     g_multi_task_ctl->m_tasks_counts++;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
+
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
@@ -248,6 +249,7 @@ void multi_task_resume(task_t *task) {
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
+
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
@@ -265,6 +267,7 @@ void multi_task_suspend(task_t *task) {
     task->m_flags = TASK_STATUS_SUSPEND;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
+
     io_store_eflags(eflags); // 恢复接收中断信号
 
     _wait_task_schedul();
@@ -285,6 +288,7 @@ void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
     task->m_sleep_time_slice = sleep_time_slice;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_sleep_task_counts++;
+
     io_store_eflags(eflags); // 恢复接收中断信号
 
     _wait_task_schedul();

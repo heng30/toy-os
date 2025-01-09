@@ -327,9 +327,10 @@ static void _console_task_main(task_t *task, const char *title) {
             console->m_win != g_window_ctl.m_focus_window)
             continue;
 
+        int eflags = io_load_eflags();
         io_cli();
         int c = fifo8_get(&g_keyinfo);
-        io_sti();
+        io_store_eflags(eflags); // 恢复接收中断信号
 
         if (c < 0)
             continue;

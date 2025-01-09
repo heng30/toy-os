@@ -35,6 +35,7 @@ void init_boot_info(void) {
 void set_palette(unsigned int start, unsigned int end, unsigned char *rgb) {
     int eflags = io_load_eflags();
     io_cli();
+
     io_out8(0x03c8, (unsigned char)start);
     for (unsigned int i = start; i <= end; i++) {
         io_out8(0x03c9, rgb[0] / 4);
@@ -44,7 +45,7 @@ void set_palette(unsigned int start, unsigned int end, unsigned char *rgb) {
         rgb += 3;
     }
 
-    io_store_eflags(eflags);
+    io_store_eflags(eflags); // 恢复接收中断信号
     return;
 }
 

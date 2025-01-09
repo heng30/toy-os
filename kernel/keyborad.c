@@ -46,13 +46,16 @@ static void _keyboard_kill_cmd(void) {
     task_t *task = p->m_win->m_task;
 
     // TODO: 这里的代码有问题，可能会导致关中断，并卡死整个内核
+    int eflags = io_load_eflags();
     io_cli();
+
     // 等到下次任务调度时，会跳转到cmd_kill_process函数执行
     if (task && task != g_multi_task_ctl->m_current_task &&
-        task->m_tss.m_ss0 != 0) {
+        task->m_tss.m_esp0 != 0 && task->m_tss.m_ss0 != 0) {
         task->m_tss.m_eip = (unsigned int)cmd_kill_process - addr_code32;
     }
-    io_sti();
+
+    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void int_handler_from_c(char *esp) {

@@ -71,7 +71,6 @@ TIMER_HANDLER equ _TIMER_HANDLER - $$
 ; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
 _STACK_OVERFLOW_HANDLER:
 STACK_OVERFLOW_HANDLER equ _STACK_OVERFLOW_HANDLER - $$
-    sti
     push es
     push ds
     pushad
@@ -93,7 +92,6 @@ STACK_OVERFLOW_HANDLER equ _STACK_OVERFLOW_HANDLER - $$
 ; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
 _EXCEPTION_HANDLER:
 EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
-    sti
     push es
     push ds
     pushad
@@ -116,7 +114,6 @@ EXCEPTION_HANDLER equ _EXCEPTION_HANDLER - $$
 ; 中断会触发内核特权级的切换3->0, [ss0:esp0]->[ss:esp]
 _SYSTEM_CALL_HANDLER:
 SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
-    sti
     push ds
     push es
     pushad  ; 为了从system_call_api返回后能够正确恢复寄存器
@@ -139,9 +136,14 @@ SYSTEM_CALL_HANDLER equ _SYSTEM_CALL_HANDLER - $$
     popad
     pop es
     pop ds
+    sti
     iretd
 
 end_cmd:
     mov esp, [eax]  ; 从system_call_api中获取到esp的值
+    mov dword [eax], 0      ; 重置tss->m_esp0
+    mov dword [eax + 4], 0  ; 重置tss->m_ss0
+
     popad           ; 这个popad对应的是start_cmd函数开头的pushad
+    sti
     ret             ; 模拟外部命令从start_cmd函数正常返回
