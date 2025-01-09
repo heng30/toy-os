@@ -112,7 +112,6 @@ static void _console_scroll_up_one_line(console_t *p) {
 void console_draw_ch(console_t *p, const char ch) {
     unsigned int x = p->m_cursor_pos.m_x, y = p->m_cursor_pos.m_y;
 
-    strpush(p->m_text, ch);
     show_char(p->m_win->m_sheet, x, y, COLOR_BLACK, COLOR_WHITE, ch);
 
     // 换行
@@ -194,6 +193,7 @@ static void _console_enter_pressed(console_t *p) {
 
 static void _console_push(console_t *p, char c) {
     if (strlen(p->m_text) < CONSOLE_TEXT_MAX_LEN - 1) {
+        strpush(p->m_text, c);
         console_draw_ch(p, c);
     }
 }
@@ -217,7 +217,7 @@ void console_move_to_next_line(console_t *p) {
 
 void console_draw_text(console_t *p, const char *text) {
     for (; *text != '\0'; text++)
-        _console_push(p, *text);
+        console_draw_ch(p, *text);
 }
 
 void console_moving(void *p) {
@@ -276,6 +276,9 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     console_t *p = (console_t *)memman_alloc_4k(sizeof(console_t));
     assert(p != NULL, "console_new alloc 4k error");
 
+    p->m_text = memman_alloc_4k(CONSOLE_TEXT_MAX_LEN);
+    assert(p->m_text != NULL, "console_new alloc text error");
+
     p->m_cmd_ds = memman_alloc_4k(CONSOLE_CMD_DS_SIZE);
     assert(p->m_cmd_ds != NULL, "console_new alloc cmd_ds error");
 
@@ -292,6 +295,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
 
 void console_free(const console_t *p) {
     window_free(p->m_win);
+    memman_free_4k(p->m_text, CONSOLE_TEXT_MAX_LEN);
     memman_free_4k(p->m_cmd_ds, CONSOLE_CMD_DS_SIZE);
     memman_free_4k(p, sizeof(console_t));
 }

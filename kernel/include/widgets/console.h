@@ -6,14 +6,14 @@
 #include "window.h"
 #include "wuitl.h"
 
-#define CONSOLE_TEXT_MAX_LEN 1024
+#define CONSOLE_TEXT_MAX_LEN 4096
 #define CONSOLE_CMD_DS_SIZE (128 * KB)
 
 typedef struct {
     window_t *m_win;
-    char m_text[CONSOLE_TEXT_MAX_LEN]; // 输入的字符串
-    pos_t m_cursor_pos;                // 输入光标位置
-    buf_t *m_cmd;                      // 保存外部命令的代码缓冲区
+    char *m_text;       // 输入的字符串
+    pos_t m_cursor_pos; // 输入光标位置
+    buf_t *m_cmd;       // 保存外部命令的代码缓冲区
 
     // 外部命令的ds寄存器执行的内存，为了隔离内核和外部命令之间的内存
     unsigned char *m_cmd_ds;

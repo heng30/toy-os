@@ -2,6 +2,7 @@
 #include "colo8.h"
 #include "draw.h"
 #include "io.h"
+#include "kutil.h"
 #include "string.h"
 #include "win_sheet.h"
 
@@ -32,9 +33,11 @@ static void _sc_console_draw_invalid_system_call(unsigned int edx) {
 static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
                            unsigned int width, unsigned int height,
                            unsigned int title) {
-
     console_t *p = console_get();
     const char *real_title = (char *)p->m_cmd->m_data + title;
+    width = min_unsigned(width, g_boot_info.m_screen_x);
+    height = min_unsigned(height, g_boot_info.m_screen_y);
+
     window_t *win =
         window_new(x, y, width, height, WINDOW_ID_USER, real_title, NULL);
 

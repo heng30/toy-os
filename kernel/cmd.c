@@ -79,13 +79,7 @@ static void _after_cmd_exe(console_t *console, const char *filename) {
 }
 
 void cmd_exe(console_t *console) {
-    const char *clean_filename = str_trim_space(console->m_text);
-    unsigned int fsize = strlen(clean_filename) + 1;
-
-    char *filename = (char *)memman_alloc_4k(fsize);
-    assert(filename != NULL, "cmd_exe alloc for filename error");
-    strdup(filename, clean_filename);
-
+    const char *filename = str_trim_space(console->m_text);
     unsigned short cmd_tr = GDT_CONSOLE_CMD_TR;
 
     console->m_cmd = fs_read(filename);
@@ -110,7 +104,6 @@ void cmd_exe(console_t *console) {
 
     _after_cmd_exe(console, filename);
 
-    memman_free_4k(filename, fsize);
     fs_free_buf(console->m_cmd);
     console->m_cmd = NULL;
 }

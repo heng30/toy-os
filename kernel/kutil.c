@@ -23,8 +23,8 @@ unsigned bound_unsigned(unsigned int n, unsigned int l, unsigned int h) {
 }
 
 void dead_loop(void) {
-    for (;;)
-        io_hlt();
+    while (true)
+        io_cli();
 }
 
 void assert(bool cond, const char *errmsg) {
