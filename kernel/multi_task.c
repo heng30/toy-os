@@ -121,7 +121,7 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
     for (unsigned char i = 0; i < MAX_TASKS; i++) {
         if (g_multi_task_ctl->m_tasks0[i].m_flags == TASK_STATUS_UNUSED) {
             unsigned int addr_code32 = get_code32_addr();
-            unsigned int addr_stack_stack = get_stack_start_addr();
+            unsigned int addr_stack_start = get_stack_start_addr();
 
             task_t *task = &g_multi_task_ctl->m_tasks0[i];
             task->m_flags = TASK_STATUS_USED;
@@ -151,14 +151,14 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             if (argc > 0 && argv) {
                 for (unsigned int i = argc; i != 0; i--) {
                     task->m_tss.m_esp -= sizeof(unsigned int);
-                    *(unsigned int *)(addr_stack_stack + task->m_tss.m_esp) =
+                    *(unsigned int *)(addr_stack_start + task->m_tss.m_esp) =
                         (unsigned int)argv[i - 1];
                 }
             }
 
             // 第一个参数入栈
             task->m_tss.m_esp -= sizeof(unsigned int);
-            *(unsigned int *)(addr_stack_stack + task->m_tss.m_esp) =
+            *(unsigned int *)(addr_stack_start + task->m_tss.m_esp) =
                 (unsigned int)task;
 
             // 调用者下一条执行代码地址。任务是不会返回的，所以不需要关心。这里直接跳过

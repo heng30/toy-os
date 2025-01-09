@@ -102,6 +102,10 @@ void cmd_exe(console_t *console) {
     start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3,
               &g_multi_task_ctl->m_current_task->m_tss.m_esp0);
 
+    // 命令运行完毕，重置ss0和esp0
+    g_multi_task_ctl->m_current_task->m_tss.m_ss0 = 0;
+    g_multi_task_ctl->m_current_task->m_tss.m_esp0 = 0;
+
     console_enable(console);
 
     _after_cmd_exe(console, filename);

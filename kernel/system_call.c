@@ -1,7 +1,9 @@
 #include "system_call.h"
 #include "colo8.h"
 #include "draw.h"
+#include "io.h"
 #include "string.h"
+#include "win_sheet.h"
 
 #include "widgets/console.h"
 #include "widgets/window.h"
@@ -38,51 +40,83 @@ static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
 
     window_ctl_add(win);
 
-    // 赋值到栈上eax寄存器，popad后会赋值给eax寄存器
+    // 赋值到栈上的eax寄存器，popad后会赋值给eax寄存器
     // 作为函数调用的返回值
     reg[7] = (ptr_t)win;
 }
 
+static void _sc_no_window_errmsg(console_t *p, unsigned int win) {
+    console_draw_text(p, "invalid win handler: ");
+    console_draw_text(p, int2hexstr(win));
+    console_move_to_next_line(p);
+}
+
 static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
-                                    unsigned int y, unsigned char col,
+                                    unsigned int y, unsigned short col,
                                     unsigned int text) {
     console_t *p = console_get();
     window_t *pwin = (window_t *)win;
 
     if (window_ctl_is_window_exist(pwin)) {
         const char *real_text = p->m_cmd->m_data + text;
-        show_string(pwin->m_sheet, x, y, COL8_848484, col, real_text);
+        unsigned char bg_col = (unsigned char)(col >> 8);
+        unsigned char fg_col = (unsigned char)(col & 0xff);
+        show_string(pwin->m_sheet, x, y, bg_col, fg_col, real_text);
     } else {
-        console_draw_text(p, "invalid win handler: ");
-        console_draw_text(p, int2hexstr(win));
-        console_move_to_next_line(p);
+        _sc_no_window_errmsg(p, win);
     }
 }
 
-static void _sc_draw_box_in_window() {}
+static void _sc_draw_box_in_window(unsigned int win, unsigned int x0,
+                                   unsigned int y0, unsigned int x1,
+                                   unsigned int y1, unsigned char col) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+        boxfill8(sht->m_buf, sht->m_bxsize, col, x0, y0, x1, y1);
+        win_sheet_refresh(sht, x0, y0, x1 + 1, y1 + 1);
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
 
 ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
                        unsigned int esp, unsigned int ebx, unsigned int edx,
                        unsigned int ecx, unsigned int eax) {
-    // SYSTEM_CALL_HANDLER中断函数开头会执行两次pushad指令，
+    // - SYSTEM_CALL_HANDLER中断函数开头会执行两次pushad指令，
     // 一共压入了16各寄存器到堆栈中，第二次是为system_call_api函数传递参数。
     // 第一次是在system_call_api函数返回后恢复用户态寄存器值的。
     // 此处reg保存的是执行第一次pushad后的esp值, 即指向edi的指针
     // 而且最右侧参数先入栈.
-    unsigned int *reg = &eax + 1;
 
-    if (edx == SYSTEM_CALL_CONSOLE_DRAW_CH) {
-        _sc_console_draw_ch(eax);
-    } else if (edx == SYSTEM_CALL_CONSOLE_DRAW_TEXT) {
-        _sc_console_draw_text(ebx);
-    } else if (edx == SYSTEM_CALL_END_CMD) {
+    // - 这里需要加上addr_stack_start，是因为`&eax`获取的是相对于ss段基址，
+    // 而通过`*eax`来访问内存是要相对于ds段基址的。
+    // addr_stack_start刚好就是ss段基址与ds段基址之间的距离
+    unsigned int addr_stack_start = get_stack_start_addr();
+    unsigned int *reg =
+        (unsigned int *)(addr_stack_start + (unsigned char *)(&eax + 1));
+
+    switch (edx) {
+    case SYSTEM_CALL_END_CMD:
         return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
-    } else if (edx == SYSTEM_CALL_NEW_WINDOW) {
+    case SYSTEM_CALL_NEW_WINDOW:
         _sc_new_window(reg, ebx, esi, edi, eax, ecx);
-    } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW) {
-        _sc_draw_text_in_window(ebx, esi, edi, (unsigned char)eax, ecx);
-    } else if (edx == SYSTEM_CALL_DRAW_BOX_IN_WINDOW) {
-    } else {
+        break;
+    case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
+        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
+        break;
+    case SYSTEM_CALL_DRAW_BOX_IN_WINDOW:
+        _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+        break;
+    case SYSTEM_CALL_CONSOLE_DRAW_CH:
+        _sc_console_draw_ch(eax);
+        break;
+    case SYSTEM_CALL_CONSOLE_DRAW_TEXT:
+        _sc_console_draw_text(ebx);
+        break;
+    default:
         _sc_console_draw_invalid_system_call(edx);
     }
 

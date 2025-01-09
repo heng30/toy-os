@@ -185,7 +185,8 @@ start_cmd:
 kill_cmd:
     sti
     mov eax, [esp + 4]
-    mov esp, [eax]
+    mov esp, [eax]          ; esp0->esp
+    mov DWORD [eax], 0      ; 重置tss->m_esp0
     mov DWORD [eax + 4], 0  ; 重置tss->m_ss0
     popad                   ; 对应start_cmd函数开头的pushad
     ret

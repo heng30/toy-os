@@ -46,7 +46,7 @@ vpath %.exe $(sort $(dir $(BIN_C)))
 
 .PHONY: all build clean
 
-all: mk-dir copy-entry-file build
+all: mk-dir build-lib copy-entry-file build
 
 # 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
@@ -67,7 +67,11 @@ $(BUILD_DIR)/%.exe: %.asm | $(DIR)
 
 build: $(OBJ) $(REVERT_ASM) $(FINAL_ASM) $(BIN_ASM) $(BIN_C)
 
+build-lib:
+	make -C lib
+
 clean:
+	make -C lib clean
 	- rm -rf $(BUILD_DIR)
 
 mk-dir:
@@ -77,6 +81,7 @@ copy-entry-file:
 	- cp -f $(SYSTEM_CALL_LIB_DIR)/$(ENTRY_FILE) $(BUILD_DIR)
 	@sed -i 's/ppm.inc/lib\/ppm.inc/g' $(BUILD_DIR)/$(ENTRY_FILE)
 	@sed -i 's/api.asm/lib\/api.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)
+	@sed -i 's/build\/clib.asm/lib\/build\/clib.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)
 
 move-map-symbols-files:
 	mv -f $(DIR)/*.map $(BUILD_DIR)
