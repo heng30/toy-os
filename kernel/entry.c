@@ -10,6 +10,7 @@
 #include "multi_task.h"
 #include "ring.h"
 #include "string.h"
+#include "system_call.h"
 #include "timer.h"
 #include "win_sheet.h"
 
@@ -61,5 +62,8 @@ void start_kernel(void) {
     for (;;) {
         io_sti();
         show_string_in_canvas(0, 0, COL8_FFFFFF, int2hexstr(counter++));
+
+        // 更新随机数
+        g_rand_number = (g_rand_number << 8) | (unsigned char)counter;
     }
 }

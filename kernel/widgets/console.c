@@ -10,6 +10,7 @@
 #include "mouse.h"
 #include "multi_task.h"
 #include "string.h"
+#include "system_call.h"
 #include "win_sheet.h"
 
 #include "widgets/canvas.h"
@@ -322,6 +323,9 @@ static void _console_task_main(task_t *task, const char *title) {
     for (;;) {
         show_string_in_canvas(FONT_WIDTH * 12, 0, COL8_FFFFFF,
                               int2hexstr(counter++));
+
+        // 更新随机数
+        g_rand_number = (g_rand_number << 8) | (unsigned char)counter;
 
         if (fifo8_is_empty(&g_keyinfo) ||
             console->m_win != g_window_ctl.m_focus_window)

@@ -2,7 +2,8 @@
 
 #include "win_sheet.h"
 
-#define TITLE_BAR_HEIGHT 20
+#define TITLE_BAR_HEIGHT 20  // 窗口标题栏高度
+#define WINDOW_BORDER_SIZE 4 // 窗口边框大小
 
 // 绘制输入框
 // sht: 图层 x0: 起始位置 y0: 起始位置 sx: 宽 sy: 高 c：颜色

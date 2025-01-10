@@ -2,6 +2,8 @@
 
 #include "def.h"
 
+extern volatile unsigned int g_rand_number;
+
 // 系统调用中断号
 #define SYSTEM_CALL_INT 0x2d
 
@@ -10,6 +12,12 @@
 
 // 结束外部命令，返回到内核态
 #define SYSTEM_CALL_END_CMD 1
+
+// 获取一个随机数
+#define SYSTEM_CALL_RAND_UINT 100
+
+// 显示一个调试数字
+#define SYSTEM_CALL_SHOW_DEBUG_UINT 101
 
 // 创建一个新窗口
 #define SYSTEM_CALL_NEW_WINDOW 400

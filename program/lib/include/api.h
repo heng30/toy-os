@@ -13,8 +13,8 @@ unsigned int api_new_window(unsigned int x, unsigned int y, unsigned int xsize,
                             unsigned int ysize, char *title);
 
 // 刷新窗口指定区域
-void api_refresh_windowwin(unsigned int win, unsigned int x0, unsigned int y0,
-                           unsigned int x1, unsigned int y1);
+void api_refresh_window(unsigned int win, unsigned int x0, unsigned int y0,
+                        unsigned int x1, unsigned int y1);
 
 // 在窗口中绘制字符串
 // col 的高8字节为背景色，低8字节为前景色
@@ -34,3 +34,9 @@ void api_draw_point_in_window(unsigned int win, unsigned int x, unsigned int y,
 void api_draw_line_in_window(unsigned int win, unsigned int x0, unsigned int y0,
                              unsigned int x1, unsigned int y1,
                              unsigned char col);
+
+// 获取一个随机数
+unsigned int api_rand_uint(unsigned int seed);
+
+// 显示一个调试数字
+void api_show_debug_uint(unsigned int x, unsigned int y, unsigned int num);

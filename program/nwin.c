@@ -1,6 +1,6 @@
 #include "api.h"
 #include "colo8.h"
-#include "def.h"
+#include "pdef.h"
 
 void main(void) {
     unsigned int win = api_new_window(100, 100, 150, 50, "NWIN");

@@ -6,6 +6,7 @@
 #include "io.h"
 #include "keyboard_mouse.h"
 #include "kutil.h"
+#include "system_call.h"
 
 #include "widgets/canvas.h"
 #include "widgets/common_widget.h"
@@ -146,6 +147,7 @@ void int_handler_for_mouse(char *esp) {
     io_out8(PIC_OCW2, 0x20);
 
     unsigned char data = io_in8(PORT_KEYDAT);
+    g_rand_number = (g_rand_number << 8) | data; // 更新随机数
     fifo8_put(&g_mouseinfo, data);
     multi_task_priority_task_add(g_mouse_task);
 }

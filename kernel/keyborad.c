@@ -7,6 +7,7 @@
 #include "keyboard_mouse.h"
 #include "kutil.h"
 #include "string.h"
+#include "system_call.h"
 
 #include "widgets/canvas.h"
 #include "widgets/console.h"
@@ -61,6 +62,8 @@ static void _keyboard_kill_cmd(void) {
 void int_handler_from_c(char *esp) {
     io_out8(PIC_OCW2, 0x20);
     unsigned char code = io_in8(PORT_KEYDAT);
+
+    g_rand_number = (g_rand_number << 8) | code; // 更新随机数
 
     show_keyboard_input(code);
     set_modkey_status(code);

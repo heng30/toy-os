@@ -9,6 +9,8 @@
 #include "widgets/console.h"
 #include "widgets/window.h"
 
+volatile unsigned int g_rand_number = 0;
+
 static void _sc_no_window_errmsg(console_t *p, unsigned int win) {
     console_draw_text(p, "invalid win handler: ");
     console_draw_text(p, int2hexstr(win));
@@ -127,6 +129,16 @@ static void _sc_draw_line_in_window(unsigned int win, unsigned int x0,
     }
 }
 
+static void _sc_rand_uint(ptr_t *reg, unsigned int seed) {
+    g_rand_number = (g_rand_number << 8) | seed; // 更新随机数
+    reg[7] = g_rand_number;
+}
+
+static void _sc_show_debug_uint(unsigned int x, unsigned int y,
+                                unsigned int num) {
+    show_debug_string(x, y, COLOR_BLACK, int2hexstr(num));
+}
+
 ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
                        unsigned int esp, unsigned int ebx, unsigned int edx,
                        unsigned int ecx, unsigned int eax) {
@@ -146,6 +158,12 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
     switch (edx) {
     case SYSTEM_CALL_END_CMD:
         return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
+    case SYSTEM_CALL_RAND_UINT:
+        _sc_rand_uint(reg, eax);
+        break;
+    case SYSTEM_CALL_SHOW_DEBUG_UINT:
+        _sc_show_debug_uint(ebx, eax, ecx);
+        break;
     case SYSTEM_CALL_NEW_WINDOW:
         _sc_new_window(reg, ebx, esi, edi, eax, ecx);
         break;

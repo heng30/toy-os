@@ -6,6 +6,12 @@ SYSTEM_CALL_INVALID equ 0
 ; 结束外部命令，返回到内核态
 SYSTEM_CALL_END_CMD equ 1
 
+; 获取一个随机数
+SYSTEM_CALL_RAND_UINT equ 100
+
+; 显示一个调试数字
+SYSTEM_CALL_SHOW_DEBUG_UINT equ 101
+
 ; 创建一个新窗口
 SYSTEM_CALL_NEW_WINDOW equ 400
 
