@@ -50,6 +50,10 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
 }
 
 void window_free(window_t *p) {
+    if (p == g_window_ctl.m_focus_window) {
+        window_ctl_set_focus_window(NULL);
+    }
+
     memman_free_4k(p->m_sheet->m_buf,
                    p->m_sheet->m_bxsize * p->m_sheet->m_bysize);
     win_sheet_free(p->m_sheet);
@@ -295,11 +299,29 @@ window_t *window_ctl_find_window_by_id(unsigned char id) {
     return NULL;
 }
 
-// 关闭窗口
 void window_ctl_close_window_by_id(unsigned char id) {
     for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
         window_t *w = g_window_ctl.m_windows[i];
         if (w->m_id == id) {
+            window_ctl_remove(w);
+            window_free(w);
+        }
+    }
+}
+
+void window_ctl_close_window(window_t *p) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        if (p == g_window_ctl.m_windows[i]) {
+            window_ctl_remove(p);
+            window_free(p);
+        }
+    }
+}
+
+void window_ctl_close_all_waiting_window(void) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        window_t *w = g_window_ctl.m_windows[i];
+        if (w->m_id == WINDOW_ID_USER && w->m_is_waiting_for_close) {
             window_ctl_remove(w);
             window_free(w);
         }

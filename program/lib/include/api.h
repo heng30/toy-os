@@ -14,6 +14,9 @@ void api_console_draw_text(const char *text);
 unsigned int api_new_window(unsigned int x, unsigned int y, unsigned int xsize,
                             unsigned int ysize, char *title);
 
+// 关闭窗口
+void api_close_window(unsigned int win);
+
 // 刷新窗口指定区域
 void api_refresh_window(unsigned int win, unsigned int x0, unsigned int y0,
                         unsigned int x1, unsigned int y1);

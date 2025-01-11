@@ -57,6 +57,10 @@ static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
     reg[7] = (ptr_t)win;
 }
 
+static void _sc_close_window(unsigned int win) {
+    window_ctl_close_window((window_t *)win);
+}
+
 static void _sc_refresh_window(unsigned int win, unsigned int x0,
                                unsigned int y0, unsigned int x1,
                                unsigned int y1) {
@@ -171,6 +175,9 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
         break;
     case SYSTEM_CALL_NEW_WINDOW:
         _sc_new_window(reg, ebx, esi, edi, eax, ecx);
+        break;
+    case SYSTEM_CALL_CLOSE_WINDOW:
+        _sc_close_window(ebx);
         break;
     case SYSTEM_CALL_REFRESH_WINDOW:
         _sc_refresh_window(ebx, eax, ecx, esi, edi);

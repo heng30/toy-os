@@ -104,3 +104,9 @@ window_t *window_ctl_find_window_by_id(unsigned char id);
 
 // 关闭窗口
 void window_ctl_close_window_by_id(unsigned char id);
+
+// 关闭窗口
+void window_ctl_close_window(window_t *p);
+
+// 关闭所有等待关闭的窗口
+void window_ctl_close_all_waiting_window(void);

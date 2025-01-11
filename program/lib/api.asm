@@ -26,6 +26,35 @@ api_new_window:
   pop  edi
   ret
 
+api_close_window:
+  push ebx
+  mov  edx, SYSTEM_CALL_CLOSE_WINDOW
+  mov  ebx, [esp + 8] ; win
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_refresh_window:
+  push  edi
+  push  esi
+  push  ebx
+  mov   edx, SYSTEM_CALL_REFRESH_WINDOW
+  mov   ebx, [esp + 16] ; win
+  mov   eax, [esp + 20] ; x0
+  mov   ecx, [esp + 24] ; y0
+  mov   esi, [esp + 28] ; x1
+  mov   edi, [esp + 32] ; y1
+  int   SYSTEM_CALL_INT
+  pop   ebx
+  pop   esi
+  pop   edi
+  ret
+
+api_is_close_window:
+  mov edx, SYSTEM_CALL_IS_CLOSE_WINDOW
+  int SYSTEM_CALL_INT
+  ret
+
 api_draw_text_in_window:
   push edi
   push esi
@@ -95,27 +124,6 @@ api_draw_line_in_window:
   pop  ebp
   pop  esi
   pop  edi
-  ret
-
-api_refresh_window:
-  push  edi
-  push  esi
-  push  ebx
-  mov   edx, SYSTEM_CALL_REFRESH_WINDOW
-  mov   ebx, [esp + 16] ; win
-  mov   eax, [esp + 20] ; x0
-  mov   ecx, [esp + 24] ; y0
-  mov   esi, [esp + 28] ; x1
-  mov   edi, [esp + 32] ; y1
-  int   SYSTEM_CALL_INT
-  pop   ebx
-  pop   esi
-  pop   edi
-  ret
-
-api_is_close_window:
-  mov edx, SYSTEM_CALL_IS_CLOSE_WINDOW
-  int SYSTEM_CALL_INT
   ret
 
 api_rand_uint:

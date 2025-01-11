@@ -21,4 +21,6 @@ void main(void) {
 
         delay(DEFAULT_DELAY_LOOP);
     }
+
+    api_close_window(win);
 }
