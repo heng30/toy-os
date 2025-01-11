@@ -35,3 +35,6 @@ unsigned char *mempcpy(unsigned char *dst, unsigned char *src,
 
 // 移动数据
 void memmove(char *dst, const char *src, unsigned int size);
+
+// 生成随机数
+unsigned int gen_rand_num(unsigned int num);

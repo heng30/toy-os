@@ -325,7 +325,7 @@ static void _console_task_main(task_t *task, const char *title) {
                               int2hexstr(counter++));
 
         // 更新随机数
-        g_rand_number = (g_rand_number << 8) | (unsigned char)counter;
+        g_rand_number = (g_rand_number << 17) ^ (counter * 12794213);
 
         if (fifo8_is_empty(&g_keyinfo) ||
             console->m_win != g_window_ctl.m_focus_window)

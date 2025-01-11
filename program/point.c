@@ -8,11 +8,11 @@ void main(void) {
 
     for (unsigned int i = 0; i < 50; i++) {
         unsigned int x =
-            api_rand_uint(i * 347702432) % (w - WINDOW_BORDER_SIZE * 2) +
+            api_rand_uint(i * 1345090721) % (w - WINDOW_BORDER_SIZE * 2) +
             WINDOW_BORDER_SIZE;
 
         unsigned int y =
-            api_rand_uint(i * 92443887) %
+            api_rand_uint(i * 123489859) %
                 (h - WINDOW_TITLE_BAR_HEIGHT - WINDOW_BORDER_SIZE * 2) +
             WINDOW_TITLE_BAR_HEIGHT + WINDOW_BORDER_SIZE;
 

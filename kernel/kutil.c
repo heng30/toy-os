@@ -70,3 +70,12 @@ void memmove(char *dst, const char *src, unsigned int size) {
         dst[i] = src[i];
     }
 }
+
+unsigned int gen_rand_num(unsigned int num) {
+    unsigned int c1 = num >> 24;
+    unsigned int c2 = (num & 0xff0000) >> 8;
+    unsigned int c3 = (num & 0xff00) << 16;
+    unsigned int c4 = (num & 0xff) << 16;
+
+    return num ^ (c1 | c2 | c3 | c4);
+}

@@ -130,7 +130,7 @@ static void _sc_draw_line_in_window(unsigned int win, unsigned int x0,
 }
 
 static void _sc_rand_uint(ptr_t *reg, unsigned int seed) {
-    g_rand_number = (g_rand_number << 8) | seed; // 更新随机数
+    g_rand_number = g_rand_number ^ seed; // 更新随机数
     reg[7] = g_rand_number;
 }
 
