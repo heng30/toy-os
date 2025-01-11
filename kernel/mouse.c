@@ -209,8 +209,7 @@ static void _handle_left_btn_event(void) {
         if (!_handle_left_btn_event_win) {
             _handle_left_btn_event_win = window_ctl_get_mouse_click_window();
 
-            if (!window_ctl_is_click_closebtn() &&
-                window_ctl_is_click_window() &&
+            if (window_ctl_is_click_window() &&
                 _handle_left_btn_event_win->m_enabled) {
                 mouse_focus_window(_handle_left_btn_event_win);
             }
