@@ -25,6 +25,9 @@ extern volatile unsigned int g_rand_number;
 // 刷新窗口指定区域
 #define SYSTEM_CALL_REFRESH_WINDOW 401
 
+// 检查是否应该关闭程序
+#define SYSTEM_CALL_IS_CLOSE_WINDOW 402
+
 // 在窗口中绘制一个字符串
 #define SYSTEM_CALL_DRAW_TEXT_IN_WINDOW 501
 

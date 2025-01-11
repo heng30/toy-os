@@ -5,6 +5,7 @@
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
+#include "win_sheet.h"
 
 #include "widgets/common_widget.h"
 #include "widgets/console.h"
@@ -37,6 +38,8 @@ window_t *window_new(unsigned int x, unsigned int y, unsigned int width,
     win_sheet_slide(sht, x, y);
 
     win->m_enabled = true;
+    win->m_have_input_cursor = false;
+    win->m_is_waiting_for_close = false;
     win->m_id = id;
     win->m_title = title;
     win->m_sheet = sht;
@@ -56,6 +59,28 @@ void window_free(window_t *p) {
 void window_show(window_t *p, int z) { win_sheet_show(p->m_sheet, z); }
 
 void window_hide(window_t *p) { win_sheet_hide(p->m_sheet); }
+
+void window_moving(window_t *p) {
+    unsigned int vx = p->m_sheet->m_vx0, vy = p->m_sheet->m_vy0;
+    int dx = g_mdec.m_rel_x, dy = g_mdec.m_rel_y;
+
+    vx = (unsigned int)bound((int)vx + dx, 0,
+                             (int)g_boot_info.m_screen_x -
+                                 (int)p->m_sheet->m_bxsize);
+    vy = (unsigned int)bound((int)vy + dy, 0,
+                             (int)g_boot_info.m_screen_y -
+                                 (int)p->m_sheet->m_bysize);
+
+    win_sheet_slide(p->m_sheet, vx, vy);
+}
+
+void window_focus(window_t *p) {
+    if (!p->m_enabled)
+        return;
+
+    window_ctl_set_focus_window(p);
+    win_sheet_show(p->m_sheet, p->m_sheet->m_z);
+}
 
 void window_ctl_add(window_t *p) {
     for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
@@ -249,7 +274,7 @@ void window_ctl_focus_next_window(void) {
     }
 }
 
-bool window_ctl_is_window_exist(window_t* p) {
+bool window_ctl_is_window_exist(window_t *p) {
     for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
         if (p == g_window_ctl.m_windows[i]) {
             return true;
@@ -268,4 +293,15 @@ window_t *window_ctl_find_window_by_id(unsigned char id) {
     }
 
     return NULL;
+}
+
+// 关闭窗口
+void window_ctl_close_window_by_id(unsigned char id) {
+    for (unsigned int i = 0; i < g_window_ctl.m_top; i++) {
+        window_t *w = g_window_ctl.m_windows[i];
+        if (w->m_id == id) {
+            window_ctl_remove(w);
+            window_free(w);
+        }
+    }
 }

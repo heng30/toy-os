@@ -1,6 +1,7 @@
 #include "api.h"
 #include "colo8.h"
 #include "pdef.h"
+#include "puitl.h"
 
 void main(void) {
     unsigned int w = 150, h = 80;
@@ -22,6 +23,10 @@ void main(void) {
     api_refresh_window(win, WINDOW_BORDER_SIZE, WINDOW_TITLE_BAR_HEIGHT,
                        w - WINDOW_BORDER_SIZE, h - WINDOW_BORDER_SIZE);
 
-    while (true)
-        ;
+    while (true) {
+        if (api_is_close_window())
+            return;
+
+        delay(DEFAULT_DELAY_LOOP);
+    }
 }

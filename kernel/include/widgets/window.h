@@ -8,7 +8,7 @@
 #define WINDOW_ID_NONE 0
 #define WINDOW_ID_INPUT_BOX 1
 #define WINDOW_ID_CONSOLE 2
-#define WINDOW_ID_USER 3    // 用户态创建的窗口对象
+#define WINDOW_ID_USER 3 // 用户态创建的窗口对象
 
 // 鼠标点击的位置
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_NONE 0
@@ -17,12 +17,14 @@
 #define WINDOW_CTL_MOUSE_CLICK_FLAG_WINDOW 4
 
 typedef struct {
-    bool m_enabled;        // 是否启用
-    win_sheet_t *m_sheet; // 图层
-    const char *m_title;  // 窗口标题
-    unsigned char m_id;   // 窗口id
-    void *m_instance;     // 真正的实例对象，NULL则是window_t的对象
-    task_t *m_task;       // 关联的任务
+    bool m_enabled;              // 是否启用
+    bool m_have_input_cursor;    // 是否能够输入
+    bool m_is_waiting_for_close; // 是否等待关闭
+    win_sheet_t *m_sheet;        // 图层
+    const char *m_title;         // 窗口标题
+    unsigned char m_id;          // 窗口id
+    void *m_instance; // 真正的实例对象，NULL则是window_t的对象
+    task_t *m_task;   // 关联的任务
 } window_t;
 
 typedef struct {
@@ -48,6 +50,12 @@ void window_show(window_t *p, int z);
 
 // 隐藏一个窗口
 void window_hide(window_t *p);
+
+//  移动一个窗口
+void window_moving(window_t *p);
+
+// 设置窗口获得焦点
+void window_focus(window_t *p);
 
 // 向窗口管理器添加一个窗口
 void window_ctl_add(window_t *p);
@@ -89,7 +97,10 @@ void window_ctl_move_window_to_top(window_t *p);
 void window_ctl_focus_next_window(void);
 
 // 判断一个窗口是否存在
-bool window_ctl_is_window_exist(window_t* p);
+bool window_ctl_is_window_exist(window_t *p);
 
 // 通过id来找窗口
 window_t *window_ctl_find_window_by_id(unsigned char id);
+
+// 关闭窗口
+void window_ctl_close_window_by_id(unsigned char id);

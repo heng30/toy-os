@@ -105,6 +105,7 @@ input_box_t *input_box_new(unsigned int x, unsigned int y, unsigned int width,
     assert(p != NULL, "input_box_new alloc 4k error");
 
     p->m_win = window_new(x, y, width, height, WINDOW_ID_INPUT_BOX, title, p);
+    p->m_win->m_have_input_cursor = true;
     p->m_text[0] = '\0';
 
     // 绘制输入框
@@ -156,12 +157,6 @@ static void _input_box_task_main(task_t *task, const char *title) {
             continue;
 
         unsigned char code = (unsigned char)c;
-
-        // alt+tab切换焦点窗口
-        if (is_alt_key_pressed() && is_tab_down(code)) {
-            window_ctl_focus_next_window();
-            continue;
-        }
 
         if (is_backspace_down(code)) {
             input_box_pop(input_box);

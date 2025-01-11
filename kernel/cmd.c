@@ -76,6 +76,8 @@ static void _after_cmd_exe(console_t *console, const char *filename) {
     if (!strcmp(filename, "dch.exe") || !strcmp(filename, "dtext.exe")) {
         console_move_to_next_line(console);
     }
+
+    window_ctl_close_window_by_id(WINDOW_ID_USER);
 }
 
 void cmd_exe(console_t *console) {

@@ -50,6 +50,7 @@ static void _sc_new_window(ptr_t *reg, unsigned int x, unsigned int y,
         window_new(x, y, width, height, WINDOW_ID_USER, real_title, NULL);
 
     window_ctl_add(win);
+    window_focus(win);
 
     // 赋值到栈上的eax寄存器，popad后会赋值给eax寄存器
     // 作为函数调用的返回值
@@ -70,6 +71,10 @@ static void _sc_refresh_window(unsigned int win, unsigned int x0,
     }
 }
 
+void _sc_is_close_window(ptr_t *reg) {
+    window_t *p = g_window_ctl.m_focus_window;
+    reg[7] = (p && p->m_id == WINDOW_ID_USER && p->m_is_waiting_for_close);
+}
 static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
                                     unsigned int y, unsigned short col,
                                     unsigned int text) {
@@ -169,6 +174,9 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
         break;
     case SYSTEM_CALL_REFRESH_WINDOW:
         _sc_refresh_window(ebx, eax, ecx, esi, edi);
+        break;
+    case SYSTEM_CALL_IS_CLOSE_WINDOW:
+        _sc_is_close_window(reg);
         break;
     case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
         _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);

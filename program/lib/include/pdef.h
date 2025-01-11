@@ -18,3 +18,5 @@ typedef unsigned int ptr_t;
 #define FONT_WIDTH 8               // 字体宽度
 #define FONT_HEIGHT 16             // 字体高度
 #define HEX_INT_FONT_WIDTH 80      // 一个数字16进制字符串宽度
+
+#define DEFAULT_DELAY_LOOP 1000

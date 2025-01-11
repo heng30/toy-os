@@ -68,12 +68,24 @@ void int_handler_from_c(char *esp) {
     show_keyboard_input(code);
     set_modkey_status(code);
 
-    // ctrl+k
+    // ctrl+k强行关闭当前正在运行的命令
     if (is_ctrl_key_pressed() && code == 0x25) {
         _keyboard_kill_cmd();
-    } else if (g_window_ctl.m_focus_window) {
-        // 当前有焦点窗口才获取输入字符
-        fifo8_put(&g_keyinfo, code);
+    } else if (is_ctrl_key_pressed() && code == 0x10) {
+        // ctrl+q正常关闭用户窗口
+        window_t *fwin = g_window_ctl.m_focus_window;
+        if (fwin && fwin->m_id == WINDOW_ID_USER) {
+            fwin->m_is_waiting_for_close = true;
+        }
+    } else if (is_alt_key_pressed() && is_tab_down(code)) {
+        // alt+tab切换焦点窗口
+        window_ctl_focus_next_window();
+    } else {
+        window_t *fwin = g_window_ctl.m_focus_window;
+        if (fwin && fwin->m_enabled && fwin->m_have_input_cursor) {
+            // 当前有焦点窗口才获取输入字符
+            fifo8_put(&g_keyinfo, code);
+        }
     }
 }
 

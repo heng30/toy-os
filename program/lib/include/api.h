@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "pdef.h"
+
 // 在终端打印一个字符
 void api_console_draw_ch(char ch);
 
@@ -15,6 +17,9 @@ unsigned int api_new_window(unsigned int x, unsigned int y, unsigned int xsize,
 // 刷新窗口指定区域
 void api_refresh_window(unsigned int win, unsigned int x0, unsigned int y0,
                         unsigned int x1, unsigned int y1);
+
+// 检查是否应该关闭程序
+bool api_is_close_window(void);
 
 // 在窗口中绘制字符串
 // col 的高8字节为背景色，低8字节为前景色

@@ -290,6 +290,7 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
 
     p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
+    p->m_win->m_have_input_cursor = true;
     console_input_area_clear_all(p);
     return p;
 }
@@ -340,12 +341,6 @@ static void _console_task_main(task_t *task, const char *title) {
             continue;
 
         unsigned char code = (unsigned char)c;
-
-        // alt+tab切换焦点窗口
-        if (is_alt_key_pressed() && is_tab_down(code)) {
-            window_ctl_focus_next_window();
-            continue;
-        }
 
         if (is_backspace_down(code)) {
             _console_pop(console);

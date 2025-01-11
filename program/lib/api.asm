@@ -113,6 +113,11 @@ api_refresh_window:
   pop   edi
   ret
 
+api_is_close_window:
+  mov edx, SYSTEM_CALL_IS_CLOSE_WINDOW
+  int SYSTEM_CALL_INT
+  ret
+
 api_rand_uint:
   mov  edx, SYSTEM_CALL_RAND_UINT
   mov  eax, [esp + 4]

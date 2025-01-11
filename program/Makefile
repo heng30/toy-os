@@ -4,6 +4,7 @@ DIR = $(shell pwd)
 BUILD_DIR = $(DIR)/build
 FS_DATA_DIR = $(DIR)/../res/fs-data
 SYSTEM_CALL_LIB_DIR = $(DIR)/lib
+CLIB_FILE = $(SYSTEM_CALL_LIB_DIR)/build/clib.o
 ENTRY_FILE = entry.asm
 
 CROSS_COMPILE=
@@ -50,7 +51,8 @@ all: mk-dir build-lib copy-entry-file build
 
 # 从vpath中读取所有的.c文件，逐个编译成.o文件
 $(BUILD_DIR)/%.o: %.c | $(DIR)
-	$(CC) $(C_FLAGS) -o $@ $<
+	$(CC) $(C_FLAGS) $< -o $@
+	$(LD) $(LD_FLAGS) -r $@ $(CLIB_FILE) -o $@
 
 # 从vpath中读取所有的.o文件，逐个反汇编成.revert.asm文件
 $(BUILD_DIR)/%.revert.asm: %.o | $(DIR)
@@ -81,7 +83,6 @@ copy-entry-file:
 	- cp -f $(SYSTEM_CALL_LIB_DIR)/$(ENTRY_FILE) $(BUILD_DIR)
 	@sed -i 's/ppm.inc/lib\/ppm.inc/g' $(BUILD_DIR)/$(ENTRY_FILE)
 	@sed -i 's/api.asm/lib\/api.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)
-	@sed -i 's/build\/clib.asm/lib\/build\/clib.asm/g' $(BUILD_DIR)/$(ENTRY_FILE)
 
 move-map-symbols-files:
 	mv -f $(DIR)/*.map $(BUILD_DIR)

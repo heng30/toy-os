@@ -172,15 +172,16 @@ static void _moving_window(void) {
         console_moving(p);
         break;
     }
+    case WINDOW_ID_USER: {
+        window_moving(win);
+        break;
+    }
     default:
         break;
     }
 }
 
 void mouse_focus_window(window_t *win) {
-    if (!win->m_instance)
-        return;
-
     window_ctl_move_window_to_top(win);
     win_sheet_hide(g_input_cursor_sht);
 
@@ -191,6 +192,10 @@ void mouse_focus_window(window_t *win) {
     }
     case WINDOW_ID_CONSOLE: {
         console_focus(win->m_instance);
+        break;
+    }
+    case WINDOW_ID_USER: {
+        window_focus(win);
         break;
     }
     default:
@@ -213,7 +218,10 @@ static void _handle_left_btn_event(void) {
 
         if (_handle_left_btn_event_win) {
             if (window_ctl_is_click_closebtn()) {
-                // TODO
+                // 只能关闭用户的创建的窗口程序
+                if (_handle_left_btn_event_win->m_id == WINDOW_ID_USER) {
+                    _handle_left_btn_event_win->m_is_waiting_for_close = true;
+                }
             } else if (window_ctl_is_click_title() &&
                        _handle_left_btn_event_win->m_enabled) {
                 window_ctl_set_moving_window(_handle_left_btn_event_win);

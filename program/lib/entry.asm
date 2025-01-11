@@ -17,6 +17,5 @@ fin:
     jmp fin
 
 %include "api.asm"
-%include "build/clib.asm"
 ; entry.asm End of file
 
