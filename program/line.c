@@ -17,7 +17,7 @@ void main(void) {
 
     while (true) {
         if (api_is_close_window())
-            return;
+            break;
 
         delay(DEFAULT_DELAY_LOOP);
     }

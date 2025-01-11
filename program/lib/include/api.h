@@ -48,3 +48,15 @@ unsigned int api_rand_uint(unsigned int seed);
 
 // 显示一个调试数字
 void api_show_debug_uint(unsigned int x, unsigned int y, unsigned int num);
+
+// 创建一个定时器
+unsigned int api_timer_alloc(void);
+
+// 释放一个定时器
+void api_timer_free(unsigned int timer);
+
+// 设置定时器
+void api_timer_set(unsigned int timer, unsigned int timeout, unsigned int run_count);
+
+// 判断定时器是否超时了
+bool api_timer_is_timeout(unsigned int timer);

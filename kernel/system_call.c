@@ -4,6 +4,7 @@
 #include "io.h"
 #include "kutil.h"
 #include "string.h"
+#include "timer.h"
 #include "win_sheet.h"
 
 #include "widgets/console.h"
@@ -148,6 +149,115 @@ static void _sc_show_debug_uint(unsigned int x, unsigned int y,
     show_debug_string(x, y, COLOR_BLACK, int2hexstr(num));
 }
 
+static void _sc_timer_alloc(ptr_t *reg) {
+    timer_t *p = timer_alloc();
+    reg[7] = (ptr_t)p;
+}
+
+static void _sc_timer_free(unsigned int timer) {
+    timer_t *p = (timer_t *)timer;
+    if (timer_is_valid(p)) {
+        timer_free(p);
+    }
+}
+
+static void _sc_timer_set(unsigned int timer, unsigned int timeout,
+                          unsigned int run_count) {
+    timer_t *p = (timer_t *)timer;
+    if (timer_is_valid(p)) {
+        set_timer(p, timeout, run_count);
+    }
+}
+
+static void _sc_timer_is_timeout(unsigned int timer) {
+    timer_t *p = (timer_t *)timer;
+    if (timer_is_valid(p)) {
+
+        timer_is_timeout(p);
+    }
+}
+
+// NOTE: swtch语句太长可能会出异常
+static bool _sc_handle_window(ptr_t *reg, unsigned int edi, unsigned int esi,
+                              unsigned int ebp, unsigned int esp,
+                              unsigned int ebx, unsigned int edx,
+                              unsigned int ecx, unsigned int eax) {
+    bool is_handle = false;
+    switch (edx) {
+    case SYSTEM_CALL_NEW_WINDOW:
+        _sc_new_window(reg, ebx, esi, edi, eax, ecx);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_CLOSE_WINDOW:
+        _sc_close_window(ebx);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_REFRESH_WINDOW:
+        _sc_refresh_window(ebx, eax, ecx, esi, edi);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_IS_CLOSE_WINDOW:
+        _sc_is_close_window(reg);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
+        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_DRAW_BOX_IN_WINDOW:
+        _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_DRAW_POINT_IN_WINDOW:
+        _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_DRAW_LINE_IN_WINDOW:
+        _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_CONSOLE_DRAW_CH:
+        _sc_console_draw_ch(eax);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_CONSOLE_DRAW_TEXT:
+        _sc_console_draw_text(ebx);
+        is_handle = true;
+        break;
+    default:
+        break;
+    }
+    return is_handle;
+}
+
+static bool _sc_handle_timer(ptr_t *reg, unsigned int edi, unsigned int esi,
+                             unsigned int ebp, unsigned int esp,
+                             unsigned int ebx, unsigned int edx,
+                             unsigned int ecx, unsigned int eax) {
+    bool is_handle = false;
+    switch (edx) {
+    case SYSTEM_CALL_TIMER_ALLOC:
+        _sc_timer_alloc(reg);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_TIMER_FREE:
+        _sc_timer_free(ebx);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_TIMER_SET:
+        _sc_timer_set(ebx, eax, ecx);
+        is_handle = true;
+        break;
+    case SYSTEM_CALL_TIMER_IS_TIMEOUT:
+        _sc_timer_is_timeout(ebx);
+        is_handle = true;
+        break;
+    default:
+        break;
+    }
+    return is_handle;
+}
+
 ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
                        unsigned int esp, unsigned int ebx, unsigned int edx,
                        unsigned int ecx, unsigned int eax) {
@@ -164,46 +274,17 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
     unsigned int *reg =
         (unsigned int *)(addr_stack_start + (unsigned char *)(&eax + 1));
 
-    switch (edx) {
-    case SYSTEM_CALL_END_CMD:
+    if (edx == SYSTEM_CALL_END_CMD) {
         return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
-    case SYSTEM_CALL_RAND_UINT:
-        _sc_rand_uint(reg, eax);
-        break;
-    case SYSTEM_CALL_SHOW_DEBUG_UINT:
+    } else if (edx == SYSTEM_CALL_RAND_UINT) {
+        _sc_rand_uint(reg, ebx);
+    } else if (edx == SYSTEM_CALL_SHOW_DEBUG_UINT) {
         _sc_show_debug_uint(ebx, eax, ecx);
-        break;
-    case SYSTEM_CALL_NEW_WINDOW:
-        _sc_new_window(reg, ebx, esi, edi, eax, ecx);
-        break;
-    case SYSTEM_CALL_CLOSE_WINDOW:
-        _sc_close_window(ebx);
-        break;
-    case SYSTEM_CALL_REFRESH_WINDOW:
-        _sc_refresh_window(ebx, eax, ecx, esi, edi);
-        break;
-    case SYSTEM_CALL_IS_CLOSE_WINDOW:
-        _sc_is_close_window(reg);
-        break;
-    case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
-        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
-        break;
-    case SYSTEM_CALL_DRAW_BOX_IN_WINDOW:
-        _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
-        break;
-    case SYSTEM_CALL_DRAW_POINT_IN_WINDOW:
-        _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
-        break;
-    case SYSTEM_CALL_DRAW_LINE_IN_WINDOW:
-        _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
-        break;
-    case SYSTEM_CALL_CONSOLE_DRAW_CH:
-        _sc_console_draw_ch(eax);
-        break;
-    case SYSTEM_CALL_CONSOLE_DRAW_TEXT:
-        _sc_console_draw_text(ebx);
-        break;
-    default:
+    } else if (_sc_handle_window(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return NULL;
+    } else if (_sc_handle_timer(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return NULL;
+    } else {
         _sc_console_draw_invalid_system_call(edx);
     }
 

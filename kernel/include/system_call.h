@@ -19,6 +19,18 @@ extern volatile unsigned int g_rand_number;
 // 显示一个调试数字
 #define SYSTEM_CALL_SHOW_DEBUG_UINT 101
 
+// 分配一个定时器
+#define SYSTEM_CALL_TIMER_ALLOC 102
+
+// 释放一个定时器
+#define SYSTEM_CALL_TIMER_FREE 103
+
+// 设置定时器
+#define SYSTEM_CALL_TIMER_SET 104
+
+// 获取定时器是否超时
+#define SYSTEM_CALL_TIMER_IS_TIMEOUT 105
+
 // 创建一个新窗口
 #define SYSTEM_CALL_NEW_WINDOW 400
 

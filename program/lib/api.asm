@@ -127,9 +127,11 @@ api_draw_line_in_window:
   ret
 
 api_rand_uint:
+  push ebx
   mov  edx, SYSTEM_CALL_RAND_UINT
-  mov  eax, [esp + 4]
+  mov  ebx, [esp + 8]
   int  SYSTEM_CALL_INT
+  pop  ebx
   ret
 
 api_show_debug_uint:
@@ -138,6 +140,37 @@ api_show_debug_uint:
   mov  ebx, [esp + 8]
   mov  eax, [esp + 12]
   mov  ecx, [esp + 16]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_timer_alloc:
+  mov  edx, SYSTEM_CALL_TIMER_ALLOC
+  int  SYSTEM_CALL_INT
+  ret
+
+api_timer_free:
+  push ebx
+  mov  edx, SYSTEM_CALL_TIMER_FREE
+  mov  ebx, [esp + 8]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_timer_set:
+  push ebx
+  mov  edx, SYSTEM_CALL_TIMER_SET
+  mov  ebx, [esp + 8]
+  mov  eax, [esp + 12]
+  mov  ecx, [esp + 16]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_timer_is_timeout:
+  push ebx
+  mov  edx, SYSTEM_CALL_TIMER_IS_TIMEOUT
+  mov  ebx, [esp + 8]
   int  SYSTEM_CALL_INT
   pop  ebx
   ret

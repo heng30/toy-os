@@ -46,10 +46,6 @@ void start_kernel(void) {
 
     input_cursor_show(MOUSE_WIN_SHEET_Z - 2);
 
-    timer_t *multi_task_display_statistics_timer = timer_alloc();
-    set_timer(multi_task_display_statistics_timer, TIMER_ONE_SECOND_TIME_SLICE,
-              TIMER_MAX_RUN_COUNTS, MULTI_TASK_DISPLAY_STATISTICS_DATA);
-
     io_sti(); // 开中断
     enable_mouse();
 

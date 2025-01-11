@@ -26,6 +26,9 @@
 
 task_t *g_timer_task = NULL;
 
+timer_t *g_multi_task_display_statistics_timer = NULL;
+timer_t *g_infinite_counter_timer = NULL; // 右下角时钟定时器
+
 timerctl_t g_timerctl = {
     .m_count = 0,
     .m_fifo =
@@ -64,7 +67,8 @@ timer_t *timer_alloc(void) {
             g_timerctl.m_timer[i].m_timeout = 0;
             g_timerctl.m_timer[i].m_const_timeout = 0;
             g_timerctl.m_timer[i].m_run_count = 0;
-            g_timerctl.m_timer[i].m_data = 0;
+            g_timerctl.m_timer[i].m_index = (unsigned char)i;
+            g_timerctl.m_timer[i].m_is_timeout = false;
             return &g_timerctl.m_timer[i];
         }
     }
@@ -75,8 +79,7 @@ timer_t *timer_alloc(void) {
 
 void timer_free(timer_t *timer) { timer->m_flags = UNUSED; }
 
-void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
-               unsigned char data) {
+void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count) {
     int eflags = io_load_eflags();
     io_cli(); // 暂时停止接收中断信号
 
@@ -84,14 +87,30 @@ void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
     timer->m_timeout = timeout; // 设定时间片
     timer->m_const_timeout = timeout;
     timer->m_run_count = run_count;
-    timer->m_data = data;
 
     io_store_eflags(eflags); // 恢复接收中断信号
 }
 
-void enable_timer_int(void) {
-    io_out8(PIC0_OCW2, 0x60); // 每次中断后都需要重新设置
+bool timer_is_timeout(timer_t *p) {
+    if (p->m_is_timeout) {
+        p->m_is_timeout = false;
+        return true;
+    }
+
+    return false;
 }
+
+bool timer_is_valid(timer_t *p) {
+    for (int i = 0; i < MAX_TIMER; i++) {
+        if (&g_timerctl.m_timer[i] == p) {
+            return true;
+        }
+        return false;
+    }
+}
+
+// 每次中断后都需要重新设置
+void enable_timer_int(void) { io_out8(PIC0_OCW2, 0x60); }
 
 // 每10ms会中断一次
 void int_handler_for_timer(char *esp) {
@@ -116,7 +135,7 @@ void int_handler_for_timer(char *esp) {
                         g_timerctl.m_timer[i].m_const_timeout;
                 }
 
-                fifo8_put(&g_timerctl.m_fifo, g_timerctl.m_timer[i].m_data);
+                fifo8_put(&g_timerctl.m_fifo, g_timerctl.m_timer[i].m_index);
             }
         }
     }
@@ -139,16 +158,11 @@ static void _timer_callback(void) {
     unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
     io_store_eflags(eflags); // 恢复接收中断信号
 
-    switch (data) {
-    case INPUT_CURSOR_TIMER_DATA:
+    if (data == g_input_cursor_timer->m_index) {
         input_cursor_blink();
-        break;
-
-    case MULTI_TASK_DISPLAY_STATISTICS_DATA:
+    } else if (data == g_multi_task_display_statistics_timer->m_index) {
         multi_task_statistics_display();
-        break;
-
-    case INFINITE_TIMER_COUNTER_DATA: {
+    } else if (data == g_infinite_counter_timer->m_index) {
         seconds_to_time_string(timer_callback_timer_counter++,
                                timer_callback_time_string);
         unsigned int len = strlen(timer_callback_time_string);
@@ -156,11 +170,10 @@ static void _timer_callback(void) {
         show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * len - 6,
                               g_boot_info.m_screen_y - FONT_HEIGHT - 5,
                               COLOR_BLACK, timer_callback_time_string);
-        break;
-    }
-
-    default:
-        break;
+    } else {
+        if (g_timerctl.m_timer[data].m_flags == RUNNING) {
+            g_timerctl.m_timer[data].m_is_timeout = true;
+        }
     }
 }
 
@@ -175,9 +188,13 @@ static void _timer_task_main(task_t *task) {
 }
 
 void init_timer_task(void) {
-    timer_t *infinite_timer = timer_alloc();
-    set_timer(infinite_timer, TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS,
-              INFINITE_TIMER_COUNTER_DATA);
+    g_infinite_counter_timer = timer_alloc();
+    set_timer(g_infinite_counter_timer, TIMER_ONE_SECOND_TIME_SLICE,
+              TIMER_MAX_RUN_COUNTS);
+
+    g_multi_task_display_statistics_timer = timer_alloc();
+    set_timer(g_multi_task_display_statistics_timer,
+              TIMER_ONE_SECOND_TIME_SLICE, TIMER_MAX_RUN_COUNTS);
 
     g_timer_task = multi_task_alloc((ptr_t)_timer_task_main, 0, NULL,
                                     ONE_RUNNING_TIME_SLICE);

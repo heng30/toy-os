@@ -11,18 +11,12 @@
 #define TIMER_ONE_SECOND_TIME_SLICE 100  // 1秒的时间片数量
 #define TIMER_INPUT_CURSOR_TIME_SLICE 50 // 500ms的时间片数量
 
-// 数据范围0-255，一个共同时指出256个不同的定时器并发
-#define INPUT_CURSOR_TIMER_DATA 255 // 通过这个数据开区分不同的定时器
-#define MULTI_TASK_TEST_B_MAIN_TIMER_DATA 254 // 测试任务b的定时器
-#define MULTI_TASK_TEST_B_MAIN_TIMER_AUTO_DATA 253 // 测试自动切换任务b的定时器
-#define MULTI_TASK_DISPLAY_STATISTICS_DATA 252 // 定时显示任务统计信息
-#define INFINITE_TIMER_COUNTER_DATA 251
-
 typedef struct {
-    unsigned char m_data; // 用户数据
-    unsigned int m_flags; // 标志位
+    unsigned char m_index; // 当前定时器的下标
+    bool m_is_timeout;     // 定时器是否已经超时
+    unsigned int m_flags;  // 标志位
 
-    // 设定时间片, 每次10ms中断一次，并且会减一，直到零会触发定时事件
+    // 设定时间片, 每10ms中断一次，并且会减一，直到零会触发定时事件
     unsigned int m_timeout;
 
     // 保存timeout的副本，如果run_count > 1，需要使用这个值来重置timeout
@@ -32,7 +26,7 @@ typedef struct {
 } timer_t;
 
 typedef struct {
-    unsigned int m_count;       // 定时器数量
+    unsigned int m_count;       // 中断函数调用次数
     fifo8_t m_fifo;             // 暂存超时中断的发送过来的数据
     timer_t m_timer[MAX_TIMER]; // 保存定时器
 } timerctl_t;
@@ -49,8 +43,13 @@ void init_timer_ctl(void);
 timer_t *timer_alloc(void);
 
 // 设置定时时间, `timeout == 100`为1秒
-void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count,
-               unsigned char data);
+void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count);
+
+// 判断是否已经超时了，如果超时了，就会重新设置为不超时，等待下一次设置超时
+bool timer_is_timeout(timer_t* p);
+
+// 是否是合法的定时器
+bool timer_is_valid(timer_t *p);
 
 // 重新启用时钟中断
 void enable_timer_int(void);
