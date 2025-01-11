@@ -153,7 +153,7 @@ static void _timer_callback(void) {
                                timer_callback_time_string);
         unsigned int len = strlen(timer_callback_time_string);
 
-        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * len - 50,
+        show_string_in_canvas(g_boot_info.m_screen_x - FONT_WIDTH * len - 6,
                               g_boot_info.m_screen_y - FONT_HEIGHT - 5,
                               COLOR_BLACK, timer_callback_time_string);
         break;

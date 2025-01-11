@@ -214,11 +214,11 @@ static void _set_background_vram(unsigned char *vram, unsigned int xsize,
     boxfill8(vram, xsize, COL8_000000, 2, ysize - 3, 59, ysize - 3);
     boxfill8(vram, xsize, COL8_000000, 60, ysize - 24, 60, ysize - 3);
 
-    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize - 4,
+    boxfill8(vram, xsize, COL8_848484, xsize - 100, ysize - 24, xsize - 4,
              ysize - 24);
-    boxfill8(vram, xsize, COL8_848484, xsize - 47, ysize - 23, xsize - 47,
+    boxfill8(vram, xsize, COL8_848484, xsize - 100, ysize - 23, xsize - 100,
              ysize - 4);
-    boxfill8(vram, xsize, COL8_FFFFFF, xsize - 47, ysize - 3, xsize - 4,
+    boxfill8(vram, xsize, COL8_FFFFFF, xsize - 100, ysize - 3, xsize - 4,
              ysize - 3);
     boxfill8(vram, xsize, COL8_FFFFFF, xsize - 3, ysize - 24, xsize - 3,
              ysize - 3);

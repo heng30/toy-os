@@ -1,4 +1,6 @@
 #include "string.h"
+#include "colo8.h"
+#include "draw.h"
 #include "kutil.h"
 
 char char2hex(char c) {
@@ -285,17 +287,21 @@ char *seconds_to_time_string(unsigned int seconds, char time[16]) {
     seconds %= (60 * 60);
 
     unsigned int minutes = seconds / 60;
-
     unsigned int secs = seconds % 60;
-
     time[0] = '\0';
 
-    char buf[8];
+    // WHY: 这里不能使用栈上的空间，会有问题。
+    static char _seconds_to_time_string_buf[8];
     unsigned int items[4] = {days, hours, minutes, secs};
 
     for (unsigned int i = 0; i < 4; i++) {
-        uint_to_string(items[i], buf);
-        strcat(time, buf);
+        uint_to_string(items[i], _seconds_to_time_string_buf);
+        if (_seconds_to_time_string_buf[1] == '\0') {
+            strpush(time, '0');
+            strpush(time, _seconds_to_time_string_buf[0]);
+        } else {
+            strcat(time, _seconds_to_time_string_buf);
+        }
 
         if (i == 0) {
             strpush(time, ' ');
