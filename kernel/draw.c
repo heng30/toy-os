@@ -5,11 +5,9 @@
 #include "kutil.h"
 #include "memory.h"
 #include "mouse.h"
+#include "palette_table.h"
 #include "string.h"
 #include "win_sheet.h"
-
-// 颜色板
-extern unsigned char palette_table_rgb[16 * 3];
 
 win_sheet_t *g_background_sht = NULL;
 win_sheet_t *g_canvas_sht = NULL;
@@ -50,8 +48,14 @@ void set_palette(unsigned int start, unsigned int end, unsigned char *rgb) {
 }
 
 void init_palette(void) {
+    init_palette_table2_rgb();
+
+    // 设置16种基础颜色
     set_palette(0, 15, palette_table_rgb);
-    return;
+
+    // 添加更多不同的颜色
+    // 231 = 6 * 6 * 6 + 16 - 1
+    set_palette(16, 231, palette_table2_rgb);
 }
 
 void boxfill8(unsigned char *vram, unsigned int xsize, unsigned char c,
