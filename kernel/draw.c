@@ -44,7 +44,6 @@ void set_palette(unsigned int start, unsigned int end, unsigned char *rgb) {
     }
 
     io_store_eflags(eflags); // 恢复接收中断信号
-    return;
 }
 
 void init_palette(void) {

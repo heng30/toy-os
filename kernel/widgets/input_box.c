@@ -141,6 +141,8 @@ static void _input_box_task_main(task_t *task, const char *title) {
 
     unsigned int counter = 0;
     for (;;) {
+        io_sti();
+
         show_string_in_canvas(FONT_WIDTH * 24, 0, COL8_FFFFFF,
                               int2hexstr(counter++));
 
