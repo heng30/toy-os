@@ -55,6 +55,9 @@ static void _keyboard_kill_cmd(void) {
         task->m_tss.m_esp0 != 0 && task->m_tss.m_ss0 != 0) {
         console_draw_text(p, "Kill Process");
         console_move_to_next_line(p);
+
+        // task->m_tss.m_eflags |= 0x0200;
+        // task->m_tss.m_cs = get_selector_code32();
         task->m_tss.m_eip = (unsigned int)cmd_kill_process - addr_code32;
     }
 

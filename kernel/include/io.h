@@ -59,6 +59,9 @@ unsigned int get_addr_gdt(void);
 // 获取代码段地址
 unsigned int get_code32_addr(void);
 
+// 获取代码段在gdt表中的字节偏移
+unsigned int get_selector_code32(void);
+
 // 获取堆栈开始地址
 unsigned int get_stack_start_addr(void);
 

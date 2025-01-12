@@ -109,6 +109,10 @@ get_stack_start_addr:
     mov  eax, LABEL_STACK
     ret
 
+get_selector_code32:
+    mov  eax, SELECTOR_CODE32
+    ret
+
 ; 指令LTR和STR分别用于加载和保存TR寄存器的段选择符部分。
 ; 当使用LTR指令把选择符加载进任务寄存器时，
 ; TSS描述符中的段基地址、段限长度以及描述符属性会被自动地加载到任务寄存器中。
