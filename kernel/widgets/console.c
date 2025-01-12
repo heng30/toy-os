@@ -283,11 +283,6 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     p->m_cmd_ds = memman_alloc_4k(CONSOLE_CMD_DS_SIZE);
     assert(p->m_cmd_ds != NULL, "console_new alloc cmd_ds error");
 
-    // 设置外部命令调用的数据段描述符，为了与内核的数据段进行隔离
-    segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
-    set_segmdesc(gdt + GDT_CONSOLE_CMD_DS_TR, CONSOLE_CMD_DS_SIZE - 1,
-                 (ptr_t)p->m_cmd_ds, AR_FUNCTION_DS + AR_RING_3);
-
     p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
     p->m_win->m_have_input_cursor = true;

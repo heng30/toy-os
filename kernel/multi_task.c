@@ -89,11 +89,15 @@ void init_multi_task_ctl(void) {
     segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
     for (unsigned char i = 0; i < MAX_TASKS; i++) {
         g_multi_task_ctl->m_tasks0[i].m_flags = TASK_STATUS_UNUSED;
-        g_multi_task_ctl->m_tasks0[i].m_tr = TASK_GDT0 + i;
+        g_multi_task_ctl->m_tasks0[i].m_tr = (unsigned char)(TASK_GDT0 + i * 2);
 
         // 设置全局描述附表中的段描述符为TSS32对象
-        set_segmdesc(gdt + TASK_GDT0 + i, LIMIT_TSS32,
+        set_segmdesc(gdt + TASK_GDT0 + i * 2, LIMIT_TSS32,
                      (ptr_t)&g_multi_task_ctl->m_tasks0[i].m_tss, AR_TSS32);
+
+        set_segmdesc(gdt + TASK_GDT0 + i * 2 + 1,
+                     sizeof(segment_descriptor_t) * 2 - 1,
+                     (ptr_t)&g_multi_task_ctl->m_tasks0[i].m_ldt, AR_LDT);
     }
 
     g_multi_task_ctl->m_tasks_counts = 0;
@@ -167,8 +171,10 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
 
             task->m_tss.m_esi = 0;
             task->m_tss.m_edi = 0;
-            task->m_tss.m_ldtr = 0;
             task->m_tss.m_iomap = 0x40000000;
+
+            // tss32描述后紧跟着一个相关的局部描述符
+            task->m_tss.m_ldtr = ((unsigned int)task->m_tr + 1) << 3;
 
             task->m_tss.m_eip = task_main - addr_code32;
 

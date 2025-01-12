@@ -4,9 +4,10 @@
 #include "timer.h"
 
 #define LIMIT_TSS32 103
-#define DA_32 0x4000 // 32位可读写段
+#define DA_32 0x4000       // 32位可读写段
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
+#define AR_LDT 0x0082      // 局部描述符号
 
 // 设置段描述符对应的函数对象段描述符标志位
 #define AR_FUNCTION_DS 0x4092
@@ -79,9 +80,12 @@ typedef struct {
     unsigned int m_ref;
 
     // 用户数据, 可以放任何数据
-    void* m_userdata;
+    void *m_userdata;
 
     TSS32_t m_tss;
+
+    // 分别保存代码段和数据段
+    segment_descriptor_t m_ldt[2];
 } task_t;
 
 typedef struct {

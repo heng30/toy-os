@@ -37,8 +37,9 @@ LABEL_DESC_8:       Descriptor        0,            0,                      0
 LABEL_DESC_9:       Descriptor        0,            0,                      0
 
 ; 进程切换相关. 创建TSS32结构，用户保存任务相关寄存器
-; TSS描述符, 指向任务的TSS32对象
-%rep TASK_COUNTS
+; 任务门描述符, 指向任务的TSS32对象
+; 一个任务占用两个描述符：分别为tss32描述符和局部描述符
+%rep TASK_COUNTS * 2
                     Descriptor        0,            0,                      0
 %endrep
 

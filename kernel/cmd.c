@@ -89,7 +89,7 @@ static void _after_cmd_exe(console_t *console, const char *filename,
 
 void cmd_exe(console_t *console) {
     const char *filename = str_trim_space(console->m_text);
-    unsigned short cmd_tr = GDT_CONSOLE_CMD_TR;
+    task_t *task = console->m_win->m_task;
 
     console->m_cmd = fs_read(filename);
     if (!console->m_cmd)
@@ -97,12 +97,19 @@ void cmd_exe(console_t *console) {
 
     console_disable(console);
 
-    segment_descriptor_t *gdt = (segment_descriptor_t *)get_addr_gdt();
-    set_segmdesc(gdt + cmd_tr, 0xfffff, (ptr_t)console->m_cmd->m_data,
+    // 设置外部命令调用的代码段描述符
+    set_segmdesc(&task->m_ldt[0], 0xfffff, (ptr_t)console->m_cmd->m_data,
                  AR_FUNCTION + AR_RING_3);
 
+    // 设置外部命令调用的数据段描述符，为了与内核的数据段进行隔离
+    set_segmdesc(&task->m_ldt[1], CONSOLE_CMD_DS_SIZE - 1,
+                 (ptr_t)console->m_cmd_ds, AR_FUNCTION_DS + AR_RING_3);
+
     // 跳转到外部程序代码并执行. 参数: eip, cs, esp, ds, esp0
-    start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3,
+    // 加4是要将第3位置为1, 启用局部描述符表
+    // 因为在局部描述符表中第1位为代码段描述符，第2位为数据段描述符
+    // 所以这里的代码段描述符下标为0, 数据段描述符下标为1
+    start_cmd(0, 0 * 8 + 4, CONSOLE_CMD_DS_SIZE, 1 * 8 + 4,
               &g_multi_task_ctl->m_current_task->m_tss.m_esp0);
 
     window_t *fouce_win = g_window_ctl.m_focus_window;
