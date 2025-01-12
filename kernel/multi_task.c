@@ -129,6 +129,7 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
             task->m_remain_time_slice = running_time_slice;
             task->m_sleep_time_slice = 0;
             task->m_is_priority_task = false;
+            task->m_userdata = NULL;
             task->m_ref = 1;
 
             memset((unsigned char *)&task->m_tss, 0, sizeof(task->m_tss));

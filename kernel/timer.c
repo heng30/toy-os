@@ -109,17 +109,9 @@ bool timer_is_valid(timer_t *p) {
     return false;
 }
 
-// 每次中断后都需要重新设置
-void enable_timer_int(void) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-    io_out8(PIC0_OCW2, 0x60);
-    io_store_eflags(eflags); // 恢复接收中断信号
-}
-
 // 每10ms会中断一次
 void int_handler_for_timer(char *esp) {
-    enable_timer_int();
+    io_out8(PIC0_OCW2, 0x60); // 每次中断后都需要重新设置
     g_timerctl.m_count++;
 
     // 遍历所有定时器

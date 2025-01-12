@@ -78,6 +78,9 @@ typedef struct {
     // 任务引用次数
     unsigned int m_ref;
 
+    // 用户数据, 可以放任何数据
+    void* m_userdata;
+
     TSS32_t m_tss;
 } task_t;
 

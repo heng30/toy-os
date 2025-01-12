@@ -51,9 +51,6 @@ bool timer_is_timeout(timer_t* p);
 // 是否是合法的定时器
 bool timer_is_valid(timer_t *p);
 
-// 重新启用时钟中断
-void enable_timer_int(void);
-
 // 释放定时器
 void timer_free(timer_t *timer);
 

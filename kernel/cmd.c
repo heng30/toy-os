@@ -115,8 +115,6 @@ void cmd_exe(console_t *console) {
 
 void cmd_kill_process(void) {
     console_t *p = console_get();
-    console_draw_text(p, "Kill Process");
-    console_move_to_next_line(p);
     kill_cmd(&p->m_win->m_task->m_tss.m_esp0);
 }
 
