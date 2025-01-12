@@ -20,3 +20,8 @@ typedef unsigned int ptr_t;
 #define HEX_INT_FONT_WIDTH 80      // 一个数字16进制字符串宽度
 
 #define DEFAULT_DELAY_LOOP 1000
+
+// 最大定时器连续触发此时，可以看作是不断触发的定时器
+#define TIMER_MAX_RUN_COUNTS 0xffffffff
+
+#define TIMER_ONE_SECOND_TIME_SLICE 100  // 1秒的时间片数量

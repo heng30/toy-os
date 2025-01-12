@@ -73,6 +73,24 @@ api_draw_text_in_window:
   pop  edi
   ret
 
+api_draw_text_in_window_ds:
+  push edi
+  push esi
+  push ebp
+  push ebx
+  mov  edx, SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS
+  mov  ebx, [esp + 20]  ; win
+  mov  esi, [esp + 24]  ; x
+  mov  edi, [esp + 28]  ; y
+  mov  eax, [esp + 32]  ; col
+  mov  ecx, [esp + 36]  ; text
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  pop  ebp
+  pop  esi
+  pop  edi
+  ret
+
 api_draw_box_in_window:
   push edi
   push esi

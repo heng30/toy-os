@@ -80,6 +80,7 @@ void _sc_is_close_window(ptr_t *reg) {
     window_t *p = g_window_ctl.m_focus_window;
     reg[7] = (p && p->m_id == WINDOW_ID_USER && p->m_is_waiting_for_close);
 }
+
 static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
                                     unsigned int y, unsigned short col,
                                     unsigned int text) {
@@ -87,7 +88,23 @@ static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
     window_t *pwin = (window_t *)win;
 
     if (window_ctl_is_window_exist(pwin)) {
-        const char *real_text = p->m_cmd->m_data + text;
+        const char *real_text = p->m_cmd->m_data + text; // 从代码段中开始偏移
+        unsigned char bg_col = (unsigned char)(col >> 8);
+        unsigned char fg_col = (unsigned char)(col & 0xff);
+        show_string(pwin->m_sheet, x, y, bg_col, fg_col, real_text);
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
+
+static void _sc_draw_text_in_window_ds(unsigned int win, unsigned int x,
+                                       unsigned int y, unsigned short col,
+                                       unsigned int text) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        const char *real_text = p->m_cmd_ds + text; // 从数据段中开始偏移
         unsigned char bg_col = (unsigned char)(col >> 8);
         unsigned char fg_col = (unsigned char)(col & 0xff);
         show_string(pwin->m_sheet, x, y, bg_col, fg_col, real_text);
@@ -169,63 +186,79 @@ static void _sc_timer_set(unsigned int timer, unsigned int timeout,
     }
 }
 
-static void _sc_timer_is_timeout(unsigned int timer) {
+static void _sc_timer_is_timeout(ptr_t *reg, unsigned int timer) {
     timer_t *p = (timer_t *)timer;
     if (timer_is_valid(p)) {
-
-        timer_is_timeout(p);
+        reg[7] = (ptr_t)timer_is_timeout(p);
     }
 }
 
-// NOTE: swtch语句太长可能会出异常
+// NOTE: 语句太长可能会出异常
+static bool _sc_handle_window_1(ptr_t *reg, unsigned int edi, unsigned int esi,
+                                unsigned int ebp, unsigned int esp,
+                                unsigned int ebx, unsigned int edx,
+                                unsigned int ecx, unsigned int eax) {
+    bool is_handle = true;
+    if (edx == SYSTEM_CALL_NEW_WINDOW) {
+        _sc_new_window(reg, ebx, esi, edi, eax, ecx);
+    } else if (edx == SYSTEM_CALL_CLOSE_WINDOW) {
+        _sc_close_window(ebx);
+    } else if (edx == SYSTEM_CALL_REFRESH_WINDOW) {
+        _sc_refresh_window(ebx, eax, ecx, esi, edi);
+    } else if (edx == SYSTEM_CALL_IS_CLOSE_WINDOW) {
+        _sc_is_close_window(reg);
+    } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW) {
+        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
+    } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS) {
+        _sc_draw_text_in_window_ds(ebx, esi, edi, (unsigned short)eax, ecx);
+    } else {
+        is_handle = false;
+    }
+    return is_handle;
+}
+
+static bool _sc_handle_window_2(ptr_t *reg, unsigned int edi, unsigned int esi,
+                                unsigned int ebp, unsigned int esp,
+                                unsigned int ebx, unsigned int edx,
+                                unsigned int ecx, unsigned int eax) {
+    bool is_handle = true;
+    if (edx == SYSTEM_CALL_DRAW_BOX_IN_WINDOW) {
+        _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+    } else if (edx == SYSTEM_CALL_DRAW_POINT_IN_WINDOW) {
+        _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
+    } else if (edx == SYSTEM_CALL_DRAW_LINE_IN_WINDOW) {
+        _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+    } else {
+        is_handle = false;
+    }
+    return is_handle;
+}
+
 static bool _sc_handle_window(ptr_t *reg, unsigned int edi, unsigned int esi,
                               unsigned int ebp, unsigned int esp,
                               unsigned int ebx, unsigned int edx,
                               unsigned int ecx, unsigned int eax) {
-    bool is_handle = false;
-    switch (edx) {
-    case SYSTEM_CALL_NEW_WINDOW:
-        _sc_new_window(reg, ebx, esi, edi, eax, ecx);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_CLOSE_WINDOW:
-        _sc_close_window(ebx);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_REFRESH_WINDOW:
-        _sc_refresh_window(ebx, eax, ecx, esi, edi);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_IS_CLOSE_WINDOW:
-        _sc_is_close_window(reg);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_DRAW_TEXT_IN_WINDOW:
-        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_DRAW_BOX_IN_WINDOW:
-        _sc_draw_box_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_DRAW_POINT_IN_WINDOW:
-        _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_DRAW_LINE_IN_WINDOW:
-        _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_CONSOLE_DRAW_CH:
+    if (_sc_handle_window_1(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return true;
+    } else if (_sc_handle_window_2(reg, edi, esi, ebp, esp, ebx, edx, ecx,
+                                   eax)) {
+        return true;
+    }
+
+    return false;
+}
+
+static bool _sc_handle_console(ptr_t *reg, unsigned int edi, unsigned int esi,
+                               unsigned int ebp, unsigned int esp,
+                               unsigned int ebx, unsigned int edx,
+                               unsigned int ecx, unsigned int eax) {
+    bool is_handle = true;
+    if (edx == SYSTEM_CALL_CONSOLE_DRAW_CH) {
         _sc_console_draw_ch(eax);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_CONSOLE_DRAW_TEXT:
+    } else if (edx == SYSTEM_CALL_CONSOLE_DRAW_TEXT) {
         _sc_console_draw_text(ebx);
-        is_handle = true;
-        break;
-    default:
-        break;
+    } else {
+        is_handle = false;
     }
     return is_handle;
 }
@@ -234,27 +267,34 @@ static bool _sc_handle_timer(ptr_t *reg, unsigned int edi, unsigned int esi,
                              unsigned int ebp, unsigned int esp,
                              unsigned int ebx, unsigned int edx,
                              unsigned int ecx, unsigned int eax) {
-    bool is_handle = false;
-    switch (edx) {
-    case SYSTEM_CALL_TIMER_ALLOC:
+    bool is_handle = true;
+    if (edx == SYSTEM_CALL_TIMER_ALLOC) {
         _sc_timer_alloc(reg);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_TIMER_FREE:
+    } else if (edx == SYSTEM_CALL_TIMER_FREE) {
         _sc_timer_free(ebx);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_TIMER_SET:
+    } else if (edx == SYSTEM_CALL_TIMER_SET) {
         _sc_timer_set(ebx, eax, ecx);
-        is_handle = true;
-        break;
-    case SYSTEM_CALL_TIMER_IS_TIMEOUT:
-        _sc_timer_is_timeout(ebx);
-        is_handle = true;
-        break;
-    default:
-        break;
+    } else if (edx == SYSTEM_CALL_TIMER_IS_TIMEOUT) {
+        _sc_timer_is_timeout(reg, ebx);
+    } else {
+        is_handle = false;
     }
+    return is_handle;
+}
+
+static bool _sc_handle_util(ptr_t *reg, unsigned int edi, unsigned int esi,
+                            unsigned int ebp, unsigned int esp,
+                            unsigned int ebx, unsigned int edx,
+                            unsigned int ecx, unsigned int eax) {
+    bool is_handle = true;
+    if (edx == SYSTEM_CALL_RAND_UINT) {
+        _sc_rand_uint(reg, ebx);
+    } else if (edx == SYSTEM_CALL_SHOW_DEBUG_UINT) {
+        _sc_show_debug_uint(ebx, eax, ecx);
+    } else {
+        is_handle = false;
+    }
+
     return is_handle;
 }
 
@@ -276,11 +316,12 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
 
     if (edx == SYSTEM_CALL_END_CMD) {
         return &g_multi_task_ctl->m_current_task->m_tss.m_esp0;
-    } else if (edx == SYSTEM_CALL_RAND_UINT) {
-        _sc_rand_uint(reg, ebx);
-    } else if (edx == SYSTEM_CALL_SHOW_DEBUG_UINT) {
-        _sc_show_debug_uint(ebx, eax, ecx);
+    } else if (_sc_handle_util(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return NULL;
     } else if (_sc_handle_window(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return NULL;
+    } else if (_sc_handle_console(reg, edi, esi, ebp, esp, ebx, edx, ecx,
+                                  eax)) {
         return NULL;
     } else if (_sc_handle_timer(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
         return NULL;

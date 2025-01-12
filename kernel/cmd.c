@@ -72,7 +72,8 @@ end:
     console_move_to_next_line(console);
 }
 
-static void _after_cmd_exe(console_t *console, const char *filename, window_t* win) {
+static void _after_cmd_exe(console_t *console, const char *filename,
+                           window_t *win) {
     if (!strcmp(filename, "dch.exe") || !strcmp(filename, "dtext.exe")) {
         console_move_to_next_line(console);
     }
@@ -104,7 +105,7 @@ void cmd_exe(console_t *console) {
     start_cmd(0, cmd_tr << 3, CONSOLE_CMD_DS_SIZE, GDT_CONSOLE_CMD_DS_TR << 3,
               &g_multi_task_ctl->m_current_task->m_tss.m_esp0);
 
-    window_t* fouce_win = g_window_ctl.m_focus_window;
+    window_t *fouce_win = g_window_ctl.m_focus_window;
     console_enable(console);
     _after_cmd_exe(console, filename, fouce_win);
 

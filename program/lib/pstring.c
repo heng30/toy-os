@@ -1,8 +1,6 @@
 #include "pstring.h"
 
-char *int2hexstr(unsigned int d) {
-    static char str[11];
-
+void int2hexstr(unsigned int d, char str[11]) {
     str[0] = '0', str[1] = 'X', str[10] = 0;
     for (int i = 2; i < 10; i++) {
         str[i] = '0';
@@ -17,8 +15,6 @@ char *int2hexstr(unsigned int d) {
             str[p] = '0' + e;
         }
     }
-
-    return str;
 }
 
 void int_to_string(int num, char *str) {

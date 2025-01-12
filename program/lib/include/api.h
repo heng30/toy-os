@@ -24,9 +24,14 @@ void api_refresh_window(unsigned int win, unsigned int x0, unsigned int y0,
 // 检查是否应该关闭程序
 bool api_is_close_window(void);
 
-// 在窗口中绘制字符串
+// 在窗口中绘制字符串, 这个字符串要在代码段，即字符串是常量字符串
 // col 的高8字节为背景色，低8字节为前景色
 void api_draw_text_in_window(unsigned int win, unsigned int x, unsigned int y,
+                             unsigned short col, const char *str);
+
+// 在窗口中绘制字符串, 这个字符串要在数据段，即字符串在栈上空间
+// col 的高8字节为背景色，低8字节为前景色
+void api_draw_text_in_window_ds(unsigned int win, unsigned int x, unsigned int y,
                              unsigned short col, const char *str);
 
 // 在窗口中绘制一个矩形

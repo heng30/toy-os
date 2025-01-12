@@ -105,8 +105,8 @@ bool timer_is_valid(timer_t *p) {
         if (&g_timerctl.m_timer[i] == p) {
             return true;
         }
-        return false;
     }
+    return false;
 }
 
 // 每次中断后都需要重新设置

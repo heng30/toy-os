@@ -4,11 +4,13 @@
 #include "timer.h"
 
 #define LIMIT_TSS32 103
+#define DA_32 0x4000 // 32位可读写段
 #define AR_TSS32 0x0089    // 设置段描述符对应的TSS32对象标志位
 #define AR_FUNCTION 0x409a // 设置段描述符对应的函数对象标志位
-#define AR_FUNCTION_DS                                                         \
-    0x4092 // 设置段描述符对应的函数对象段描述符标志位
-           //
+
+// 设置段描述符对应的函数对象段描述符标志位
+#define AR_FUNCTION_DS 0x4092
+
 // 特权级别3，一共有0,1,2,3共4种特权级别，3级别最低，为应用程序级别,很多危险的指令都无法执行
 #define AR_RING_3 0x60
 
@@ -118,8 +120,8 @@ void set_segmdesc(segment_descriptor_t *sd, unsigned int limit,
                   unsigned int base, unsigned int ar);
 
 // 设置中断描述符
-void set_gate(gate_descriptor_t *sg, unsigned int offset, unsigned short selector,
-              unsigned short ar);
+void set_gate(gate_descriptor_t *sg, unsigned int offset,
+              unsigned short selector, unsigned short ar);
 
 // 初始化
 void init_multi_task_ctl();

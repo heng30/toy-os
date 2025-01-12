@@ -55,6 +55,9 @@ extern volatile unsigned int g_rand_number;
 // 在窗口绘制一条直线
 #define SYSTEM_CALL_DRAW_LINE_IN_WINDOW 504
 
+// 在窗口中绘制一个字符串, 字符串要在栈上
+#define SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS 505
+
 // 需要终端打印的字符放到al寄存器中
 #define SYSTEM_CALL_CONSOLE_DRAW_CH 1000
 
