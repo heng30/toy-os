@@ -1,6 +1,7 @@
 #include "colo8.h"
 #include "def.h"
 #include "draw.h"
+#include "file_ctl.h"
 #include "input_cursor.h"
 #include "io.h"
 #include "keyboard.h"
@@ -19,8 +20,16 @@
 #include "widgets/input_box.h"
 
 static void _test(void) {
+    unsigned int sx = 0, sy = 300;
+
 #ifdef __RING_TEST__
     ring_test();
+    show_debug_string(sx, sy, COLOR_BLACK, "ring_test ok");
+#endif
+
+#ifdef __FILE_CTL_TEST__
+    file_ctl_test();
+    show_debug_string(sx, sy + FONT_HEIGHT, COLOR_BLACK, "file_ctl_test ok");
 #endif
 }
 
@@ -35,6 +44,7 @@ void start_kernel(void) {
     init_timer_ctl();
     init_multi_task_ctl();
     init_win_sheet_ctl();
+    init_file_ctl();
 
     init_background_sheet();
     init_mouse_sheet();

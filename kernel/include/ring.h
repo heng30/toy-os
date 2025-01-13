@@ -38,4 +38,6 @@ bool ring_is_empty(ring_t *r);
 unsigned int ring_len(ring_t *r);
 
 // 测试
+#ifdef __RING_TEST__
 void ring_test(void);
+#endif

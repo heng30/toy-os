@@ -62,6 +62,7 @@ bool ring_is_empty(ring_t *r) { return r->m_size == r->m_free; }
 
 unsigned int ring_len(ring_t *r) { return r->m_size - r->m_free; }
 
+#ifdef __RING_TEST__
 void ring_test(void) {
     ring_t *r = ring_alloc(10);
     for (int i = 0; i < 5; i++) {
@@ -98,3 +99,4 @@ void ring_test(void) {
 
     ring_free(r);
 }
+#endif

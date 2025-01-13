@@ -32,7 +32,9 @@ buf_t *fs_read(const char *filename) {
 }
 
 void fs_free_buf(buf_t *p) {
-    memman_free_4k(p->m_data, p->m_size);
+    if (p->m_data)
+        memman_free_4k(p->m_data, p->m_size);
+
     memman_free_4k(p, sizeof(buf_t));
 }
 
