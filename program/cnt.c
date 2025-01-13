@@ -17,7 +17,7 @@ void main(void) {
     while (true) {
         counter++;
         int_to_string(counter, text);
-        api_draw_text_in_window_ds(win, 60, 28, col, text);
+        api_draw_text_in_window(win, 60, 28, col, text, false);
 
         if (api_is_close_window())
             break;

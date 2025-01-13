@@ -2,6 +2,7 @@
 #include "colo8.h"
 #include "def.h"
 #include "draw.h"
+#include "file_ctl.h"
 #include "input_cursor.h"
 #include "io.h"
 #include "keyboard.h"
@@ -283,6 +284,11 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     p->m_cmd_ds = memman_alloc_4k(CONSOLE_CMD_DS_SIZE);
     assert(p->m_cmd_ds != NULL, "console_new alloc cmd_ds error");
 
+    p->m_file_des = memman_alloc_4k(FILE_DESCRIPTOR_MAX);
+    assert(p->m_file_des != NULL, "console_new alloc file_des error");
+
+    zero(p->m_file_des, FILE_DESCRIPTOR_MAX);
+
     p->m_cmd = NULL;
     p->m_win = window_new(x, y, width, height, WINDOW_ID_CONSOLE, title, p);
     p->m_win->m_have_input_cursor = true;
@@ -290,10 +296,21 @@ console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
     return p;
 }
 
-void console_free(const console_t *p) {
+void console_close_all_open_files(console_t *p) {
+    for (int i = 0; i < FILE_DESCRIPTOR_MAX; i++) {
+        if (p->m_file_des[i]) {
+            file_ctl_close(i);
+        }
+    }
+}
+
+void console_free(console_t *p) {
+    console_close_all_open_files(p);
+
     window_free(p->m_win);
     memman_free_4k(p->m_text, CONSOLE_TEXT_MAX_LEN);
     memman_free_4k(p->m_cmd_ds, CONSOLE_CMD_DS_SIZE);
+    memman_free_4k(p->m_file_des, FILE_DESCRIPTOR_MAX);
     memman_free_4k(p, sizeof(console_t));
 }
 

@@ -10,7 +10,8 @@ void main(void) {
     for (unsigned char y = 0; y < 128; y++) {
         for (unsigned char x = 0; x < 128; x++) {
             unsigned char r = x * 2, g = y * 2, b = 0;
-            unsigned char color = 16 + (r / 43) + (g / 43) * 6 + (b / 43) * 36;
+            unsigned char color =
+                (unsigned char)(16 + (r / 43) + (g / 43) * 6 + (b / 43) * 36);
             api_draw_point_in_window(win, x + 7, y + 27, color);
         }
     }

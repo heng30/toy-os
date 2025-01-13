@@ -85,6 +85,8 @@ static void _after_cmd_exe(console_t *console, const char *filename,
 
     // 销毁所有等待被销毁的窗口
     window_ctl_close_all_waiting_window();
+
+    console_close_all_open_files(console);
 }
 
 void cmd_exe(console_t *console) {

@@ -1,4 +1,5 @@
 #include "pstring.h"
+#include "puitl.h"
 
 void int2hexstr(unsigned int d, char str[11]) {
     str[0] = '0', str[1] = 'X', str[10] = 0;
@@ -44,4 +45,40 @@ void int_to_string(int num, char *str) {
         str[right] = temp;
         left++, right--;
     }
+}
+
+char *stpcpy(char *dst, const char *src) {
+    char *p = (char *)mempcpy((unsigned char *)dst, (unsigned char *)src,
+                              strlen(src));
+    *p = '\0';
+
+    return p;
+}
+
+unsigned int strlen(const char *s) {
+    unsigned int total = 0;
+    for (; *s != 0x00; s++) {
+        total++;
+    }
+    return total;
+}
+
+char *strcpy(char *dst, const char *src) {
+    stpcpy(dst, src);
+    return dst;
+}
+
+char *strcat(char *dst, const char *src) {
+    stpcpy(dst + strlen(dst), src);
+    return dst;
+}
+
+void clean_str(char *str) {
+    unsigned int len = strlen(str);
+
+    if (len == 0)
+        return;
+
+    if (str[len - 1] == 0x0a)
+        str[len - 1] = '\0';
 }

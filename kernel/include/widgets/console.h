@@ -17,14 +17,18 @@ typedef struct {
 
     // 外部命令的ds寄存器执行的内存，为了隔离内核和外部命令之间的内存
     unsigned char *m_cmd_ds;
+    bool *m_file_des; // 保存打开的文件描述符
 } console_t;
 
 // 分配对象
 console_t *console_new(unsigned int x, unsigned int y, unsigned int width,
                        unsigned int height, const char *title);
 
+// 关闭所有打开的文件
+void console_close_all_open_files(console_t *p);
+
 // 释放对象
-void console_free(const console_t *p);
+void console_free(console_t *p);
 
 // 获取关注点
 void console_focus(console_t *p);

@@ -51,6 +51,10 @@ typedef struct {
 // 读取文件内容
 buf_t *fs_read(const char *filename);
 
+
+// 创建buf_t
+buf_t *fs_new_buf(unsigned int size);
+
 // 释放内存
 void fs_free_buf(buf_t *p);
 

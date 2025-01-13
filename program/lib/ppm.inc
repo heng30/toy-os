@@ -6,6 +6,13 @@ SYSTEM_CALL_INVALID equ 0
 ; 结束外部命令，返回到内核态
 SYSTEM_CALL_END_CMD equ 1
 
+
+; 计算代码段常量字符串的长度
+SYSTEM_CALL_STRLEN_CS equ 50
+
+; 将代码段的数据复制到数据段上
+SYSTEM_CALL_MEMCPY_CS2DS equ 51
+
 ; 获取一个随机数
 SYSTEM_CALL_RAND_UINT equ 100
 
@@ -23,6 +30,21 @@ SYSTEM_CALL_TIMER_SET equ 104
 
 ; 获取定时器是否超时
 SYSTEM_CALL_TIMER_IS_TIMEOUT equ 105
+
+; 打开文件
+SYSTEM_CALL_FILE_OPEN equ 200
+
+; 读取文件
+SYSTEM_CALL_FILE_READ equ 201
+
+; 写入文件
+SYSTEM_CALL_FILE_WRITE equ 202
+
+; 关闭文件
+SYSTEM_CALL_FILE_CLOSE equ 203
+
+; 获取文件大小
+SYSTEM_CALL_FILE_SIZE equ 204
 
 ; 创建一个新窗口
 SYSTEM_CALL_NEW_WINDOW equ 400
@@ -47,9 +69,6 @@ SYSTEM_CALL_DRAW_POINT_IN_WINDOW equ 503
 
 ; 在窗口绘制一条直线
 SYSTEM_CALL_DRAW_LINE_IN_WINDOW equ 504
-
-; 在窗口中绘制一个字符串, 字符串要在栈上
-SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS equ 505
 
 ; 需要终端打印的字符放到al寄存器中
 SYSTEM_CALL_CONSOLE_DRAW_CH equ 1000

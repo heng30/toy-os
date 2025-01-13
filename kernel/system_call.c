@@ -1,6 +1,7 @@
 #include "system_call.h"
 #include "colo8.h"
 #include "draw.h"
+#include "file_ctl.h"
 #include "io.h"
 #include "kutil.h"
 #include "string.h"
@@ -23,12 +24,17 @@ static void _sc_console_draw_ch(unsigned int eax) {
     console_draw_ch(p, (char)(eax & 0xff));
 }
 
-static void _sc_console_draw_text(unsigned int ebx) {
+static void _sc_console_draw_text(unsigned int ebx, bool is_literal) {
     console_t *p = console_get();
     if (!p->m_cmd->m_data)
         return;
 
-    const char *text = (const char *)(p->m_cmd->m_data + ebx);
+    const char *text =  NULL;
+    if (is_literal)
+        text = (const char *)(p->m_cmd->m_data + ebx);
+    else
+        text = (const char *)(p->m_cmd_ds + ebx);
+
     console_draw_text(p, text);
 }
 
@@ -83,30 +89,21 @@ void _sc_is_close_window(ptr_t *reg) {
 
 static void _sc_draw_text_in_window(unsigned int win, unsigned int x,
                                     unsigned int y, unsigned short col,
-                                    unsigned int text) {
+                                    unsigned int text, bool is_literal) {
     console_t *p = console_get();
     window_t *pwin = (window_t *)win;
 
     if (window_ctl_is_window_exist(pwin)) {
-        const char *real_text = p->m_cmd->m_data + text; // 从代码段中开始偏移
         unsigned char bg_col = (unsigned char)(col >> 8);
         unsigned char fg_col = (unsigned char)(col & 0xff);
-        show_string(pwin->m_sheet, x, y, bg_col, fg_col, real_text);
-    } else {
-        _sc_no_window_errmsg(p, win);
-    }
-}
+        const char *real_text = NULL;
 
-static void _sc_draw_text_in_window_ds(unsigned int win, unsigned int x,
-                                       unsigned int y, unsigned short col,
-                                       unsigned int text) {
-    console_t *p = console_get();
-    window_t *pwin = (window_t *)win;
+        if (is_literal) {
+            real_text = p->m_cmd->m_data + text; // 从代码段中开始偏移
+        } else {
+            real_text = p->m_cmd_ds + text; // 从数据段中开始偏移
+        }
 
-    if (window_ctl_is_window_exist(pwin)) {
-        const char *real_text = p->m_cmd_ds + text; // 从数据段中开始偏移
-        unsigned char bg_col = (unsigned char)(col >> 8);
-        unsigned char fg_col = (unsigned char)(col & 0xff);
         show_string(pwin->m_sheet, x, y, bg_col, fg_col, real_text);
     } else {
         _sc_no_window_errmsg(p, win);
@@ -122,7 +119,6 @@ static void _sc_draw_box_in_window(unsigned int win, unsigned int x0,
     if (window_ctl_is_window_exist(pwin)) {
         win_sheet_t *sht = pwin->m_sheet;
         boxfill8(sht->m_buf, sht->m_bxsize, col, x0, y0, x1, y1);
-        win_sheet_refresh(sht, x0, y0, x1 + 1, y1 + 1);
     } else {
         _sc_no_window_errmsg(p, win);
     }
@@ -208,9 +204,8 @@ static bool _sc_handle_window_1(ptr_t *reg, unsigned int edi, unsigned int esi,
     } else if (edx == SYSTEM_CALL_IS_CLOSE_WINDOW) {
         _sc_is_close_window(reg);
     } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW) {
-        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx);
-    } else if (edx == SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS) {
-        _sc_draw_text_in_window_ds(ebx, esi, edi, (unsigned short)eax, ecx);
+        _sc_draw_text_in_window(ebx, esi, edi, (unsigned short)eax, ecx,
+                                (bool)ebp);
     } else {
         is_handle = false;
     }
@@ -256,7 +251,7 @@ static bool _sc_handle_console(ptr_t *reg, unsigned int edi, unsigned int esi,
     if (edx == SYSTEM_CALL_CONSOLE_DRAW_CH) {
         _sc_console_draw_ch(eax);
     } else if (edx == SYSTEM_CALL_CONSOLE_DRAW_TEXT) {
-        _sc_console_draw_text(ebx);
+        _sc_console_draw_text(ebx, (bool)eax);
     } else {
         is_handle = false;
     }
@@ -282,6 +277,22 @@ static bool _sc_handle_timer(ptr_t *reg, unsigned int edi, unsigned int esi,
     return is_handle;
 }
 
+static void _sc_strlen_cs(ptr_t *reg, unsigned int offset) {
+    console_t *p = console_get();
+    unsigned char *s = p->m_cmd->m_data + offset;
+    unsigned int len = strlen((const char *)s);
+    reg[7] = len;
+}
+
+static void _sc_memcpy_cs2ds(ptr_t* reg, unsigned int ds_offset, unsigned int cs_offset,
+                             unsigned int len) {
+    console_t *p = console_get();
+    unsigned char *ds_s = p->m_cmd_ds + ds_offset;
+    unsigned char *cs_s = p->m_cmd->m_data + cs_offset;
+    memcpy(ds_s, cs_s, len);
+    reg[7] = ds_offset;
+}
+
 static bool _sc_handle_util(ptr_t *reg, unsigned int edi, unsigned int esi,
                             unsigned int ebp, unsigned int esp,
                             unsigned int ebx, unsigned int edx,
@@ -291,6 +302,78 @@ static bool _sc_handle_util(ptr_t *reg, unsigned int edi, unsigned int esi,
         _sc_rand_uint(reg, ebx);
     } else if (edx == SYSTEM_CALL_SHOW_DEBUG_UINT) {
         _sc_show_debug_uint(ebx, eax, ecx);
+    } else if (edx == SYSTEM_CALL_STRLEN_CS) {
+        _sc_strlen_cs(reg, ebx);
+    } else if (edx == SYSTEM_CALL_MEMCPY_CS2DS) {
+        _sc_memcpy_cs2ds(reg, ebx, eax, ecx);
+    } else {
+        is_handle = false;
+    }
+
+    return is_handle;
+}
+
+void _sc_file_open(ptr_t *reg, const char *filename, bool is_literal) {
+    console_t *p = console_get();
+
+    if (is_literal)
+        filename = p->m_cmd->m_data + (unsigned int)filename;
+    else
+        filename = p->m_cmd_ds + (unsigned int)filename;
+
+    int fd = file_ctl_open(filename);
+    if (fd >= 0 && fd < FILE_DESCRIPTOR_MAX) {
+        p->m_file_des[fd] = true;
+    }
+
+    reg[7] = (ptr_t)fd;
+}
+
+void _sc_file_read(ptr_t *reg, int fd, unsigned int offset, unsigned int len,
+                   unsigned int pos) {
+    console_t *p = console_get();
+    unsigned char *buf = p->m_cmd_ds + offset;
+    int rlen = file_ctl_read(fd, buf, len, pos);
+    reg[7] = (ptr_t)rlen;
+}
+
+void _sc_file_write(ptr_t *reg, int fd, unsigned int offset, unsigned int len,
+                    unsigned int pos) {
+    console_t *p = console_get();
+    unsigned char *buf = p->m_cmd_ds + offset;
+    int wlen = file_ctl_write(fd, buf, len, pos);
+    reg[7] = (ptr_t)wlen;
+}
+
+void _sc_file_close(int fd) {
+    if (fd >= 0 && fd < FILE_DESCRIPTOR_MAX) {
+        console_t *p = console_get();
+        p->m_file_des[fd] = false;
+        file_ctl_close(fd);
+    }
+}
+
+void _sc_file_size(ptr_t *reg, int fd) {
+    int size = file_ctl_file_size(fd);
+    reg[7] = (ptr_t)size;
+}
+
+static bool _sc_handle_file(ptr_t *reg, unsigned int edi, unsigned int esi,
+                            unsigned int ebp, unsigned int esp,
+                            unsigned int ebx, unsigned int edx,
+                            unsigned int ecx, unsigned int eax) {
+    bool is_handle = true;
+
+    if (edx == SYSTEM_CALL_FILE_OPEN) {
+        _sc_file_open(reg, (const char *)ebx, (bool)eax);
+    } else if (edx == SYSTEM_CALL_FILE_READ) {
+        _sc_file_read(reg, (int)ebx, eax, ecx, edi);
+    } else if (edx == SYSTEM_CALL_FILE_WRITE) {
+        _sc_file_write(reg, (int)ebx, eax, ecx, edi);
+    } else if (edx == SYSTEM_CALL_FILE_CLOSE) {
+        _sc_file_close((int)ebx);
+    } else if (edx == SYSTEM_CALL_FILE_SIZE) {
+        _sc_file_size(reg, (int)ebx);
     } else {
         is_handle = false;
     }
@@ -324,6 +407,8 @@ ptr_t *system_call_api(unsigned int edi, unsigned int esi, unsigned int ebp,
                                   eax)) {
         return NULL;
     } else if (_sc_handle_timer(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
+        return NULL;
+    } else if (_sc_handle_file(reg, edi, esi, ebp, esp, ebx, edx, ecx, eax)) {
         return NULL;
     } else {
         _sc_console_draw_invalid_system_call(edx);

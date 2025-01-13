@@ -103,12 +103,11 @@ int file_ctl_write(int fd, unsigned char *buf, unsigned int len,
 
         unsigned int wlen = pos + len;
         if (wlen > fp->m_data->m_size) {
-            fs_free_buf(fp->m_data);
+            buf_t *old_buf = fp->m_data;
 
-            fp->m_data->m_data = memman_alloc_4k(wlen);
-            assert(fp->m_data->m_data != NULL,
-                   "file_ctl_write alloc epos failed");
-            fp->m_data->m_size = wlen;
+            fp->m_data = fs_new_buf(wlen);
+            memcpy(fp->m_data->m_data, old_buf->m_data, old_buf->m_size);
+            fs_free_buf(old_buf);
         }
     }
 

@@ -8,7 +8,9 @@ void main(void) {
     api_draw_box_in_window(win, 8, 36, 141, 43, COLOR_YELLOW);
 
     unsigned short col = (COLOR_WHITE << 8) | COLOR_BLACK;
-    api_draw_text_in_window(win, 28, 28, col, "hello, world");
+    api_draw_text_in_window(win, 28, 28, col, "hello, world", true);
+
+    api_refresh_window(win, 8, 36, 141 + 1, 43 + 2);
 
     while (true) {
         if (api_is_close_window())

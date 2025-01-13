@@ -7,6 +7,7 @@ api_console_draw_ch:
 api_console_draw_text:
   mov edx, SYSTEM_CALL_CONSOLE_DRAW_TEXT
   mov ebx, [esp + 4]
+  mov eax, [esp + 8]
   int SYSTEM_CALL_INT
   ret
 
@@ -66,24 +67,7 @@ api_draw_text_in_window:
   mov  edi, [esp + 28]  ; y
   mov  eax, [esp + 32]  ; col
   mov  ecx, [esp + 36]  ; text
-  int  SYSTEM_CALL_INT
-  pop  ebx
-  pop  ebp
-  pop  esi
-  pop  edi
-  ret
-
-api_draw_text_in_window_ds:
-  push edi
-  push esi
-  push ebp
-  push ebx
-  mov  edx, SYSTEM_CALL_DRAW_TEXT_IN_WINDOW_DS
-  mov  ebx, [esp + 20]  ; win
-  mov  esi, [esp + 24]  ; x
-  mov  edi, [esp + 28]  ; y
-  mov  eax, [esp + 32]  ; col
-  mov  ecx, [esp + 36]  ; text
+  mov  ebp, [esp + 40]  ; is_literal
   int  SYSTEM_CALL_INT
   pop  ebx
   pop  ebp
@@ -189,6 +173,75 @@ api_timer_is_timeout:
   push ebx
   mov  edx, SYSTEM_CALL_TIMER_IS_TIMEOUT
   mov  ebx, [esp + 8]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_file_open:
+  push ebx
+  mov  edx, SYSTEM_CALL_FILE_OPEN
+  mov  ebx, [esp + 8]
+  mov  eax, [esp + 12]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_file_read:
+  push edi
+  push ebx
+  mov  edx, SYSTEM_CALL_FILE_READ
+  mov  ebx, [esp + 12]
+  mov  eax, [esp + 16]
+  mov  ecx, [esp + 20]
+  mov  edi, [esp + 24]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  pop  edi
+  ret
+
+api_file_write:
+  push edi
+  push ebx
+  mov  edx, SYSTEM_CALL_FILE_WRITE
+  mov  ebx, [esp + 12]
+  mov  eax, [esp + 16]
+  mov  ecx, [esp + 20]
+  mov  edi, [esp + 24]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  pop  edi
+  ret
+
+api_file_close:
+  push ebx
+  mov  edx, SYSTEM_CALL_FILE_CLOSE
+  mov  ebx, [esp + 8]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_file_size:
+  push ebx
+  mov  edx, SYSTEM_CALL_FILE_SIZE
+  mov  ebx, [esp + 8]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_strlen_cs:
+  push ebx
+  mov  edx, SYSTEM_CALL_STRLEN_CS
+  mov  ebx, [esp + 8]
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  ret
+
+api_memcpy_cs2ds:
+  push ebx
+  mov  edx, SYSTEM_CALL_MEMCPY_CS2DS
+  mov  ebx, [esp + 8]
+  mov  eax, [esp + 12]
+  mov  ecx, [esp + 16]
   int  SYSTEM_CALL_INT
   pop  ebx
   ret

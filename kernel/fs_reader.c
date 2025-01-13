@@ -31,6 +31,17 @@ buf_t *fs_read(const char *filename) {
     return NULL;
 }
 
+buf_t *fs_new_buf(unsigned int size) {
+    buf_t *buf = (buf_t *)memman_alloc_4k(sizeof(buf_t));
+    assert(buf != NULL, "fs_new_buf alloc buf_t error");
+
+    buf->m_size = size;
+    buf->m_data = (unsigned char *)memman_alloc_4k(buf->m_size);
+    assert(buf->m_data != NULL, "fs_new_buf alloc file size buffer error");
+
+    return buf;
+}
+
 void fs_free_buf(buf_t *p) {
     if (p->m_data)
         memman_free_4k(p->m_data, p->m_size);
