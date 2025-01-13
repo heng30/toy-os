@@ -2,7 +2,7 @@
 #include "colo8.h"
 #include "pdef.h"
 #include "pstring.h"
-#include "puitl.h"
+#include "putil.h"
 
 void main(void) {
     const char *fsize_str = "a.txt file size: ";

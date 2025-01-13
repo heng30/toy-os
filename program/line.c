@@ -1,7 +1,7 @@
 #include "api.h"
 #include "colo8.h"
 #include "pdef.h"
-#include "puitl.h"
+#include "putil.h"
 
 void main(void) {
     unsigned int w = 150, h = 100;

@@ -1,11 +1,13 @@
-#include "puitl.h"
+#include "api.h"
 #include "pdef.h"
+#include "putil.h"
 
 int max(int a, int b) { return a > b ? a : b; }
 int min(int a, int b) { return a > b ? b : a; }
 
 void delay(unsigned int loop) {
-    for(unsigned int i = 0; i != loop; i++);
+    for (unsigned int i = 0; i != loop; i++)
+        ;
 }
 
 unsigned char *memset(unsigned char *buf, unsigned char c, unsigned int n) {
@@ -40,5 +42,14 @@ unsigned char *mempcpy(unsigned char *dst, unsigned char *src,
 void memmove(char *dst, const char *src, unsigned int size) {
     for (unsigned int i = 0; i < size; i++) {
         dst[i] = src[i];
+    }
+}
+
+void window_exit_wait(void) {
+    while (true) {
+        if (api_is_close_window())
+            break;
+
+        delay(DEFAULT_DELAY_LOOP);
     }
 }

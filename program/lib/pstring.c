@@ -1,5 +1,5 @@
 #include "pstring.h"
-#include "puitl.h"
+#include "putil.h"
 
 void int2hexstr(unsigned int d, char str[11]) {
     str[0] = '0', str[1] = 'X', str[10] = 0;

@@ -21,3 +21,6 @@ unsigned char *mempcpy(unsigned char *dst, unsigned char *src,
 
 // 移动数据
 void memmove(char *dst, const char *src, unsigned int size);
+
+// 等待窗口退出
+void window_exit_wait(void);
