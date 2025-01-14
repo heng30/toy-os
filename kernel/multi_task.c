@@ -113,7 +113,10 @@ void init_multi_task_ctl(void) {
         multi_task_alloc((ptr_t)NULL, 0, NULL, DEFAULT_RUNNING_TIME_SLICE);
     assert(task->m_tr == TASK_GDT0, "init_multi_task_ctl invalid main task tr");
     g_multi_task_ctl->m_current_task = task;
+
+    io_cli();
     multi_task_run(task);
+    io_sti();
 
     // 在处理器切换到保护模式之后，可以用LTR指令把TSS段描述符的选择符加载到任务寄存器TR中。这个指令会把TSS标记成忙状态（B=1），但是并不执行任务切换操作。然后处理器可以使用这个TSS来定位特权级0、1和2的堆栈。在保护模式中，软件进行第一次任务切换之前必须首先加载TSS段的选择符，因为任务切换会把当前任务状态复制到该TSS中。在LTR指令执行之后，随后对任务寄存器的操作由任务切换进行。
     // 确保第一次任务切换时，当前的TSS32值保存到`task->m_tss`中
@@ -199,10 +202,6 @@ task_t *multi_task_alloc(ptr_t task_main, unsigned int argc, void *argv[],
 void multi_task_free(task_t *task) {
     for (unsigned char i = 0; i < g_multi_task_ctl->m_tasks_counts; i++) {
         if (task == g_multi_task_ctl->m_tasks[i]) {
-
-            int eflags = io_load_eflags();
-            io_cli(); // 暂时停止接收中断信号
-
             // 更新统计信息
             g_multi_task_ctl->m_statistics.m_used_task_counts--;
             if (task->m_flags == TASK_STATUS_RUNNING) {
@@ -222,18 +221,12 @@ void multi_task_free(task_t *task) {
             }
 
             g_multi_task_ctl->m_tasks_counts--;
-
-            io_store_eflags(eflags); // 恢复接收中断信号
-
             return;
         }
     }
 }
 
 void multi_task_run(task_t *task) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-
     assert(task->m_flags == TASK_STATUS_USED,
            "multi_task_run wrong task status. only `used task` can call this "
            "function");
@@ -242,28 +235,18 @@ void multi_task_run(task_t *task) {
     g_multi_task_ctl->m_tasks[g_multi_task_ctl->m_tasks_counts] = task;
     g_multi_task_ctl->m_tasks_counts++;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
-
-    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void multi_task_resume(task_t *task) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-
     assert(task->m_flags == TASK_STATUS_SUSPEND,
            "multi_task_resume wrong task status. only suspend task can resume");
 
     task->m_flags = TASK_STATUS_RUNNING;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts--;
     g_multi_task_ctl->m_statistics.m_running_task_counts++;
-
-    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 void multi_task_suspend(task_t *task) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-
     assert(
         task->m_flags == TASK_STATUS_RUNNING,
         "multi_task_suspend wrong task status. only running task can suspend");
@@ -275,15 +258,10 @@ void multi_task_suspend(task_t *task) {
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_suspend_task_counts++;
 
-    io_store_eflags(eflags); // 恢复接收中断信号
-
     _wait_task_schedul();
 }
 
 void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-
     assert(task->m_flags == TASK_STATUS_RUNNING,
            "multi_task_sleep wrong task status. only running task can sleep");
 
@@ -295,8 +273,6 @@ void multi_task_sleep(task_t *task, unsigned int sleep_time_slice) {
     task->m_sleep_time_slice = sleep_time_slice;
     g_multi_task_ctl->m_statistics.m_running_task_counts--;
     g_multi_task_ctl->m_statistics.m_sleep_task_counts++;
-
-    io_store_eflags(eflags); // 恢复接收中断信号
 
     _wait_task_schedul();
 }
@@ -416,25 +392,17 @@ void multi_task_switch(task_t *task) {
 }
 
 bool multi_task_priority_task_add(task_t *task) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
-
     // 已经在优先队列中则不必重复添加
     if (task->m_is_priority_task)
-        goto ok;
+        return true;
 
     if (ring_put(g_multi_task_ctl->m_priority_tasks, task)) {
         task->m_flags = TASK_STATUS_RUNNING;
         task->m_is_priority_task = true;
-        goto ok;
+        return true;
     }
 
-    io_store_eflags(eflags); // 恢复接收中断信号
     return false;
-
-ok:
-    io_store_eflags(eflags); // 恢复接收中断信号
-    return true;
 }
 
 // 增加1次引用

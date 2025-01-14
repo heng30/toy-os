@@ -346,10 +346,9 @@ static void _console_task_main(task_t *task, const char *title) {
             console->m_win != g_window_ctl.m_focus_window)
             continue;
 
-        int eflags = io_load_eflags();
         io_cli();
         int c = fifo8_get(&g_keyinfo);
-        io_store_eflags(eflags); // 恢复接收中断信号
+        io_sti();
 
         if (c < 0)
             continue;
@@ -374,6 +373,9 @@ task_t *init_console_task(void) {
     static void *_console_task_argv[] = {"Console"};
     task_t *t = multi_task_alloc((ptr_t)_console_task_main, 1,
                                  _console_task_argv, ONE_RUNNING_TIME_SLICE);
+    io_cli();
     multi_task_run(t);
+    io_sti();
+
     return t;
 }

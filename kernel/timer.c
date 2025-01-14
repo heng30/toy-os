@@ -80,15 +80,14 @@ timer_t *timer_alloc(void) {
 void timer_free(timer_t *timer) { timer->m_flags = UNUSED; }
 
 void set_timer(timer_t *timer, unsigned int timeout, unsigned int run_count) {
-    int eflags = io_load_eflags();
-    io_cli(); // 暂时停止接收中断信号
+    io_cli();
 
     timer->m_flags = RUNNING;
     timer->m_timeout = timeout; // 设定时间片
     timer->m_const_timeout = timeout;
     timer->m_run_count = run_count;
 
-    io_store_eflags(eflags); // 恢复接收中断信号
+    io_sti();
 }
 
 bool timer_is_timeout(timer_t *p) {
@@ -139,7 +138,10 @@ void int_handler_for_timer(char *esp) {
 
     // 添加定时任务到优先任务队列
     if (!fifo8_is_empty(&g_timerctl.m_fifo)) {
+        int eflags = io_load_eflags();
+        io_cli(); // 暂时停止接收中断信号
         multi_task_priority_task_add(g_timer_task);
+        io_store_eflags(eflags); // 恢复接收中断信号
     }
 
     // 每次中断都进行任务调度，更新任务时间片和检查睡眠任务
@@ -150,10 +152,9 @@ static void _timer_callback(void) {
     static unsigned int timer_callback_timer_counter = 0;
     static char timer_callback_time_string[16];
 
-    int eflags = io_load_eflags();
     io_cli();
     unsigned char data = (unsigned char)fifo8_get(&g_timerctl.m_fifo);
-    io_store_eflags(eflags); // 恢复接收中断信号
+    io_sti();
 
     if (data == g_input_cursor_timer->m_index) {
         input_cursor_blink();

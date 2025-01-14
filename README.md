@@ -57,6 +57,22 @@ foo(&flag);
 assert(flag == 1); // 此处会出错，flag的值依然为0
 ```
 
+- 关中断和开中断的使用?
+    - 在中断函数
+    ```
+        int eflags = io_load_eflags();
+        io_cli(); // 暂时停止接收中断信号
+        // 中断代码
+        io_store_eflags(eflags); // 恢复接收中断信号
+    ```
+
+    - 在非中断函数
+    ````
+        io_cli();
+        // 中断代码
+        io_sti();
+    ````
+
 ### 参考
 - [30天自制操作系统](https://github.com/oddman2017/haribote)
 - [Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)

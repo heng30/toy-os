@@ -150,10 +150,9 @@ static void _input_box_task_main(task_t *task, const char *title) {
             input_box->m_win != g_window_ctl.m_focus_window)
             continue;
 
-        int eflags = io_load_eflags();
         io_cli();
         int c = fifo8_get(&g_keyinfo);
-        io_store_eflags(eflags); // 恢复接收中断信号
+        io_sti();
 
         if (c < 0)
             continue;
@@ -176,6 +175,9 @@ task_t *init_input_box_task(void) {
     static void *_input_box_task_argv[] = {"Input"};
     task_t *t = multi_task_alloc((ptr_t)_input_box_task_main, 1,
                                  _input_box_task_argv, ONE_RUNNING_TIME_SLICE);
+    io_cli();
     multi_task_run(t);
+    io_sti();
+
     return t;
 }

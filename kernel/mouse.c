@@ -149,7 +149,11 @@ void int_handler_for_mouse(char *esp) {
     unsigned char data = io_in8(PORT_KEYDAT);
     g_rand_number = (g_rand_number << 8) | data; // 更新随机数
     fifo8_put(&g_mouseinfo, data);
+
+    int eflags = io_load_eflags();
+    io_cli(); // 暂时停止接收中断信号
     multi_task_priority_task_add(g_mouse_task);
+    io_store_eflags(eflags); // 恢复接收中断信号
 }
 
 bool is_mouse_left_btn_pressed(void) { return (g_mdec.m_btn & 0x01) != 0; }
@@ -242,10 +246,9 @@ static void _mouse_task_main(task_t *task) {
         if (fifo8_is_empty(&g_mouseinfo))
             continue;
 
-        int eflags = io_load_eflags();
         io_cli();
         int code = fifo8_get(&g_mouseinfo);
-        io_store_eflags(eflags); // 恢复接收中断信号
+        io_sti();
 
         if (code < 0)
             continue;
