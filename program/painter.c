@@ -158,7 +158,7 @@ void main(void) {
     unsigned int w = 400, h = 300;
     unsigned char winbuf[400 * 300];
     moving_box_t boxs[MOVE_BOX_COUNT];
-    unsigned int win = api_new_window(100, 100, w, h, "Paiter");
+    unsigned int win = api_new_window(100, 100, w, h, "Painter");
     _draw_body_background(win, w, h);
 
     api_dump_window_sheet(win, 0, 0, w - 1, h - 1, winbuf);
