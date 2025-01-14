@@ -11,6 +11,12 @@
 
 #include "widgets/console.h"
 
+void cmd_help(console_t *p) {
+    const char* text = "ls cat cls mem free";
+    console_draw_text(p, text);
+    console_move_to_next_line(p);
+}
+
 void cmd_cls(console_t *p) { console_input_area_clear_all(p); }
 
 void cmd_mem(console_t *console) {

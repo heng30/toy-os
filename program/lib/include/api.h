@@ -44,6 +44,16 @@ void api_draw_line_in_window(unsigned int win, unsigned int x0, unsigned int y0,
                              unsigned int x1, unsigned int y1,
                              unsigned char col);
 
+// 获取图层的副本
+bool api_dump_window_sheet(unsigned int win, unsigned int x0, unsigned int y0,
+                           unsigned int x1, unsigned int y1,
+                           unsigned char *buf);
+
+// 覆盖指定图层区域
+void api_cover_window_sheet(unsigned int win, unsigned int x0, unsigned int y0,
+                            unsigned int x1, unsigned int y1,
+                            unsigned char *buf);
+
 // 获取一个随机数
 unsigned int api_rand_uint(unsigned int seed);
 

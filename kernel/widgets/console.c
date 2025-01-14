@@ -166,14 +166,16 @@ static void _console_handle_command(console_t *p) {
 
     if (!strcmp(cmd, "cls")) {
         cmd_cls(p);
+    } else if (!strcmp(cmd, "ls")) {
+        cmd_ls(p);
     } else if (!strcmp(cmd, "mem")) {
         cmd_mem(p);
     } else if (!strcmp(cmd, "free")) {
         cmd_free(p);
-    } else if (!strcmp(cmd, "ls")) {
-        cmd_ls(p);
     } else if (str_start_with(cmd, "cat ")) {
         cmd_cat(p);
+    } else if (str_start_with(cmd, "help")) {
+        cmd_help(p);
     } else if (str_end_with(cmd, ".exe")) {
         cmd_exe(p);
     }

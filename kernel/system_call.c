@@ -29,7 +29,7 @@ static void _sc_console_draw_text(unsigned int ebx, bool is_literal) {
     if (!p->m_cmd->m_data)
         return;
 
-    const char *text =  NULL;
+    const char *text = NULL;
     if (is_literal)
         text = (const char *)(p->m_cmd->m_data + ebx);
     else
@@ -152,6 +152,73 @@ static void _sc_draw_line_in_window(unsigned int win, unsigned int x0,
     }
 }
 
+static void _sc_dump_window_sheet(ptr_t *reg, unsigned int win, unsigned int x0,
+                                  unsigned int y0, unsigned int x1,
+                                  unsigned int y1, unsigned int offset) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+
+        x1 = min_unsigned(x1, sht->m_bxsize - 1);
+        y1 = min_unsigned(y1, sht->m_bysize - 1);
+
+        if (x0 > x1 || y0 > y1) {
+            reg[7] = false;
+            return;
+        }
+
+        unsigned char *buf = p->m_cmd_ds + offset;
+
+        // 复制图层数据到用户缓冲区
+        for (unsigned int y_src = y0, y_dst = 0; y_src <= y1;
+             y_src++, y_dst++) {
+            for (unsigned int x_src = x0, x_dst = 0; x_src <= x1;
+                 x_src++, x_dst++) {
+                unsigned int pos_src = y_src * sht->m_bxsize + x_src;
+                unsigned int pos_dst = y_dst * (x1 - x0 + 1) + x_dst;
+                buf[pos_dst] = sht->m_buf[pos_src];
+            }
+        }
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
+
+static void _sc_cover_window_sheet(unsigned int win, unsigned int x0,
+                                   unsigned int y0, unsigned int x1,
+                                   unsigned int y1, unsigned int offset) {
+    console_t *p = console_get();
+    window_t *pwin = (window_t *)win;
+
+    if (window_ctl_is_window_exist(pwin)) {
+        win_sheet_t *sht = pwin->m_sheet;
+
+        x1 = min_unsigned(x1, sht->m_bxsize - 1);
+        y1 = min_unsigned(y1, sht->m_bysize - 1);
+
+        if (x0 > x1 || y0 > y1) {
+            return;
+        }
+
+        unsigned char *buf = p->m_cmd_ds + offset;
+
+        // 复制用户缓冲区数据到图层
+        for (unsigned int y_src = 0, y_dst = y0; y_dst <= y1;
+             y_src++, y_dst++) {
+            for (unsigned int x_src = 0, x_dst = x0; x_dst <= x1;
+                 x_src++, x_dst++) {
+                unsigned int pos_src = y_src * (x1 - x0 + 1) + x_src;
+                unsigned int pos_dst = y_dst * sht->m_bxsize + x_dst;
+                sht->m_buf[pos_dst] = buf[pos_src];
+            }
+        }
+    } else {
+        _sc_no_window_errmsg(p, win);
+    }
+}
+
 static void _sc_rand_uint(ptr_t *reg, unsigned int seed) {
     g_rand_number = g_rand_number ^ seed; // 更新随机数
     reg[7] = g_rand_number;
@@ -223,6 +290,10 @@ static bool _sc_handle_window_2(ptr_t *reg, unsigned int edi, unsigned int esi,
         _sc_draw_point_in_window(ebx, esi, edi, (unsigned char)eax);
     } else if (edx == SYSTEM_CALL_DRAW_LINE_IN_WINDOW) {
         _sc_draw_line_in_window(ebx, eax, ecx, esi, edi, (unsigned char)ebp);
+    } else if (edx == SYSTEM_CALL_DUMP_WINDOW_SHEET) {
+        _sc_dump_window_sheet(reg, ebx, eax, ecx, esi, edi, ebp);
+    } else if (edx == SYSTEM_CALL_COVER_WINDOW_SHEET) {
+        _sc_cover_window_sheet(ebx, eax, ecx, esi, edi, ebp);
     } else {
         is_handle = false;
     }
@@ -284,8 +355,8 @@ static void _sc_strlen_cs(ptr_t *reg, unsigned int offset) {
     reg[7] = len;
 }
 
-static void _sc_memcpy_cs2ds(ptr_t* reg, unsigned int ds_offset, unsigned int cs_offset,
-                             unsigned int len) {
+static void _sc_memcpy_cs2ds(ptr_t *reg, unsigned int ds_offset,
+                             unsigned int cs_offset, unsigned int len) {
     console_t *p = console_get();
     unsigned char *ds_s = p->m_cmd_ds + ds_offset;
     unsigned char *cs_s = p->m_cmd->m_data + cs_offset;

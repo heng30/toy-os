@@ -1,6 +1,7 @@
 #include "api.h"
 #include "colo8.h"
 #include "pdef.h"
+#include "pdraw.h"
 #include "ptimer.h"
 #include "putil.h"
 
@@ -9,11 +10,11 @@
 #define DIRECTION_LEFT 4
 #define DIRECTION_RIGHT 8
 
-#define MOVE_BOX_COUNT 20 // 盒子数量
+#define MOVE_BOX_COUNT 10 // 盒子数量
 #define MIN_BOX_SIZE 16   // 盒子最小宽高
 #define MAX_BOX_SIZE 24   // 盒子最大宽高
 #define MIN_VELOCITY 4    // 最小移动像素
-#define MAX_VELOCITY 8   // 最大移动像素
+#define MAX_VELOCITY 8    // 最大移动像素
 
 #define RAND_SEED_X 470387
 #define RAND_SEED_Y 489237
@@ -38,8 +39,10 @@ static void _draw_body_background(unsigned int win, unsigned int w,
         w - WINDOW_BORDER_SIZE - 1, h - WINDOW_BORDER_SIZE - 1, COLOR_BLACK);
 }
 
-static void _refresh_body(unsigned int win, unsigned int w, unsigned int h) {
-    api_refresh_window(win, 0, WINDOW_TITLE_BAR_HEIGHT, w, h);
+static void _refresh_body(unsigned int win, unsigned char *winbuf,
+                          unsigned int w, unsigned int h) {
+    api_cover_window_sheet(win, 0, 0, w - 1, h - 1, winbuf);
+    api_refresh_window(win, 0, 0, w, h);
 }
 
 static void _init_game(unsigned int w, unsigned int h, moving_box_t *boxs) {
@@ -76,21 +79,17 @@ static void _init_game(unsigned int w, unsigned int h, moving_box_t *boxs) {
     }
 }
 
-static void _draw_scene(unsigned int win, unsigned int w, unsigned int h,
-                        moving_box_t *boxs) {
-    _draw_body_background(win, w, h);
-
+static void _draw_scene(unsigned int win, unsigned char *winbuf, unsigned int w,
+                        unsigned int h, moving_box_t *boxs) {
     for (unsigned int i = 0; i < MOVE_BOX_COUNT; i++) {
         moving_box_t *p = &boxs[i];
-        api_draw_box_in_window(win, p->m_x, p->m_y, p->m_x + p->m_size,
-                               p->m_y + p->m_size, p->m_color);
+        boxfill8(winbuf, w, p->m_color, p->m_x, p->m_y, p->m_x + p->m_size,
+                 p->m_y + p->m_size);
     }
-
-    _refresh_body(win, w, h);
+    _refresh_body(win, winbuf, w, h);
 }
 
-static void _update_scene(unsigned int win, unsigned int w, unsigned int h,
-                          moving_box_t *boxs) {
+static void _update_scene(unsigned int w, unsigned int h, moving_box_t *boxs) {
     unsigned int sx = WINDOW_BORDER_SIZE,
                  sy = WINDOW_TITLE_BAR_HEIGHT + WINDOW_BORDER_SIZE;
     unsigned int ex = w - WINDOW_BORDER_SIZE - 1,
@@ -142,14 +141,14 @@ static void _update_scene(unsigned int win, unsigned int w, unsigned int h,
     }
 }
 
-static void _run_game(unsigned int win, unsigned int w, unsigned int h,
-                      unsigned int timer, moving_box_t *boxs) {
+static void _run_game(unsigned int win, unsigned char *winbuf, unsigned int w,
+                      unsigned int h, unsigned int timer, moving_box_t *boxs) {
     while (true) {
         if (api_is_close_window())
             break;
 
-        _draw_scene(win, w, h, boxs);
-        _update_scene(win, w, h, boxs);
+        _draw_scene(win, winbuf, w, h, boxs);
+        _update_scene(w, h, boxs);
 
         timer_wait(timer);
     }
@@ -157,14 +156,18 @@ static void _run_game(unsigned int win, unsigned int w, unsigned int h,
 
 void main(void) {
     unsigned int w = 400, h = 300;
+    unsigned char winbuf[400 * 300];
     moving_box_t boxs[MOVE_BOX_COUNT];
-    unsigned int win = api_new_window(100, 100, w, h, "mbox");
+    unsigned int win = api_new_window(100, 100, w, h, "Paiter");
+    _draw_body_background(win, w, h);
+
+    api_dump_window_sheet(win, 0, 0, w - 1, h - 1, winbuf);
 
     unsigned int timer = api_timer_alloc();
-    api_timer_set(timer, 2, TIMER_MAX_RUN_COUNTS);
+    api_timer_set(timer, 4, TIMER_MAX_RUN_COUNTS);
 
     _init_game(w, h, (moving_box_t *)&boxs);
-    _run_game(win, w, h, timer, (moving_box_t *)boxs);
+    _run_game(win, winbuf, w, h, timer, (moving_box_t *)boxs);
 
     api_timer_free(timer);
     api_close_window(win);

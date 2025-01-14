@@ -2,6 +2,9 @@
 
 #include "widgets/console.h"
 
+// 显示帮助信息
+void cmd_help(console_t *p);
+
 // 清空屏幕
 void cmd_cls(console_t *p);
 

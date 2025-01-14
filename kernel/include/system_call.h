@@ -76,6 +76,12 @@ extern volatile unsigned int g_rand_number;
 // 在窗口绘制一条直线
 #define SYSTEM_CALL_DRAW_LINE_IN_WINDOW 504
 
+// 获取图层的副本
+#define SYSTEM_CALL_DUMP_WINDOW_SHEET 505
+
+// 覆盖指定图层区域
+#define SYSTEM_CALL_COVER_WINDOW_SHEET 506
+
 // 需要终端打印的字符放到al寄存器中
 #define SYSTEM_CALL_CONSOLE_DRAW_CH 1000
 

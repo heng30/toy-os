@@ -7,7 +7,7 @@
 #include "wuitl.h"
 
 #define CONSOLE_TEXT_MAX_LEN 4096
-#define CONSOLE_CMD_DS_SIZE (128 * KB)
+#define CONSOLE_CMD_DS_SIZE (512 * KB)
 
 typedef struct {
     window_t *m_win;

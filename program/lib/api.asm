@@ -128,6 +128,44 @@ api_draw_line_in_window:
   pop  edi
   ret
 
+api_dump_window_sheet:
+  push edi
+  push esi
+  push ebp
+  push ebx
+  mov  edx, SYSTEM_CALL_DUMP_WINDOW_SHEET
+  mov  ebx, [esp + 20] ; win
+  mov  eax, [esp + 24] ; x0
+  mov  ecx, [esp + 28] ; y0
+  mov  esi, [esp + 32] ; x1
+  mov  edi, [esp + 36] ; y1
+  mov  ebp, [esp + 40] ; buf
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  pop  ebp
+  pop  esi
+  pop  edi
+  ret
+
+api_cover_window_sheet:
+  push edi
+  push esi
+  push ebp
+  push ebx
+  mov  edx, SYSTEM_CALL_COVER_WINDOW_SHEET
+  mov  ebx, [esp + 20] ; win
+  mov  eax, [esp + 24] ; x0
+  mov  ecx, [esp + 28] ; y0
+  mov  esi, [esp + 32] ; x1
+  mov  edi, [esp + 36] ; y1
+  mov  ebp, [esp + 40] ; buf
+  int  SYSTEM_CALL_INT
+  pop  ebx
+  pop  ebp
+  pop  esi
+  pop  edi
+  ret
+
 api_rand_uint:
   push ebx
   mov  edx, SYSTEM_CALL_RAND_UINT

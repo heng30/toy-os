@@ -61,3 +61,4 @@ void window_exit_wait(void) {
         delay(DEFAULT_DELAY_LOOP);
     }
 }
+
