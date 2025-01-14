@@ -16,6 +16,8 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
+#define COLOR_VISIBLE_MAX 231   // 最大的可见颜色
+
 #define COLOR_INVISIBLE 255
 
 #define COLOR_WHITE COL8_FFFFFF

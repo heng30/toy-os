@@ -5,6 +5,14 @@
 int max(int a, int b) { return a > b ? a : b; }
 int min(int a, int b) { return a > b ? b : a; }
 
+unsigned int max_unsigned(unsigned int a, unsigned int b) {
+    return a > b ? a : b;
+}
+
+unsigned int min_unsigned(unsigned int a, unsigned int b) {
+    return a > b ? b : a;
+}
+
 void delay(unsigned int loop) {
     for (unsigned int i = 0; i != loop; i++)
         ;
