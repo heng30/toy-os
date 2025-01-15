@@ -181,9 +181,13 @@ static void _sc_dump_window_sheet(ptr_t *reg, unsigned int win, unsigned int x0,
                 buf[pos_dst] = sht->m_buf[pos_src];
             }
         }
+
+        reg[7] = true;
     } else {
         _sc_no_window_errmsg(p, win);
     }
+
+    reg[7] = false;
 }
 
 static void _sc_cover_window_sheet(unsigned int win, unsigned int x0,

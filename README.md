@@ -19,7 +19,7 @@
 - 快捷键`ctrl+tab`切换焦点窗口
 
 ### 如何使用该项目？
-- 编译启动镜像：`make`
+- 编译软盘镜像：`make`
 - 启动`virtualbox`，创建一个虚拟机，虚拟机以软盘启动。软盘加载`build/disk.img`作为启动镜像.
 
 ![1.png](./screenshot/1.png)
@@ -78,5 +78,4 @@ assert(flag == 1); // 此处会出错，flag的值依然为0
 - [30天自制操作系统](https://github.com/oddman2017/haribote)
 - [Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)
 - [课程代码github](https://github.com/wycl16514)
-- [重点课程：从实模式进入保护模式](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.player.switch&vd_source=da23da82658adda9cbdfd045a9e6daf7&p=5)
 - [BookOS](https://github.com/hzcx998/BookOS)
