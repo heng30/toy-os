@@ -79,3 +79,4 @@ assert(flag == 1); // 此处会出错，flag的值依然为0
 - [Linux操作系统-构建自己的内核](https://www.bilibili.com/video/BV1VJ41157wq?spm_id_from=333.788.videopod.episodes&vd_source=da23da82658adda9cbdfd045a9e6daf7)
 - [课程代码github](https://github.com/wycl16514)
 - [BookOS](https://github.com/hzcx998/BookOS)
+- [1000 行代码的操作系统](https://operating-system-in-1000-lines.vercel.app/zh/)
